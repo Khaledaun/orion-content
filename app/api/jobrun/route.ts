@@ -1,59 +1,44 @@
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { z } from 'zod'
 import { requireAuth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 
-export const dynamic = 'force-dynamic'
+const jobRunSchema = z.object({
+  jobType: z.string().min(1),
+  startedAt: z.string().datetime(),
+  endedAt: z.string().datetime().optional(),
+  ok: z.boolean().optional(),
+  logUrl: z.string().url().optional(),
+  notes: z.string().optional(),
+})
 
-export async function POST(request: NextRequest) {
+async function handler(req: NextRequest) {
+  if (req.method !== 'POST') {
+    return NextResponse.json({ error: 'Method not allowed' }, { status: 405 })
+  }
+  
   try {
-    await requireAuth()
-
-    const { jobType, startedAt, endedAt, ok, logUrl, notes } = await request.json()
-
-    if (!jobType || !startedAt) {
-      return NextResponse.json(
-        { error: 'jobType and startedAt are required' },
-        { status: 400 }
-      )
-    }
-
+    const body = await req.json()
+    const data = jobRunSchema.parse(body)
+    
     const jobRun = await prisma.jobRun.create({
       data: {
-        jobType,
-        startedAt: new Date(startedAt),
-        endedAt: endedAt ? new Date(endedAt) : null,
-        ok: ok || false,
-        logUrl: logUrl || null,
-        notes: notes || null,
+        ...data,
+        startedAt: new Date(data.startedAt),
+        endedAt: data.endedAt ? new Date(data.endedAt) : null,
       },
     })
-
-    return NextResponse.json(jobRun)
+    
+    return NextResponse.json({ jobRun })
   } catch (error) {
-    console.error('Create job run error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.errors }, { status: 400 })
+    }
+    
+    console.error('Error creating job run:', error)
+    return NextResponse.json({ error: 'Failed to create job run' }, { status: 500 })
   }
 }
 
-export async function GET() {
-  try {
-    await requireAuth()
-
-    const jobRuns = await prisma.jobRun.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 50,
-    })
-
-    return NextResponse.json(jobRuns)
-  } catch (error) {
-    console.error('Get job runs error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
-}
+export const POST = requireAuth(handler)
