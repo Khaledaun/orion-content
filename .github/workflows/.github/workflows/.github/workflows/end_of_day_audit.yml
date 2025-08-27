@@ -1,0 +1,12 @@
+name: end-of-day-audit
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "0 19 * * 1-6" # Runs Mon–Sat ~22:00 Israel time (19:00 UTC)
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Audit stub – will check live URLs later."
