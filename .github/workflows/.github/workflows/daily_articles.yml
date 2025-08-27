@@ -1,0 +1,19 @@
+name: daily-articles
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "0 6 * * 1-6" # Runs Mon–Sat at 09:00 Israel time (06:00 UTC)
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python pipelines/publish/publisher_wp.py
