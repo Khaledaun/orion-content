@@ -1,44 +1,59 @@
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { z } from 'zod'
 import { requireAuth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 
-export const dynamic = 'force-dynamic'
+const topicsSchema = z.object({
+  topics: z.array(z.object({
+    siteId: z.string(),
+    categoryId: z.string(),
+    title: z.string().min(1),
+    angle: z.string().optional(),
+    score: z.number().optional(),
+    approved: z.boolean().default(false),
+  }))
+})
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+async function handler(req: NextRequest, { params }: { params: { id: string } }) {
+  if (req.method !== 'POST') {
+    return NextResponse.json({ error: 'Method not allowed' }, { status: 405 })
+  }
+  
   try {
-    await requireAuth()
-
-    const { topics } = await request.json()
-
-    if (!Array.isArray(topics)) {
-      return NextResponse.json(
-        { error: 'Topics must be an array' },
-        { status: 400 }
-      )
-    }
-
-    const createdTopics = await prisma.topic.createMany({
-      data: topics.map((topic: any) => ({
-        weekId: params.id,
-        siteId: topic.siteId,
-        categoryId: topic.categoryId,
-        title: topic.title,
-        angle: topic.angle || null,
-        score: topic.score || null,
-        approved: topic.approved || false,
-      })),
+    const { id: weekId } = params
+    const body = await req.json()
+    const { topics } = topicsSchema.parse(body)
+    
+    // Verify week exists
+    const week = await prisma.week.findUnique({
+      where: { id: weekId }
     })
-
-    return NextResponse.json({ count: createdTopics.count })
+    
+    if (!week) {
+      return NextResponse.json({ error: 'Week not found' }, { status: 404 })
+    }
+    
+    // Create topics
+    const createdTopics = await prisma.topic.createMany({
+      data: topics.map(topic => ({
+        ...topic,
+        weekId,
+      }))
+    })
+    
+    return NextResponse.json({ 
+      created: createdTopics.count,
+      weekId 
+    })
   } catch (error) {
-    console.error('Bulk insert topics error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.errors }, { status: 400 })
+    }
+    
+    console.error('Error creating topics:', error)
+    return NextResponse.json({ error: 'Failed to create topics' }, { status: 500 })
   }
 }
+
+export const POST = requireAuth(handler)

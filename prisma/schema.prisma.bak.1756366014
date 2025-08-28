@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Site {
+  id         String     @id @default(cuid())
+  key        String     @unique
+  name       String
+  timezone   String     @default("UTC")
+  publisher  String?
+  locales    Json?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  categories Category[]
+  topics     Topic[]
+
+  @@map("sites")
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  siteId    String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  topics    Topic[]
+
+  @@map("categories")
+}
+
+model Week {
+  id        String     @id @default(cuid())
+  isoWeek   String     @unique
+  status    WeekStatus @default(PENDING)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  topics    Topic[]
+
+  @@map("weeks")
+}
+
+model Topic {
+  id         String   @id @default(cuid())
+  weekId     String
+  siteId     String
+  categoryId String
+  title      String
+  angle      String?
+  score      Float?
+  approved   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  site       Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  week       Week     @relation(fields: [weekId], references: [id], onDelete: Cascade)
+
+  @@map("topics")
+}
+
+model Connection {
+  id        String   @id @default(cuid())
+  kind      String
+  dataEnc   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("connections")
+}
+
+model JobRun {
+  id        String    @id @default(cuid())
+  jobType   String
+  startedAt DateTime
+  endedAt   DateTime?
+  ok        Boolean   @default(false)
+  logUrl    String?
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("job_runs")
+}
+
+enum WeekStatus {
+  PENDING
+  APPROVED
+}
