@@ -50,7 +50,3 @@ jobs:
           ORION_CONSOLE_TOKEN: DUMMY
         run: |
           . .venv/bin/activate
-          PYTHONPATH=. pytest -q
-        run: |
-          . .venv/bin/activate
-          PYTHONPATH=. pytest -q
