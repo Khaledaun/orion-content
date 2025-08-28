@@ -54,5 +54,6 @@ export function decryptJson<T>(encString: string): T {
 }
 
 export function generateApiToken(): string {
-  return randomBytes(24).toString('base64url')
+  const b64 = randomBytes(32).toString('base64');
+  return b64.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')
 }
