@@ -1,0 +1,364 @@
+name: Orion Multi-Site Automation (Phase 5)
+
+on:
+  schedule:
+    # Run twice daily UTC (6 AM and 4 PM UTC)
+    - cron: "5 6,16 * * *"
+  workflow_dispatch:
+    inputs:
+      sites:
+        description: 'Sites to run (comma-separated, optional - auto-detects from secrets if empty)'
+        required: false
+        type: string
+      execution_mode:
+        description: 'Execution mode'
+        required: true
+        default: 'parallel'
+        type: choice
+        options:
+          - parallel
+          - sequential
+          - matrix
+      topic_count_override:
+        description: 'Override topic count for all sites (leave empty to use site configs)'
+        required: false
+        type: string
+      dry_run:
+        description: 'Run in dry-run mode (no WordPress publishing)'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  # Job 1: Detect sites and prepare matrix
+  prepare-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.get-matrix.outputs.matrix }}
+      sites: ${{ steps.get-matrix.outputs.sites }}
+      execution-mode: ${{ steps.get-matrix.outputs.execution-mode }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install -r python/requirements.txt
+      
+      - name: Prepare execution matrix
+        id: get-matrix
+        env:
+          # Core configuration
+          ORION_BASE_URL: ${{ secrets.CONSOLE_BASE_URL }}
+          ORION_CONSOLE_TOKEN: ${{ secrets.CONSOLE_API_TOKEN }}
+          ORION_SITES: ${{ inputs.sites || secrets.ORION_SITES || '' }}
+          TOPIC_COUNT: ${{ secrets.TOPIC_COUNT || '5' }}
+          ENRICH_PROMPT_STRATEGY: ${{ secrets.ENRICH_PROMPT_STRATEGY || 'default' }}
+          
+          # Default WordPress credentials (can be overridden per site)
+          WP_BASE_URL: ${{ secrets.WP_BASE_URL }}
+          WP_USERNAME: ${{ secrets.WP_USERNAME }}
+          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+          
+          # Site-specific credentials examples (add as needed):
+          # Travel site
+          WP_URL__travel: ${{ secrets.WP_URL__TRAVEL }}
+          WP_USERNAME__travel: ${{ secrets.WP_USERNAME__TRAVEL }}
+          WP_APP_PASSWORD__travel: ${{ secrets.WP_APP_PASSWORD__TRAVEL }}
+          TOPIC_COUNT__travel: ${{ secrets.TOPIC_COUNT__TRAVEL }}
+          ENRICH_PROMPT_STRATEGY__travel: ${{ secrets.ENRICH_PROMPT_STRATEGY__TRAVEL }}
+          
+          # Finance site
+          WP_URL__finance: ${{ secrets.WP_URL__FINANCE }}
+          WP_USERNAME__finance: ${{ secrets.WP_USERNAME__FINANCE }}
+          WP_APP_PASSWORD__finance: ${{ secrets.WP_APP_PASSWORD__FINANCE }}
+          TOPIC_COUNT__finance: ${{ secrets.TOPIC_COUNT__FINANCE }}
+          ENRICH_PROMPT_STRATEGY__finance: ${{ secrets.ENRICH_PROMPT_STRATEGY__FINANCE }}
+          
+          # Health site  
+          WP_URL__health: ${{ secrets.WP_URL__HEALTH }}
+          WP_USERNAME__health: ${{ secrets.WP_USERNAME__HEALTH }}
+          WP_APP_PASSWORD__health: ${{ secrets.WP_APP_PASSWORD__HEALTH }}
+          TOPIC_COUNT__health: ${{ secrets.TOPIC_COUNT__HEALTH }}
+          ENRICH_PROMPT_STRATEGY__health: ${{ secrets.ENRICH_PROMPT_STRATEGY__HEALTH }}
+          
+          # Technology site
+          WP_URL__tech: ${{ secrets.WP_URL__TECH }}
+          WP_USERNAME__tech: ${{ secrets.WP_USERNAME__TECH }}
+          WP_APP_PASSWORD__tech: ${{ secrets.WP_APP_PASSWORD__TECH }}
+          TOPIC_COUNT__tech: ${{ secrets.TOPIC_COUNT__TECH }}
+          ENRICH_PROMPT_STRATEGY__tech: ${{ secrets.ENRICH_PROMPT_STRATEGY__TECH }}
+        
+        run: |
+          source .venv/bin/activate
+          
+          echo "Detecting sites and generating matrix..."
+          
+          # Get execution mode
+          EXECUTION_MODE="${{ inputs.execution_mode || 'parallel' }}"
+          echo "execution-mode=${EXECUTION_MODE}" >> $GITHUB_OUTPUT
+          
+          # Generate matrix for sites
+          MATRIX_JSON=$(PYTHONPATH=python python -m orion.automate.multisite --matrix)
+          echo "Generated matrix:"
+          echo "$MATRIX_JSON" | jq .
+          
+          # Output matrix for subsequent jobs
+          echo "matrix=${MATRIX_JSON}" >> $GITHUB_OUTPUT
+          
+          # Extract site list for summary
+          SITES=$(echo "$MATRIX_JSON" | jq -r '.include[].site' | tr '\n' ',' | sed 's/,$//')
+          echo "sites=${SITES}" >> $GITHUB_OUTPUT
+          echo "Detected sites: ${SITES}"
+
+  # Job 2A: Run sites in parallel/sequential mode (unified approach)
+  run-unified:
+    needs: prepare-matrix
+    runs-on: ubuntu-latest
+    if: needs.prepare-matrix.outputs.execution-mode != 'matrix'
+    
+    env:
+      # Core configuration
+      ORION_BASE_URL: ${{ secrets.CONSOLE_BASE_URL }}
+      ORION_CONSOLE_TOKEN: ${{ secrets.CONSOLE_API_TOKEN }}
+      ORION_SITES: ${{ needs.prepare-matrix.outputs.sites }}
+      TOPIC_COUNT: ${{ secrets.TOPIC_COUNT || '5' }}
+      ENRICH_PROMPT_STRATEGY: ${{ secrets.ENRICH_PROMPT_STRATEGY || 'default' }}
+      
+      # Default WordPress credentials
+      WP_BASE_URL: ${{ secrets.WP_BASE_URL }}
+      WP_USERNAME: ${{ secrets.WP_USERNAME }}
+      WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+      
+      # All site-specific credentials
+      WP_URL__travel: ${{ secrets.WP_URL__TRAVEL }}
+      WP_USERNAME__travel: ${{ secrets.WP_USERNAME__TRAVEL }}
+      WP_APP_PASSWORD__travel: ${{ secrets.WP_APP_PASSWORD__TRAVEL }}
+      TOPIC_COUNT__travel: ${{ secrets.TOPIC_COUNT__TRAVEL }}
+      ENRICH_PROMPT_STRATEGY__travel: ${{ secrets.ENRICH_PROMPT_STRATEGY__TRAVEL }}
+      
+      WP_URL__finance: ${{ secrets.WP_URL__FINANCE }}
+      WP_USERNAME__finance: ${{ secrets.WP_USERNAME__FINANCE }}
+      WP_APP_PASSWORD__finance: ${{ secrets.WP_APP_PASSWORD__FINANCE }}
+      TOPIC_COUNT__finance: ${{ secrets.TOPIC_COUNT__FINANCE }}
+      ENRICH_PROMPT_STRATEGY__finance: ${{ secrets.ENRICH_PROMPT_STRATEGY__FINANCE }}
+      
+      WP_URL__health: ${{ secrets.WP_URL__HEALTH }}
+      WP_USERNAME__health: ${{ secrets.WP_USERNAME__HEALTH }}
+      WP_APP_PASSWORD__health: ${{ secrets.WP_APP_PASSWORD__HEALTH }}
+      TOPIC_COUNT__health: ${{ secrets.TOPIC_COUNT__HEALTH }}
+      ENRICH_PROMPT_STRATEGY__health: ${{ secrets.ENRICH_PROMPT_STRATEGY__HEALTH }}
+      
+      WP_URL__tech: ${{ secrets.WP_URL__TECH }}
+      WP_USERNAME__tech: ${{ secrets.WP_USERNAME__TECH }}
+      WP_APP_PASSWORD__tech: ${{ secrets.WP_APP_PASSWORD__TECH }}
+      TOPIC_COUNT__tech: ${{ secrets.TOPIC_COUNT__TECH }}
+      ENRICH_PROMPT_STRATEGY__tech: ${{ secrets.ENRICH_PROMPT_STRATEGY__TECH }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install -r python/requirements.txt
+      
+      - name: Validate multi-site configuration
+        run: |
+          source .venv/bin/activate
+          echo "Validating multi-site configuration..."
+          PYTHONPATH=python python -m orion.automate.multisite --validate-all
+          
+          # Test API connectivity
+          PYTHONPATH=python python -c "
+          from orion.api_client import client
+          try:
+              health = client.health_check()
+              print(f'API Health: {health}')
+              if not health.get('ok'):
+                  exit(1)
+          except Exception as e:
+              print(f'API Error: {e}')
+              exit(1)
+          "
+      
+      - name: Run multi-site automation pipeline
+        run: |
+          source .venv/bin/activate
+          
+          # Build command arguments
+          ARGS="--sites ${{ needs.prepare-matrix.outputs.sites }}"
+          
+          if [[ "${{ needs.prepare-matrix.outputs.execution-mode }}" == "sequential" ]]; then
+            ARGS="$ARGS --sequential"
+          fi
+          
+          if [[ -n "${{ inputs.topic_count_override }}" ]]; then
+            ARGS="$ARGS --topics ${{ inputs.topic_count_override }}"
+          fi
+          
+          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+            ARGS="$ARGS --publish 0"
+          fi
+          
+          echo "Running multi-site pipeline with args: $ARGS"
+          
+          # Execute pipeline
+          PYTHONPATH=python python -m orion.automate.run_pipeline_multisite $ARGS
+      
+      - name: Upload automation logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: automation-logs-unified-${{ github.run_id }}
+          path: automation-logs/
+          retention-days: 30
+
+  # Job 2B: Run sites as matrix jobs (maximum parallelization)
+  run-matrix:
+    needs: prepare-matrix
+    runs-on: ubuntu-latest
+    if: needs.prepare-matrix.outputs.execution-mode == 'matrix'
+    strategy:
+      matrix: ${{ fromJson(needs.prepare-matrix.outputs.matrix) }}
+      fail-fast: false  # Continue running other sites even if one fails
+    
+    env:
+      # Core configuration
+      ORION_BASE_URL: ${{ secrets.CONSOLE_BASE_URL }}
+      ORION_CONSOLE_TOKEN: ${{ secrets.CONSOLE_API_TOKEN }}
+      
+      # Set site as primary for this job
+      ORION_SITES: ${{ matrix.site }}
+      TOPIC_COUNT: ${{ matrix.topic_count }}
+      ENRICH_PROMPT_STRATEGY: ${{ matrix.strategy }}
+      
+      # Default WordPress credentials
+      WP_BASE_URL: ${{ secrets.WP_BASE_URL }}
+      WP_USERNAME: ${{ secrets.WP_USERNAME }}
+      WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install -r python/requirements.txt
+      
+      - name: Set site-specific credentials
+        run: |
+          # Set site-specific WordPress credentials dynamically
+          SITE="${{ matrix.site }}"
+          SITE_UPPER=$(echo "$SITE" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+          
+          echo "Configured matrix job for site: ${{ matrix.site }}"
+          echo "Topic count: ${{ matrix.topic_count }}"
+          echo "Strategy: ${{ matrix.strategy }}"
+          echo "Has WP: ${{ matrix.has_wp }}"
+      
+      - name: Run single site pipeline
+        run: |
+          source .venv/bin/activate
+          
+          PUBLISH_FLAG=1
+          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+            PUBLISH_FLAG=0
+          fi
+          
+          TOPIC_COUNT="${{ matrix.topic_count }}"
+          if [[ -n "${{ inputs.topic_count_override }}" ]]; then
+            TOPIC_COUNT="${{ inputs.topic_count_override }}"
+          fi
+          
+          echo "Running pipeline for site: ${{ matrix.site }}"
+          
+          # Run single-site pipeline
+          PYTHONPATH=python python -m orion.automate.run_pipeline \
+            --site-key "${{ matrix.site }}" \
+            --topics "$TOPIC_COUNT" \
+            --publish "$PUBLISH_FLAG"
+      
+      - name: Upload site logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: automation-logs-${{ matrix.site }}-${{ github.run_id }}
+          path: automation-logs/${{ matrix.site }}/
+          retention-days: 30
+
+  # Job 3: Summary and notification
+  summary:
+    needs: [prepare-matrix, run-unified, run-matrix]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Generate execution summary
+        run: |
+          echo "## Multi-Site Automation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "**Execution Details:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Sites: ${{ needs.prepare-matrix.outputs.sites }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Mode: ${{ needs.prepare-matrix.outputs.execution-mode }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Dry Run: ${{ inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Run ID: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Determine overall status
+          UNIFIED_RESULT="${{ needs.run-unified.result }}"
+          MATRIX_RESULT="${{ needs.run-matrix.result }}"
+          
+          if [[ "$UNIFIED_RESULT" == "success" || "$MATRIX_RESULT" == "success" ]]; then
+            echo "✅ **Status: SUCCESS**" >> $GITHUB_STEP_SUMMARY
+          elif [[ "$UNIFIED_RESULT" == "skipped" && "$MATRIX_RESULT" == "success" ]]; then
+            echo "✅ **Status: SUCCESS (Matrix Mode)**" >> $GITHUB_STEP_SUMMARY
+          elif [[ "$UNIFIED_RESULT" == "success" && "$MATRIX_RESULT" == "skipped" ]]; then
+            echo "✅ **Status: SUCCESS (Unified Mode)**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Status: FAILED**" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the 'Artifacts' section above for detailed logs." >> $GITHUB_STEP_SUMMARY
+      
+      - name: Notify on failure
+        if: needs.run-unified.result == 'failure' || needs.run-matrix.result == 'failure'
+        run: |
+          echo "🚨 Multi-site automation pipeline failed!"
+          echo "Sites: ${{ needs.prepare-matrix.outputs.sites }}"
+          echo "Mode: ${{ needs.prepare-matrix.outputs.execution-mode }}"
+          echo "Check the logs and automation-logs artifacts for details."
+          echo "Run ID: ${{ github.run_id }}"
+          
+          # Future: Add Slack/Discord/email notifications here
+          exit 1
