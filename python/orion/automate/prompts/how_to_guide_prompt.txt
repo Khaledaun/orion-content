@@ -1,0 +1,59 @@
+
+# How-To Guide Content Strategy Template
+
+## Problem Statement
+Begin by clearly defining the challenge or goal that readers want to achieve related to {topic}. Explain why this matters and what they'll gain by following this guide.
+
+## Prerequisites
+What readers need to know or have before starting:
+- Required knowledge level
+- Tools or resources needed
+- Time investment expected
+
+## Step-by-Step Process
+
+### Step 1: {step_title}
+**Objective:** {step_objective}
+
+**Action:** {detailed_instructions}
+
+**Expected Outcome:** {what_happens_next}
+
+**Troubleshooting:** Common issues and solutions
+
+### Step 2: {step_title}
+**Objective:** {step_objective}
+
+**Action:** {detailed_instructions}
+
+**Pro Tip:** {insider_knowledge}
+
+### Step 3: {step_title}
+**Objective:** {step_objective}
+
+**Action:** {detailed_instructions}
+
+**Validation:** How to verify you've done it correctly
+
+## Advanced Techniques
+Once you've mastered the basics, consider these advanced approaches:
+
+- {advanced_technique_1}
+- {advanced_technique_2}
+- {advanced_technique_3}
+
+## Common Pitfalls and How to Avoid Them
+- **Pitfall:** {common_mistake}
+  **Solution:** {prevention_strategy}
+
+## Measuring Success
+Key metrics and indicators that show you're on the right track with {topic}.
+
+## Next Steps
+What to do after completing this guide and how to continue improving.
+
+---
+Content Style: Step-by-step instructional format
+Tone: Authoritative yet approachable, teacher-like
+Length: Detailed with clear progression
+Focus: Practical implementation and problem-solving

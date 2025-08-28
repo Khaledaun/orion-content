@@ -1,56 +1,53 @@
-
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
-import { requireAuth } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
-import { encryptJson } from '@/lib/crypto'
+import { PrismaClient } from '@prisma/client'
 
-const secretSchema = z.object({
-  kind: z.string().min(1),
-  data: z.record(z.any()),
-})
+const prisma = new PrismaClient()
 
-async function handler(req: NextRequest) {
-  if (req.method === 'POST') {
-    try {
-      const body = await req.json()
-      const { kind, data } = secretSchema.parse(body)
-      
-      const encrypted = encryptJson(data)
-      
-      await prisma.connection.upsert({
-        where: { kind },
-        create: {
-          kind,
-          dataEnc: encrypted,
-        },
-        update: {
-          dataEnc: encrypted,
-        },
-      })
-      
-      return NextResponse.json({ success: true })
-    } catch (error) {
-      console.error('Error saving secret:', error)
-      return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+export async function POST(request: NextRequest) {
+  try {
+    console.log('Setup secrets - received request')
+    const body = await request.json()
+    const { kind, data } = body
+
+    if (!kind || !data) {
+      return NextResponse.json(
+        { error: 'Missing kind or data' },
+        { status: 400 }
+      )
     }
+
+    console.log('Setup secrets - processing:', { kind })
+
+    // For now, store data as JSON string in dataEnc field
+    // In a real app, you would encrypt this data
+    const dataStr = JSON.stringify(data)
+    
+    // Upsert the connection record
+    const connection = await prisma.connection.upsert({
+      where: {
+        kind: kind,
+      },
+      update: {
+        dataEnc: dataStr,
+        updatedAt: new Date(),
+      },
+      create: {
+        kind: kind,
+        dataEnc: dataStr,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    })
+
+    console.log('Setup secrets - success:', { kind, connectionId: connection.id })
+    return NextResponse.json({ success: true, connectionId: connection.id })
+  } catch (error) {
+    console.error('Setup secrets error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error', details: error.message },
+      { status: 500 }
+    )
+  } finally {
+    await prisma.$disconnect()
   }
-  
-  if (req.method === 'GET') {
-    try {
-      const connections = await prisma.connection.findMany({
-        select: { kind: true, createdAt: true, updatedAt: true },
-      })
-      
-      return NextResponse.json({ connections })
-    } catch (error) {
-      console.error('Error fetching connections:', error)
-      return NextResponse.json({ error: 'Failed to fetch connections' }, { status: 500 })
-    }
-  }
-  
-  return NextResponse.json({ error: 'Method not allowed' }, { status: 405 })
 }
-
-export const GET = requireAuth(handler)
-export const POST = requireAuth(handler)

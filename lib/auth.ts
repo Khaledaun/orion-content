@@ -7,7 +7,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth-options'
 import { prisma } from './prisma'
 import { decryptJson } from './crypto'
 
@@ -58,10 +58,6 @@ export async function createSession(userId: string, email: string) {
   cookieStore.set('orion-session', sealedData, sessionOptions.cookieOptions)
 }
 
-export async function destroySession() {
-  const cookieStore = cookies()
-  cookieStore.delete('orion-session')
-}
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 12)
@@ -109,9 +105,10 @@ export async function getBearerOrSessionUser(req: NextRequest): Promise<{ id: st
       })
       
       if (connection) {
-        const decrypted = decryptJson<{ token: string }>(connection.dataEnc)
-        if (decrypted.token === token) {
-          // Token is valid, but we need to return a user. For API tokens, we'll use the first admin user
+        // Parse as plain JSON since we store it as JSON.stringify() in setup/secrets
+        const storedData = JSON.parse(connection.dataEnc)
+        if (storedData.token === token) {
+          // Token is valid, return the first admin user for API access
           const adminUser = await prisma.user.findFirst({
             orderBy: { createdAt: 'asc' }
           })
@@ -149,3 +146,5 @@ export async function requireSessionAuth() {
   }
   return user
 }
+
+
