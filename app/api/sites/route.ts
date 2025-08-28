@@ -1,62 +1,75 @@
-
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
-import { requireAuth } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { PrismaClient } from '@prisma/client'
+import { authenticateBearer } from '@/lib/bearer-auth'
 
-const siteSchema = z.object({
-  key: z.string().min(1).max(50),
-  name: z.string().min(1).max(100),
-  timezone: z.string().optional().default('UTC'),
-  publisher: z.string().optional().default('wordpress'),
-  locales: z.array(z.string()).optional().default(['en']),
-})
+const prisma = new PrismaClient()
 
-async function handler(req: NextRequest) {
-  if (req.method === 'GET') {
-    try {
-      const sites = await prisma.site.findMany({
-        include: {
-          categories: true,
-        },
-        orderBy: { createdAt: 'desc' },
-      })
-      
-      return NextResponse.json({ sites })
-    } catch (error) {
-      console.error('Error fetching sites:', error)
-      return NextResponse.json({ error: 'Failed to fetch sites' }, { status: 500 })
+export async function GET(request: NextRequest) {
+  try {
+    const authResult = await authenticateBearer(request)
+    
+    if (!authResult.success) {
+      return NextResponse.json({ 
+        error: authResult.error || 'Unauthorized' 
+      }, { status: 401 })
     }
-  }
-  
-  if (req.method === 'POST') {
-    try {
-      const body = await req.json()
-      const data = siteSchema.parse(body)
-      
-      const site = await prisma.site.create({
-        data: {
-          ...data,
-          locales: data.locales,
-        },
-        include: {
-          categories: true,
-        },
-      })
-      
-      return NextResponse.json({ site })
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return NextResponse.json({ error: error.errors }, { status: 400 })
+
+    const sites = await prisma.site.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        _count: {
+          select: { categories: true, topics: true }
+        }
       }
-      
-      console.error('Error creating site:', error)
-      return NextResponse.json({ error: 'Failed to create site' }, { status: 500 })
-    }
+    })
+
+    return NextResponse.json({ sites })
+  } catch (error) {
+    console.error('Sites API error:', error)
+    return NextResponse.json({ 
+      error: 'Internal server error' 
+    }, { status: 500 })
+  } finally {
+    await prisma.$disconnect()
   }
-  
-  return NextResponse.json({ error: 'Method not allowed' }, { status: 405 })
 }
 
-export const GET = requireAuth(handler)
-export const POST = requireAuth(handler)
+export async function POST(request: NextRequest) {
+  try {
+    const authResult = await authenticateBearer(request)
+    
+    if (!authResult.success) {
+      return NextResponse.json({ 
+        error: authResult.error || 'Unauthorized' 
+      }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { key, name, timezone, publisher, locales } = body
+
+    if (!key || !name) {
+      return NextResponse.json({ 
+        error: 'Missing required fields: key, name' 
+      }, { status: 400 })
+    }
+
+    const site = await prisma.site.create({
+      data: {
+        key,
+        name,
+        timezone: timezone || 'UTC',
+        publisher,
+        locales
+      }
+    })
+
+    return NextResponse.json({ site })
+  } catch (error) {
+    console.error('Create site error:', error)
+    return NextResponse.json({ 
+      error: 'Internal server error' 
+    }, { status: 500 })
+  } finally {
+    await prisma.$disconnect()
+  }
+}
