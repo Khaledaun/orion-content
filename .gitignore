@@ -4,3 +4,7 @@ node_modules
 .env
 .env.*
 
+.next/
+.venv-phase3/
+.__phase3_tmp/
+orion-phase3-python.zip
