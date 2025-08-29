@@ -235,10 +235,10 @@ class PerplexityClient:
                 })
         
         return {
-            "valid": len([i for i in issues if i["severity"] == "high"]) == 0,
+            "valid": len([i for i in issues if i['severity'] == 'high']) == 0,
             "confidence": confidence,
             "issues": issues,
-            "recommendation": "apply" if confidence > 0.8 and len([i for i in issues if i["severity"] == "high"]) == 0 else "review_required"
+            "recommendation": "apply" if not issues else "review_required"
         }
 
 

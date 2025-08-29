@@ -64,5 +64,21 @@ async function handler(req: NextRequest) {
   return NextResponse.json({ error: 'Method not allowed' }, { status: 405 })
 }
 
-export const GET = requireAuth(handler)
-export const POST = requireAuth(handler)
+export async function GET(req: import("next/server").NextRequest) {
+  const unauth = await requireAuth(req);
+  if (unauth) return unauth;
+  return handler(req);
+}
+// Replaced for Next.js 14: export a function, not a const
+export async function GET(req: import("next/server").NextRequest) {
+  const unauth = await requireAuth(req);
+  if (unauth) return unauth;
+  return handler(req);
+}
+export async function POST(req: import("next/server").NextRequest) {
+  const unauth = await requireAuth(req);
+  if (unauth) return unauth;
+  return handler(req);
+}
+
+export const runtime = 'nodejs'

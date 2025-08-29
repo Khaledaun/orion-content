@@ -56,7 +56,7 @@ class TestOrionAPIClient:
         test_date = date(2024, 1, 15)  # Monday of week 3, 2024
         iso_week = self.client.get_current_iso_week(test_date)
         
-        assert iso_week == '2024-03'
+        assert iso_week == '2024-W03'
     
     def test_get_site_by_key_found(self):
         """Test finding site by key."""

@@ -1,3 +1,5 @@
 {
-  "/api/rulebook/route": "app/api/rulebook/route.js"
+  "/api/health/route": "app/api/health/route.js",
+  "/api/rulebook/route": "app/api/rulebook/route.js",
+  "/api/sites/[id]/strategy/route": "app/api/sites/[id]/strategy/route.js"
 }

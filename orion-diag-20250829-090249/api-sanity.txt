@@ -1,0 +1,25 @@
+HOST=http://localhost:3000
+
+No token:
+HTTP/1.1 500 Internal Server Error
+Cache-Control: private, no-cache, no-store, max-age=0, must-revalidate
+Date: Fri, 29 Aug 2025 09:03:22 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+
+Bad token:
+HTTP/1.1 500 Internal Server Error
+Cache-Control: private, no-cache, no-store, max-age=0, must-revalidate
+Date: Fri, 29 Aug 2025 09:03:22 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+
+Good token:
+HTTP/1.1 500 Internal Server Error
+Cache-Control: private, no-cache, no-store, max-age=0, must-revalidate
+Date: Fri, 29 Aug 2025 09:03:22 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+

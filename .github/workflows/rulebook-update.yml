@@ -1,286 +1,134 @@
 
-name: Golden Standard Rule Book - Bi-Monthly Update
+name: Bi-monthly Rulebook Update
 
 on:
   schedule:
-    # Run on 1st and 15th of every month at 02:00 UTC
+    # Run on 1st and 15th of every month at 2 AM UTC
     - cron: '0 2 1,15 * *'
-  workflow_dispatch:
+  workflow_dispatch: # Allow manual triggering
     inputs:
-      force_update:
-        description: 'Force update even if validation fails'
-        type: boolean
-        default: false
       dry_run:
-        description: 'Dry run mode - no actual updates'
+        description: 'Run in dry-run mode (no actual updates)'
+        required: false
+        default: 'false'
         type: boolean
-        default: false
+      force_update:
+        description: 'Force update even if no changes detected'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: read
+  actions: read
 
 jobs:
   update-rulebook:
     runs-on: ubuntu-latest
     
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+      PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
       
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
         
-    - name: Install dependencies
-      run: |
-        cd python
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        
-    - name: Set environment variables
-      run: |
-        echo "ORION_BASE_URL=${{ secrets.ORION_BASE_URL }}" >> $GITHUB_ENV
-        echo "ORION_CONSOLE_TOKEN=${{ secrets.ORION_CONSOLE_TOKEN }}" >> $GITHUB_ENV
-        echo "PERPLEXITY_ENABLED=${{ secrets.PERPLEXITY_ENABLED || 'false' }}" >> $GITHUB_ENV
-        echo "PERPLEXITY_API_KEY=${{ secrets.PERPLEXITY_API_KEY }}" >> $GITHUB_ENV
-        echo "PERPLEXITY_TOPICS=${{ vars.PERPLEXITY_TOPICS || 'seo,eeat,aio,ai-search' }}" >> $GITHUB_ENV
-        
-    - name: Test API connectivity
-      run: |
-        cd python
-        python -c "
-        from orion.api_client import client
-        try:
-            health = client.health_check()
-            print(f'✅ API Health: {health}')
-        except Exception as e:
-            print(f'❌ API Connection Failed: {e}')
-            exit(1)
-        "
-        
-    - name: Fetch current rulebook
-      id: current_rulebook
-      run: |
-        cd python
-        python -c "
-        import json, sys
-        from orion.api_client import client
-        from orion.config import config
-        
-        try:
-            response = client.session.get(f'{config.orion_base_url}/api/rulebook')
-            response.raise_for_status()
-            current = response.json()
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx prisma generate
+          
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install Python dependencies
+        run: |
+          cd python
+          pip install -r requirements.txt
+          
+      - name: Run rulebook research update
+        id: research
+        run: |
+          cd python
+          python -m orion.research.update_rulebook \
+            --output-dir ../artifacts \
+            --dry-run=${{ github.event.inputs.dry_run || 'false' }} \
+            --force=${{ github.event.inputs.force_update || 'false' }}
+          
+      - name: Check for updates
+        id: check_updates
+        run: |
+          if [ -f artifacts/rulebook-diff.json ]; then
+            echo "has_updates=true" >> $GITHUB_OUTPUT
+            echo "diff_file=artifacts/rulebook-diff.json" >> $GITHUB_OUTPUT
+          else
+            echo "has_updates=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Validate new rulebook
+        if: steps.check_updates.outputs.has_updates == 'true'
+        run: |
+          cd python
+          python -m orion.research.validate_rulebook artifacts/rulebook-*.json
+          
+      - name: Apply conservative merge
+        if: steps.check_updates.outputs.has_updates == 'true' && github.event.inputs.dry_run != 'true'
+        run: |
+          cd python
+          python -m orion.research.apply_rulebook_update \
+            --rulebook-file artifacts/rulebook-*.json \
+            --conservative-only \
+            --require-approval=false
             
-            with open('current_rulebook.json', 'w') as f:
-                json.dump(current, f, indent=2)
-                
-            print(f'current_version={current.get(\"version\", 0)}')
-            print(f'✅ Current rulebook version: {current.get(\"version\", 0)}')
-        except Exception as e:
-            print(f'❌ Failed to fetch current rulebook: {e}')
-            sys.exit(1)
-        " >> $GITHUB_OUTPUT
-        
-    - name: Research rulebook updates
-      id: research
-      run: |
-        cd python
-        python -c "
-        import json, sys
-        from orion.research.perplexity_client import perplexity_client
-        from orion.research.update_rulebook import rulebook_updater
-        
-        print('🔍 Fetching rulebook research updates...')
-        
-        try:
-            research_data = perplexity_client.fetch_rulebook_updates()
-            validation = perplexity_client.validate_research_quality(research_data)
+      - name: Generate rollback script
+        if: steps.check_updates.outputs.has_updates == 'true'
+        run: |
+          cd python
+          python -m orion.research.generate_rollback \
+            --output artifacts/rollback-$(date +%Y%m%d).sql
             
-            with open('research_data.json', 'w') as f:
-                json.dump(research_data, f, indent=2)
-                
-            with open('research_validation.json', 'w') as f:
-                json.dump(validation, f, indent=2)
-            
-            print(f'✅ Research completed')
-            print(f'Confidence: {research_data.get(\"confidence_score\", 0)}')
-            print(f'Valid: {validation.get(\"valid\", False)}')
-            print(f'Recommendation: {validation.get(\"recommendation\", \"unknown\")}')
-            
-            # Set outputs for next steps
-            print(f'research_valid={validation.get(\"valid\", False)}')
-            print(f'research_confidence={research_data.get(\"confidence_score\", 0)}')
-            
-        except Exception as e:
-            print(f'❌ Research failed: {e}')
-            sys.exit(1)
-        " >> $GITHUB_OUTPUT
-        
-    - name: Generate updated rulebook
-      id: update_rulebook
-      run: |
-        cd python
-        python -c "
-        import json, sys
-        from orion.research.update_rulebook import rulebook_updater
-        
-        print('📝 Generating updated rulebook...')
-        
-        try:
-            # Load current rulebook
-            with open('current_rulebook.json', 'r') as f:
-                current = json.load(f)
-                
-            current_rules = current.get('rules', {})
-            
-            # Generate update
-            update_result = rulebook_updater.update_rulebook(current_rules)
-            
-            with open('updated_rulebook.json', 'w') as f:
-                json.dump(update_result, f, indent=2)
-                
-            # Generate diff
-            import difflib
-            current_str = json.dumps(current_rules, indent=2, sort_keys=True)
-            updated_str = json.dumps(update_result['rules'], indent=2, sort_keys=True)
-            
-            diff = list(difflib.unified_diff(
-                current_str.splitlines(keepends=True),
-                updated_str.splitlines(keepends=True),
-                fromfile='current_rulebook',
-                tofile='updated_rulebook',
-                n=3
-            ))
-            
-            with open('rulebook_diff.txt', 'w') as f:
-                f.writelines(diff)
-                
-            print(f'✅ Updated rulebook generated')
-            print(f'Version notes: {update_result.get(\"version_notes\", \"No notes\")}')
-            
-            has_changes = len(diff) > 0
-            print(f'has_changes={has_changes}')
-            
-        except Exception as e:
-            print(f'❌ Rulebook update failed: {e}')
-            sys.exit(1)
-        " >> $GITHUB_OUTPUT
-        
-    - name: Create artifacts
-      run: |
-        mkdir -p artifacts
-        
-        # Copy all generated files to artifacts
-        cp python/current_rulebook.json artifacts/ 2>/dev/null || echo "No current rulebook"
-        cp python/research_data.json artifacts/ 2>/dev/null || echo "No research data"  
-        cp python/research_validation.json artifacts/ 2>/dev/null || echo "No validation"
-        cp python/updated_rulebook.json artifacts/ 2>/dev/null || echo "No updated rulebook"
-        cp python/rulebook_diff.txt artifacts/ 2>/dev/null || echo "No diff"
-        
-        # Create summary
-        echo "# Golden Standard Rule Book Update Summary" > artifacts/update_summary.md
-        echo "" >> artifacts/update_summary.md
-        echo "**Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> artifacts/update_summary.md
-        echo "**Workflow:** ${{ github.workflow }}" >> artifacts/update_summary.md
-        echo "**Run ID:** ${{ github.run_id }}" >> artifacts/update_summary.md
-        echo "" >> artifacts/update_summary.md
-        
-        if [ -f "python/research_data.json" ]; then
-          echo "**Research Status:** ✅ Completed" >> artifacts/update_summary.md
-          python -c "
-          import json
-          with open('python/research_data.json') as f:
-              data = json.load(f)
-          print(f'**Confidence Score:** {data.get(\"confidence_score\", \"N/A\")}')
-          print(f'**Research Method:** {data.get(\"research_method\", \"N/A\")}')
-          " >> artifacts/update_summary.md
-        else
-          echo "**Research Status:** ❌ Failed" >> artifacts/update_summary.md
-        fi
-        
-        if [ -f "python/rulebook_diff.txt" ]; then
-          echo "" >> artifacts/update_summary.md
-          echo "## Changes" >> artifacts/update_summary.md
-          echo "\`\`\`diff" >> artifacts/update_summary.md
-          cat python/rulebook_diff.txt >> artifacts/update_summary.md
-          echo "\`\`\`" >> artifacts/update_summary.md
-        fi
-        
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: rulebook-update-${{ github.run_id }}
-        path: artifacts/
-        retention-days: 30
-        
-    - name: Apply rulebook update
-      if: |
-        (steps.research.outputs.research_valid == 'True' && steps.update_rulebook.outputs.has_changes == 'True') ||
-        (github.event.inputs.force_update == 'true' && github.event_name == 'workflow_dispatch')
-      run: |
-        cd python
-        
-        # Check if this is a dry run
-        if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
-          echo "🔍 DRY RUN MODE - No actual updates will be applied"
-          echo "Would apply rulebook update with the following data:"
-          cat updated_rulebook.json | head -20
-          exit 0
-        fi
-        
-        python -c "
-        import json, sys
-        from orion.api_client import client
-        from orion.config import config
-        
-        print('📤 Applying rulebook update...')
-        
-        try:
-            # Load updated rulebook
-            with open('updated_rulebook.json', 'r') as f:
-                update_data = json.load(f)
-            
-            # Prepare API request
-            api_payload = {
-                'rules': update_data['rules'],
-                'sources': update_data.get('sources', []),
-                'notes': f'Automated update from GitHub Actions - {update_data.get(\"version_notes\", \"No notes\")}'
-            }
-            
-            # Send to API
-            response = client.session.post(
-                f'{config.orion_base_url}/api/rulebook',
-                json=api_payload
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                print(f'✅ Rulebook updated successfully')
-                print(f'New version: {result.get(\"version\", \"unknown\")}')
-            else:
-                print(f'❌ API request failed: {response.status_code}')
-                print(f'Response: {response.text}')
-                sys.exit(1)
-                
-        except Exception as e:
-            print(f'❌ Failed to apply update: {e}')
-            sys.exit(1)
-        "
-        
-    - name: Skip update notification
-      if: |
-        steps.research.outputs.research_valid != 'True' ||
-        steps.update_rulebook.outputs.has_changes != 'True'
-      run: |
-        echo "ℹ️ Rulebook update skipped"
-        echo "Research valid: ${{ steps.research.outputs.research_valid }}"
-        echo "Has changes: ${{ steps.update_rulebook.outputs.has_changes }}"
-        echo ""
-        echo "Reasons for skipping:"
-        if [ "${{ steps.research.outputs.research_valid }}" != "True" ]; then
-          echo "- Research validation failed or confidence too low"
-        fi
-        if [ "${{ steps.update_rulebook.outputs.has_changes }}" != "True" ]; then
-          echo "- No significant changes detected"
-        fi
-        echo ""
-        echo "Check uploaded artifacts for detailed analysis."
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rulebook-update-${{ github.run_number }}
+          path: |
+            artifacts/
+          retention-days: 90
+          
+      - name: Create summary
+        if: always()
+        run: |
+          echo "## Rulebook Update Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Run Date**: $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dry Run**: ${{ github.event.inputs.dry_run || 'false' }}" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.check_updates.outputs.has_updates }}" == "true" ]; then
+            echo "- **Status**: ✅ Updates available" >> $GITHUB_STEP_SUMMARY
+            if [ -f artifacts/rulebook-diff.json ]; then
+              echo "- **Changes**: See diff artifact" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "- **Status**: ℹ️ No updates needed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- Rulebook versions and diffs available in run artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- Rollback scripts generated if updates applied" >> $GITHUB_STEP_SUMMARY
+          
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::error::Rulebook update failed. Check logs and artifacts for details."

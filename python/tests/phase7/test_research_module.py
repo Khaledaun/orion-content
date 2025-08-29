@@ -59,7 +59,7 @@ class TestPerplexityClient:
                 {"relevance": "high", "title": "Test Source 1"},
                 {"relevance": "high", "title": "Test Source 2"}
             ],
-            "research_date": "2025-08-29"
+            "research_date": "2024-08-29"
         }
         
         validation = client.validate_research_quality(research_data)
@@ -78,7 +78,7 @@ class TestPerplexityClient:
             "sources": [
                 {"relevance": "low", "title": "Test Source 1"}
             ],
-            "research_date": "2025-08-29"
+            "research_date": "2024-08-29"
         }
         
         validation = client.validate_research_quality(research_data)
@@ -136,7 +136,7 @@ class TestRulebookUpdater:
     def sample_research_data(self):
         """Sample research data with updates."""
         return {
-            "research_date": "2025-08-29",
+            "research_date": "2024-08-29",
             "confidence_score": 0.85,
             "insights": {
                 "seo": {

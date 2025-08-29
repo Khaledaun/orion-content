@@ -1,0 +1,12 @@
+== migrate status ==
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "neondb", schema "public" at "ep-delicate-recipe-a2venw71-pooler.eu-central-1.aws.neon.tech"
+
+1 migration found in prisma/migrations
+
+== list migrations ==
+total 16
+drwxrwxrwx+ 3 codespace codespace 4096 Aug 28 13:01 .
+drwxrwxrwx+ 3 codespace codespace 4096 Aug 29 07:42 ..
+drwxrwxrwx+ 2 codespace codespace 4096 Aug 28 13:01 20250828130118_initial_setup
+-rw-rw-rw-  1 codespace codespace  128 Aug 28 13:01 migration_lock.toml

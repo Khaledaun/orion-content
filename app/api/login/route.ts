@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       where: { email: email.toLowerCase() },
     })
 
-    if (!user || !(await verifyPassword(password, user.passwordHash))) {
+    if (!user || !user.passwordHash || !(await verifyPassword(password, user.passwordHash))) {
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }

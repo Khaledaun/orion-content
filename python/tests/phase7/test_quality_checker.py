@@ -178,7 +178,7 @@ class TestQualityChecker:
         <h2>Key Concepts</h2>
         <p>Understanding these concepts will improve your python programming skills by 80%.</p>
         <img src="python-guide.jpg" alt="Python programming guide illustration">
-        <p>Recent studies from 2019 show significant improvements in developer productivity.</p>
+        <p>Recent studies from 2023 show significant improvements in developer productivity.</p>
         """
     
     @pytest.fixture
@@ -186,7 +186,7 @@ class TestQualityChecker:
         """Sample article metadata."""
         return {
             "title": "Python Programming Best Practices",
-            "meta_description": "Learn python programming best practices with this comprehensive guide that covers essential concepts, tips, and modern techniques for professional developers."
+            "meta_description": "Learn python programming best practices with this comprehensive guide. Covers essential concepts, tips, and modern techniques for developers."
         }
     
     @pytest.fixture

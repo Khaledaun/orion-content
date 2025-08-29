@@ -43,7 +43,7 @@ class TestSiteStrategyAPI:
     
     def test_strategy_json_schema_validation(self, sample_strategy):
         """Test that strategy validation schema works correctly."""
-        # from zod import z  # Note: zod is for TypeScript, not Python
+        from zod import z
         
         # This test simulates the validation logic that would be in the API
         # Since we can't directly test Next.js routes, we test the validation logic
