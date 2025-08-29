@@ -34,6 +34,7 @@ model Site {
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
   categories Category[]
+  strategy   SiteStrategy?
   topics     Topic[]
 
   @@map("sites")
@@ -147,4 +148,40 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+// Phase 7: Quality Framework Models  
+model SiteStrategy {
+  id        String  @id @default(cuid())
+  siteId    String  @unique
+  strategy  Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  site      Site    @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@map("site_strategies")
+}
+
+model GlobalRulebook {
+  id         String   @id @default(cuid())
+  version    Int
+  rules      Json
+  sources    Json
+  updatedBy  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("global_rulebooks")
+}
+
+model RulebookVersion {
+  id         String   @id @default(cuid())
+  version    Int
+  rules      Json
+  sources    Json
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  @@map("rulebook_versions")
 }

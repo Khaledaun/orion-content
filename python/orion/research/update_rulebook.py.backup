@@ -1,0 +1,308 @@
+
+
+"""
+Phase 7: Rulebook Update Module
+
+This module handles updating the Golden Standard Rule Book with new research insights
+while maintaining backward compatibility and conservative update policies.
+"""
+
+import logging
+import json
+import copy
+from typing import Dict, Any, List, Tuple
+from datetime import datetime
+
+from .perplexity_client import perplexity_client
+
+logger = logging.getLogger(__name__)
+
+
+class RulebookUpdater:
+    """Handles Golden Standard Rule Book updates."""
+    
+    def __init__(self):
+        self.conservative_mode = True  # Never relax requirements, only tighten
+    
+    def update_rulebook(self, current_rulebook: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Update rulebook with latest research insights.
+        
+        Args:
+            current_rulebook: Current GlobalRulebook.rules
+            
+        Returns:
+            Updated rulebook with sources and metadata
+        """
+        logger.info("Starting rulebook update process")
+        
+        # Fetch latest research
+        research_data = perplexity_client.fetch_rulebook_updates()
+        
+        # Validate research quality
+        validation = perplexity_client.validate_research_quality(research_data)
+        if not validation['valid']:
+            logger.warning("Research validation failed, using conservative updates only")
+            return self._apply_conservative_updates(current_rulebook, research_data)
+        
+        # Apply updates with conservative approach
+        updated_rulebook = self._merge_insights(current_rulebook, research_data)
+        
+        return {
+            "rules": updated_rulebook,
+            "sources": research_data.get('sources', []),
+            "research_metadata": {
+                "research_date": research_data.get('research_date'),
+                "confidence_score": research_data.get('confidence_score'),
+                "validation": validation,
+                "update_method": "research_based",
+                "conservative_mode": self.conservative_mode
+            },
+            "version_notes": self._generate_version_notes(current_rulebook, updated_rulebook)
+        }
+    
+    def _merge_insights(self, current: Dict[str, Any], research: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Merge research insights into current rulebook with conservative rules.
+        
+        Conservative Rules:
+        1. Never relax prohibited items
+        2. Can tighten limits or add new checks
+        3. Don't remove existing requirements
+        4. Only update if improvement is clear
+        """
+        updated = copy.deepcopy(current)
+        insights = research.get('insights', {})
+        
+        # Update SEO section
+        if 'seo' in insights:
+            updated = self._update_seo_rules(updated, insights['seo'])
+        
+        # Update E-E-A-T section
+        if 'eeat' in insights:
+            updated = self._update_eeat_rules(updated, insights['eeat'])
+        
+        # Update AIO section
+        if 'aio' in insights:
+            updated = self._update_aio_rules(updated, insights['aio'])
+        
+        # Update AI Search Visibility section
+        if 'ai_search_visibility' in insights:
+            updated = self._update_ai_search_rules(updated, insights['ai_search_visibility'])
+        
+        return updated
+    
+    def _update_seo_rules(self, rulebook: Dict[str, Any], seo_insights: Dict[str, Any]) -> Dict[str, Any]:
+        """Update SEO rules conservatively."""
+        seo_section = rulebook.setdefault('seo', {})
+        new_reqs = seo_insights.get('new_requirements', {})
+        
+        # Update title length (only if more restrictive or filling missing values)
+        if 'title_length' in new_reqs:
+            current_title = seo_section.get('title_length', {})
+            new_title = new_reqs['title_length']
+            
+            # Only update if new min is higher or new max is lower (more restrictive)
+            updated_title = current_title.copy()
+            if 'min' in new_title:
+                current_min = current_title.get('min', 0)
+                updated_title['min'] = max(current_min, new_title['min'])
+            
+            if 'max' in new_title:
+                current_max = current_title.get('max', 999)
+                updated_title['max'] = min(current_max, new_title['max'])
+            
+            seo_section['title_length'] = updated_title
+        
+        # Update meta description (conservative approach)
+        if 'meta_description' in new_reqs:
+            current_meta = seo_section.get('meta_description', {})
+            new_meta = new_reqs['meta_description']
+            
+            updated_meta = {}
+            if 'min' in new_meta:
+                current_min = current_meta.get('min', 0)
+                updated_meta['min'] = max(current_min, new_meta['min'])
+            
+            if 'max' in new_meta:
+                current_max = current_meta.get('max', 999)
+                updated_meta['max'] = min(current_max, new_meta['max'])
+            
+            if updated_meta:
+                seo_section['meta_description'] = updated_meta
+        
+        # Update internal links minimum (only increase)
+        if 'internal_links_min' in new_reqs:
+            current_min = seo_section.get('internal_links_min', 0)
+            new_min = new_reqs['internal_links_min']
+            if new_min > current_min:
+                seo_section['internal_links_min'] = new_min
+        
+        return rulebook
+    
+    def _update_eeat_rules(self, rulebook: Dict[str, Any], eeat_insights: Dict[str, Any]) -> Dict[str, Any]:
+        """Update E-E-A-T rules conservatively."""
+        eeat_section = rulebook.setdefault('eeat', {})
+        new_reqs = eeat_insights.get('new_requirements', {})
+        
+        # Add new requirements (never remove existing ones)
+        for key, value in new_reqs.items():
+            if key not in eeat_section:
+                eeat_section[key] = value
+            elif isinstance(value, bool) and value and not eeat_section.get(key, False):
+                eeat_section[key] = value
+            elif isinstance(value, (int, float)) and value > eeat_section.get(key, 0):
+                eeat_section[key] = value
+        
+        # Special handling for citation requirements
+        if 'min_citations_per_1000_words' in new_reqs:
+            current_min = eeat_section.get('min_citations_per_1000_words', 0)
+            new_min = new_reqs['min_citations_per_1000_words']
+            if new_min > current_min:
+                eeat_section['min_citations_per_1000_words'] = new_min
+        
+        return rulebook
+    
+    def _update_aio_rules(self, rulebook: Dict[str, Any], aio_insights: Dict[str, Any]) -> Dict[str, Any]:
+        """Update AIO rules conservatively."""
+        aio_section = rulebook.setdefault('aio', {})
+        new_reqs = aio_insights.get('new_requirements', {})
+        
+        # Update QA blocks minimum (only increase)
+        if 'qa_blocks_min' in new_reqs:
+            current_min = aio_section.get('qa_blocks_min', 0)
+            new_min = new_reqs['qa_blocks_min']
+            if new_min > current_min:
+                aio_section['qa_blocks_min'] = new_min
+        
+        # Add to structured data (never remove)
+        if 'structured_data' in new_reqs:
+            current_data = set(aio_section.get('structured_data', []))
+            new_data = set(new_reqs['structured_data'])
+            aio_section['structured_data'] = list(current_data.union(new_data))
+        
+        # Set required flags (never unset)
+        for flag in ['summary_block_required', 'qa_block_required']:
+            if new_reqs.get(flag):
+                aio_section[flag] = True
+        
+        return rulebook
+    
+    def _update_ai_search_rules(self, rulebook: Dict[str, Any], ai_insights: Dict[str, Any]) -> Dict[str, Any]:
+        """Update AI search visibility rules conservatively."""
+        ai_section = rulebook.setdefault('ai_search_visibility', {})
+        new_reqs = ai_insights.get('new_requirements', {})
+        
+        # Update scannability score (only increase minimum)
+        if 'scannability_score_min' in new_reqs:
+            current_min = ai_section.get('scannability_score_min', 0)
+            new_min = new_reqs['scannability_score_min']
+            if new_min > current_min:
+                ai_section['scannability_score_min'] = new_min
+        
+        # Add new requirements (never remove)
+        for key, value in new_reqs.items():
+            if isinstance(value, bool) and value:
+                ai_section[key] = True
+        
+        return rulebook
+    
+    def _apply_conservative_updates(self, current: Dict[str, Any], research: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Apply only the most conservative updates when research validation fails.
+        """
+        logger.info("Applying conservative-only updates")
+        
+        # In conservative mode, only apply obvious improvements with high confidence
+        updated = copy.deepcopy(current)
+        
+        # Example: Only update if it's clearly making things more strict
+        insights = research.get('insights', {})
+        
+        # Update only critical SEO thresholds
+        if 'seo' in insights and insights['seo'].get('new_requirements'):
+            seo_reqs = insights['seo']['new_requirements']
+            if 'internal_links_min' in seo_reqs:
+                current_min = updated.get('seo', {}).get('internal_links_min', 0)
+                new_min = seo_reqs['internal_links_min']
+                if new_min > current_min and new_min <= 5:  # Reasonable upper bound
+                    updated.setdefault('seo', {})['internal_links_min'] = new_min
+        
+        return {
+            "rules": updated,
+            "sources": research.get('sources', [])[:2],  # Only top sources
+            "research_metadata": {
+                "research_date": research.get('research_date'),
+                "confidence_score": research.get('confidence_score'),
+                "update_method": "conservative_only",
+                "conservative_mode": True
+            },
+            "version_notes": "Conservative update applied due to research validation concerns"
+        }
+    
+    def _generate_version_notes(self, old: Dict[str, Any], new: Dict[str, Any]) -> str:
+        """Generate human-readable version notes."""
+        changes = []
+        
+        # Compare sections and note changes
+        for section in ['seo', 'eeat', 'aio', 'ai_search_visibility']:
+            old_section = old.get(section, {})
+            new_section = new.get(section, {})
+            
+            for key, new_value in new_section.items():
+                old_value = old_section.get(key)
+                if old_value != new_value:
+                    if isinstance(new_value, dict) and isinstance(old_value, dict):
+                        # Check nested changes
+                        for nested_key, nested_new in new_value.items():
+                            nested_old = old_value.get(nested_key)
+                            if nested_old != nested_new:
+                                changes.append(f"Updated {section}.{key}.{nested_key}: {nested_old} → {nested_new}")
+                    else:
+                        changes.append(f"Updated {section}.{key}: {old_value} → {new_value}")
+        
+        if not changes:
+            return "No significant changes applied"
+        
+        return f"Applied {len(changes)} updates: " + "; ".join(changes[:3]) + ("..." if len(changes) > 3 else "")
+    
+    def create_rollback_version(self, current_version: int, target_version: int, 
+                              versions_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Create a rollback by reactivating a previous version.
+        
+        Args:
+            current_version: Current active version
+            target_version: Version to rollback to
+            versions_data: List of RulebookVersion records
+            
+        Returns:
+            New rulebook data for rollback
+        """
+        logger.info(f"Creating rollback from version {current_version} to {target_version}")
+        
+        # Find target version
+        target_data = None
+        for version_data in versions_data:
+            if version_data.get('version') == target_version:
+                target_data = version_data
+                break
+        
+        if not target_data:
+            raise ValueError(f"Version {target_version} not found in version history")
+        
+        return {
+            "rules": target_data['rules'],
+            "sources": target_data.get('sources', []),
+            "research_metadata": {
+                "update_method": "rollback",
+                "rollback_from": current_version,
+                "rollback_to": target_version,
+                "rollback_date": datetime.now().isoformat()
+            },
+            "version_notes": f"Rollback from version {current_version} to version {target_version}"
+        }
+
+
+# Global updater instance
+rulebook_updater = RulebookUpdater()

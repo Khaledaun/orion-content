@@ -1,0 +1,1 @@
+{"ts": "2025-08-28T16:39:44.338337+00:00", "event_type": "multisite_complete", "ok": false, "total_sites": 2, "successful_sites": 1, "failed_sites": 1, "success_rate": 0.5, "parallel_execution": false, "total_duration_minutes": 2.0500000000000003e-06, "total_pipeline_stages": 10, "total_failed_stages": 1, "average_site_duration_minutes": 2.5}

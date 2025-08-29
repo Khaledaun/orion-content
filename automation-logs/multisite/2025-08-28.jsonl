@@ -1,0 +1,3 @@
+{"ts": "2025-08-28T16:42:35.433295+00:00", "event_type": "multisite_start", "ok": true, "sites": ["FINANCE", "TRAVEL"], "parallel": true, "max_workers": 3}
+{"ts": "2025-08-28T16:47:49.437404+00:00", "event_type": "multisite_complete", "ok": false, "total_sites": 2, "successful_sites": 0, "failed_sites": 2, "success_rate": 0.0, "parallel_execution": true, "total_duration_minutes": 5.233410316666666, "total_pipeline_stages": 4, "total_failed_stages": 2, "average_site_duration_minutes": 2.0083655}
+{"ts": "2025-08-28T17:00:07.168792+00:00", "event_type": "multisite_start", "ok": true, "sites": ["FINANCE", "TRAVEL"], "parallel": true, "max_workers": 3}
