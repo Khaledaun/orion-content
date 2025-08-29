@@ -1,5 +1,5 @@
 
-import { requireAuth } from '@/lib/auth'
+import { requireSessionAuth } from '@/lib/auth'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -7,7 +7,7 @@ import LogoutButton from './logout-button'
 import { Calendar, Globe, Users, Activity } from 'lucide-react'
 
 export default async function DashboardPage() {
-  const session = await requireAuth()
+  const session = await requireSessionAuth()
 
   return (
     <div className="min-h-screen bg-gray-50">

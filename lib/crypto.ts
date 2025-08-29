@@ -1,5 +1,5 @@
 
-import { randomBytes, createCipherGCM, createDecipherGCM } from 'crypto'
+import { randomBytes, createCipher, createDecipher } from 'crypto'
 
 function getEncryptionKey(): Buffer {
   const key = process.env.ENCRYPTION_KEY
@@ -11,20 +11,16 @@ function getEncryptionKey(): Buffer {
 
 export function encryptJson(obj: unknown): string {
   const key = getEncryptionKey()
-  const iv = randomBytes(12) // 96-bit IV for GCM
-  const cipher = createCipherGCM('aes-256-gcm', key)
-  cipher.setAAD(Buffer.from('orion-content'))
+  const iv = randomBytes(16) // 128-bit IV
+  const cipher = createCipher('aes-256-cbc', key)
   
   const jsonString = JSON.stringify(obj)
   let encrypted = cipher.update(jsonString, 'utf8', 'base64')
   encrypted += cipher.final('base64')
   
-  const tag = cipher.getAuthTag()
-  
-  // Combine IV, tag, and encrypted data
+  // Combine IV and encrypted data
   const result = {
     iv: iv.toString('base64'),
-    tag: tag.toString('base64'), 
     data: encrypted
   }
   
@@ -37,12 +33,9 @@ export function decryptJson<T>(encString: string): T {
   try {
     const combined = JSON.parse(Buffer.from(encString, 'base64').toString())
     const iv = Buffer.from(combined.iv, 'base64')
-    const tag = Buffer.from(combined.tag, 'base64')
     const data = combined.data
     
-    const decipher = createDecipherGCM('aes-256-gcm', key)
-    decipher.setAAD(Buffer.from('orion-content'))
-    decipher.setAuthTag(tag)
+    const decipher = createDecipher('aes-256-cbc', key)
     
     let decrypted = decipher.update(data, 'base64', 'utf8')
     decrypted += decipher.final('utf8')

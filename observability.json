@@ -1,0 +1,94 @@
+
+{
+  "OBSERVABILITY_REPORT": {
+    "pipeline_id": "pipe-phase7-test-20250829-124600",
+    "site_id": "site-example-tech-blog",
+    "content_title": "Advanced Machine Learning Techniques for Content Quality Assessment",
+    "total_latency_ms": 4250,
+    "total_cost_usd": 0.087,
+    "total_tokens": 3420,
+    "stages": [
+      {
+        "stage": "research_and_context",
+        "model": "perplexity-online",
+        "tokens_input": 450,
+        "tokens_output": 1200,
+        "latency_ms": 1800,
+        "cost_usd": 0.012,
+        "success": true
+      },
+      {
+        "stage": "content_generation",
+        "model": "gpt-4",
+        "tokens_input": 1650,
+        "tokens_output": 850,
+        "latency_ms": 1950,
+        "cost_usd": 0.0585,
+        "success": true
+      },
+      {
+        "stage": "quality_assessment",
+        "model": "quality-checker-v2",
+        "tokens_input": 850,
+        "tokens_output": 0,
+        "latency_ms": 320,
+        "cost_usd": 0,
+        "success": true
+      },
+      {
+        "stage": "i18n_validation",
+        "model": "i18n-checker",
+        "tokens_input": 220,
+        "tokens_output": 100,
+        "latency_ms": 180,
+        "cost_usd": 0.0015,
+        "success": true
+      }
+    ],
+    "quality_score": 82,
+    "flags": {
+      "wp_post_id": 1847,
+      "eeat_score": 85,
+      "seo_score": 78,
+      "aio_score": 80,
+      "ai_search_visibility": 84,
+      "citations_count": 7,
+      "author_bio_present": true,
+      "structured_data_valid": true,
+      "rtl_compliant": false,
+      "language_detected": "en",
+      "review_needed": false,
+      "quality_threshold_met": true
+    },
+    "metadata": {
+      "user_agent": "Orion-Pipeline/1.0",
+      "site_strategy_applied": true,
+      "global_rulebook_version": 4,
+      "content_archetype": "technical-tutorial",
+      "target_audience": "ml-engineers",
+      "processing_timestamp": "2025-08-29T12:46:00.000Z",
+      "pipeline_version": "7.0.0-phase7"
+    },
+    "cost_breakdown": {
+      "research": 0.012,
+      "generation": 0.0585,
+      "quality_check": 0.000,
+      "i18n_validation": 0.0015,
+      "infrastructure": 0.015
+    },
+    "performance_metrics": {
+      "tokens_per_second_avg": 804.7,
+      "cost_per_token": 0.0000254,
+      "quality_check_latency_ms": 320,
+      "end_to_end_efficiency": 0.82
+    },
+    "created_at": "2025-08-29T12:46:00.914Z"
+  },
+  "PII_REDACTION_APPLIED": true,
+  "SENSITIVE_DATA_FILTERED": [
+    "Bearer tokens",
+    "API keys", 
+    "Email addresses",
+    "Personal identifiers"
+  ]
+}

@@ -1,0 +1,45 @@
+== function vs const exports ==
+
+== dynamic routes ==
+app/api/auth/[...nextauth]/route.ts
+app/api/weeks/[id]/topics/route.ts
+app/api/weeks/[id]/approve/route.ts
+app/api/sites/[id]/strategy/route.ts
+
+== routes importing prisma directly ==
+
+== routes using shared prisma helper ==
+app/api/connections/route.ts:4:import { prisma } from '@/lib/prisma'
+app/api/jobrun/route.ts:5:import { prisma } from '@/lib/prisma'
+app/api/auth/[...nextauth]/route.ts.bak.1756366808:5:import { prisma } from '@/lib/prisma'
+app/api/weeks/[id]/topics/route.ts:5:import { prisma } from '@/lib/prisma'
+app/api/weeks/[id]/approve/route.ts:4:import { prisma } from '@/lib/prisma'
+app/api/weeks/route.ts:2:import { prisma } from '@/lib/prisma'
+app/api/weeks/route.ts.backup:4:import { prisma } from '@/lib/prisma'
+app/api/weeks/current/route.ts:4:import { prisma } from '@/lib/prisma'
+app/api/sites/route.ts:2:import { prisma } from '@/lib/prisma'
+app/api/daily-picks/route.ts:4:import { prisma } from '@/lib/prisma'
+app/api/rulebook/route.ts:2:import { prisma } from '@/lib/prisma'
+
+== routes lacking runtime= nodejs (but using prisma helper) ==
+
+== requireAuth calls (no-arg vs with-arg) ==
+app/page.tsx:6:  await requireAuth()
+app/weeks/page.tsx:12:  await requireAuth()
+app/sites/page.tsx:11:  await requireAuth()
+app/api/connections/route.ts:33:  const unauth = await requireAuth(req);
+app/api/jobrun/route.ts:45:  const unauth = await requireAuth(req);
+app/api/setup/github-secrets/route.ts:53:  const unauth = await requireAuth(req)
+app/api/weeks/[id]/topics/route.ts:60:  const unauth = await requireAuth(req);
+app/api/weeks/[id]/approve/route.ts:27:  const unauth = await requireAuth(req);
+app/api/weeks/route.ts.backup:68:  const unauth = await requireAuth(req);
+app/api/weeks/route.ts.backup:74:  const unauth = await requireAuth(req);
+app/api/weeks/route.ts.backup:79:  const unauth = await requireAuth(req);
+app/api/weeks/current/route.ts:58:  const unauth = await requireAuth(req);
+app/api/daily-picks/route.ts:92:  const unauth = await requireAuth(req);
+
+== page components using requireAuth (should use ensurePageAuth) ==
+
+== getSessionUser usage ==
+app/api/user/route.ts:3:import { getSessionUser } from '@/lib/auth'
+app/api/user/route.ts:7:    const user = await getSessionUser()

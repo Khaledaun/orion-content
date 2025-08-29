@@ -103,7 +103,7 @@ class RulebookUpdater:
             new_title = new_reqs['title_length']
             
             # Only update if new min is higher or new max is lower (more restrictive)
-            updated_title = current_title.copy()
+            updated_title = {}
             if 'min' in new_title:
                 current_min = current_title.get('min', 0)
                 updated_title['min'] = max(current_min, new_title['min'])
@@ -112,7 +112,8 @@ class RulebookUpdater:
                 current_max = current_title.get('max', 999)
                 updated_title['max'] = min(current_max, new_title['max'])
             
-            seo_section['title_length'] = updated_title
+            if updated_title:
+                seo_section['title_length'] = updated_title
         
         # Update meta description (conservative approach)
         if 'meta_description' in new_reqs:
@@ -147,11 +148,7 @@ class RulebookUpdater:
         
         # Add new requirements (never remove existing ones)
         for key, value in new_reqs.items():
-            if key not in eeat_section:
-                eeat_section[key] = value
-            elif isinstance(value, bool) and value and not eeat_section.get(key, False):
-                eeat_section[key] = value
-            elif isinstance(value, (int, float)) and value > eeat_section.get(key, 0):
+            if key not in eeat_section or (isinstance(value, bool) and value):
                 eeat_section[key] = value
         
         # Special handling for citation requirements
@@ -302,58 +299,6 @@ class RulebookUpdater:
             },
             "version_notes": f"Rollback from version {current_version} to version {target_version}"
         }
-
-    def _update_seo_rules(self, current_rulebook, insights):
-        """Update SEO rules conservatively."""
-        updated = current_rulebook.copy()
-        seo_section = updated.setdefault('seo', {})
-        new_reqs = insights.get('seo', {}).get('new_requirements', {})
-        
-        # Handle title_length
-        if 'title_length' in new_reqs:
-            current_title = seo_section.get('title_length', {})
-            new_title = new_reqs['title_length']
-            updated_title = {}
-            
-            # More restrictive minimum
-            if 'min' in new_title:
-                updated_title['min'] = max(current_title.get('min', 0), new_title['min'])
-            elif 'min' in current_title:
-                updated_title['min'] = current_title['min']
-                
-            # More restrictive maximum  
-            if 'max' in new_title:
-                updated_title['max'] = min(current_title.get('max', 999), new_title['max'])
-            elif 'max' in current_title:
-                updated_title['max'] = current_title['max']
-                
-            seo_section['title_length'] = updated_title
-        
-        # Handle other requirements
-        for key, value in new_reqs.items():
-            if key != 'title_length':
-                if key not in seo_section:
-                    seo_section[key] = value
-                elif isinstance(value, (int, float)) and value > seo_section.get(key, 0):
-                    seo_section[key] = value
-        
-        return updated
-
-    def _update_eeat_rules(self, current_rulebook, insights):
-        """Update E-E-A-T rules additively only."""
-        updated = current_rulebook.copy()
-        eeat_section = updated.setdefault('eeat', {})
-        new_reqs = insights.get('eeat', {}).get('new_requirements', {})
-        
-        for key, value in new_reqs.items():
-            if key not in eeat_section:
-                eeat_section[key] = value
-            elif isinstance(value, bool) and value and not eeat_section.get(key):
-                eeat_section[key] = True
-            elif isinstance(value, (int, float)) and value > eeat_section.get(key, 0):
-                eeat_section[key] = value
-        
-        return updated
 
 
 # Global updater instance

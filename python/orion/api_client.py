@@ -74,7 +74,7 @@ class OrionAPIClient:
         
         # Get ISO week
         iso_year, iso_week, _ = start_date.isocalendar()
-        return f"{iso_year}-{iso_week:02d}"
+        return f"{iso_year}-W{iso_week:02d}"
     
     def ensure_week(self, site_key: str, start_date: Optional[date] = None) -> Dict[str, Any]:
         """Ensure current week exists, create if needed."""
@@ -87,10 +87,10 @@ class OrionAPIClient:
             logger.info(f"Created new week: {iso_week}")
             return week
         except OrionAPIError as e:
-            if e.status_code in [400, 409] and ("already exists" in str(e).lower() or "conflict" in str(e).lower()):
+            if e.status_code == 400 and 'already exists' in str(e).lower():
                 # Week already exists, fetch it
                 weeks = self._make_request('GET', '/api/weeks')
-                for week in weeks.get("weeks", []):
+                for week in weeks:
                     if week.get('isoWeek') == iso_week:
                         logger.info(f"Found existing week: {iso_week}")
                         return week
