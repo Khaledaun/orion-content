@@ -1,0 +1,117 @@
+{
+  "mode": "competitor",
+  "target_url": "https://example.com",
+  "timestamp": "2025-08-29T04:37:35.187061",
+  "analysis": {
+    "content_strategy": {
+      "content_volume": {
+        "posts_per_month": 12,
+        "average_word_count": 1200
+      },
+      "content_types": [
+        "how_to_guides",
+        "industry_news",
+        "case_studies"
+      ],
+      "publishing_frequency": {
+        "pattern": "consistent",
+        "peak_days": [
+          "Tuesday",
+          "Thursday"
+        ]
+      },
+      "content_quality_indicators": {
+        "avg_engagement": "high",
+        "shareability_score": 7.8
+      },
+      "content_gaps": [
+        "video_content",
+        "interactive_tools",
+        "downloadable_resources"
+      ]
+    },
+    "keyword_strategy": {
+      "primary_keywords": [
+        "digital_marketing",
+        "seo_tools",
+        "content_strategy"
+      ],
+      "keyword_density": {
+        "optimal_range": true,
+        "over_optimization": false
+      },
+      "long_tail_opportunities": [
+        "how_to_improve_seo_rankings",
+        "best_content_marketing_tools"
+      ],
+      "semantic_analysis": {
+        "topic_coverage": "comprehensive",
+        "related_terms_usage": "good"
+      },
+      "ranking_opportunities": {
+        "low_competition_keywords": 15,
+        "featured_snippet_targets": 8
+      }
+    },
+    "strategic_opportunities": {
+      "market_positioning": {
+        "unique_value_props": 3,
+        "differentiation_score": 7.5
+      },
+      "content_gaps": [
+        "beginner_tutorials",
+        "advanced_case_studies",
+        "tool_comparisons"
+      ],
+      "partnership_opportunities": [
+        "industry_influencers",
+        "complementary_tools",
+        "guest_posting"
+      ],
+      "monetization_strategies": [
+        "premium_content",
+        "affiliate_partnerships",
+        "sponsored_content"
+      ],
+      "competitive_advantages": [
+        "faster_publishing",
+        "deeper_analysis",
+        "better_ui_design"
+      ]
+    },
+    "competitive_positioning": {
+      "market_share": {
+        "estimated_position": "top_5",
+        "growth_trend": "positive"
+      },
+      "brand_strength": {
+        "recognition": "high",
+        "trust_score": 8.2
+      },
+      "competitive_moats": [
+        "proprietary_technology",
+        "first_mover_advantage",
+        "network_effects"
+      ]
+    }
+  },
+  "recommendations": [
+    "Analyze competitor's top-performing content and create similar high-value pieces",
+    "Identify keyword gaps where competitors rank but you don't",
+    "Study their content calendar and posting frequency for insights",
+    "Look for broken link opportunities on competitor sites"
+  ],
+  "summary": "Competitive intelligence analysis revealing strategic opportunities and market positioning insights.",
+  "metadata": {
+    "model": "orion-analyzer-v1.0",
+    "tokens_used": 0,
+    "latency_ms": 0,
+    "cost_usd": 0.0,
+    "max_pages_crawled": 2,
+    "llm_enhanced": false,
+    "analysis_timestamp": "2025-08-29T04:37:35.187272",
+    "execution_time_ms": 0,
+    "cli_version": "1.0.0",
+    "max_pages_requested": 2
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "mode": "prospect",
+  "target_url": "https://example.com",
+  "timestamp": "2025-08-29T04:37:35.507896",
+  "analysis": {
+    "missed_opportunities_audit": {
+      "seo_opportunities": {
+        "missing_meta_descriptions": 5,
+        "unoptimized_titles": 3,
+        "broken_links": 2
+      },
+      "content_opportunities": {
+        "thin_content_pages": 8,
+        "missing_call_to_actions": 12,
+        "outdated_information": 6
+      },
+      "technical_opportunities": {
+        "page_speed_issues": 4,
+        "mobile_optimization": "needed",
+        "schema_markup": "missing"
+      },
+      "conversion_opportunities": {
+        "form_optimization": "needed",
+        "trust_signals": "insufficient",
+        "social_proof": "limited"
+      },
+      "estimated_impact": {
+        "traffic_increase_potential": "35%",
+        "conversion_rate_improvement": "20%"
+      }
+    },
+    "proposal": {
+      "executive_summary": "Comprehensive digital optimization proposal to increase organic traffic and conversions",
+      "proposed_improvements": [
+        {
+          "area": "SEO Optimization",
+          "timeline": "2-3 months",
+          "estimated_impact": "High"
+        },
+        {
+          "area": "Content Enhancement",
+          "timeline": "1-2 months",
+          "estimated_impact": "Medium"
+        },
+        {
+          "area": "Technical Improvements",
+          "timeline": "3-4 weeks",
+          "estimated_impact": "High"
+        }
+      ],
+      "implementation_roadmap": {
+        "phase_1": "Technical SEO fixes and page speed optimization",
+        "phase_2": "Content audit and enhancement",
+        "phase_3": "Advanced SEO and conversion optimization"
+      },
+      "success_metrics": [
+        "organic_traffic_increase",
+        "improved_rankings",
+        "higher_conversion_rates"
+      ]
+    },
+    "business_impact_analysis": {
+      "revenue_impact": {
+        "potential_increase": "25-40%",
+        "timeframe": "6-12 months"
+      },
+      "cost_analysis": {
+        "investment_required": "moderate",
+        "roi_projection": "300-500%"
+      },
+      "competitive_advantage": {
+        "market_position_improvement": "significant",
+        "brand_visibility": "enhanced"
+      },
+      "risk_assessment": {
+        "implementation_risk": "low",
+        "market_risk": "minimal",
+        "technical_risk": "low"
+      },
+      "business_metrics": {
+        "lead_generation_improvement": "45%",
+        "customer_acquisition_cost_reduction": "20%",
+        "lifetime_value_increase": "15%"
+      }
+    },
+    "authority_metrics": {
+      "domain": "example.com",
+      "estimated_domain_authority": 65,
+      "backlink_estimate": 1500,
+      "referring_domains": 230,
+      "trust_indicators": [
+        "SSL certificate",
+        "contact information",
+        "about page"
+      ]
+    },
+    "llm_insights": {
+      "enhanced_recommendations": "AI-powered insights for prospect analysis",
+      "strategic_advice": "Leverage machine learning for deeper analysis",
+      "prediction_confidence": 0.85,
+      "llm_model_used": "orion-analyzer-enhanced-v1"
+    }
+  },
+  "recommendations": [
+    "Prepare personalized outreach based on their content focus areas",
+    "Identify mutual connection opportunities through shared topics",
+    "Create value-first collaboration proposals"
+  ],
+  "summary": "Business impact analysis identifying high-value optimization opportunities with clear ROI projections.",
+  "metadata": {
+    "model": "orion-analyzer-v1.0",
+    "tokens_used": 0,
+    "latency_ms": 0,
+    "cost_usd": 0.0,
+    "max_pages_crawled": 5,
+    "llm_enhanced": true,
+    "analysis_timestamp": "2025-08-29T04:37:35.508083",
+    "execution_time_ms": 0,
+    "cli_version": "1.0.0",
+    "max_pages_requested": 5
+  }
+}

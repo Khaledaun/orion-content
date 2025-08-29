@@ -1,0 +1,144 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Orion Strategic Site Analyzer Output Schema",
+  "description": "JSON schema for validating analyzer output across all modes",
+  "type": "object",
+  "required": [
+    "mode",
+    "target_url",
+    "timestamp",
+    "analysis",
+    "recommendations",
+    "summary",
+    "metadata"
+  ],
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": ["my-site", "competitor", "prospect"],
+      "description": "Analysis mode used"
+    },
+    "target_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL that was analyzed"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO timestamp of when analysis started"
+    },
+    "analysis": {
+      "type": "object",
+      "description": "Mode-specific analysis results",
+      "oneOf": [
+        {
+          "if": {"properties": {"mode": {"const": "my-site"}}},
+          "then": {
+            "required": ["seo_audit", "site_blueprint", "linking_opportunities"],
+            "properties": {
+              "seo_audit": {"type": "object"},
+              "site_blueprint": {"type": "object"},
+              "linking_opportunities": {"type": "object"},
+              "content_audit": {"type": "object"},
+              "performance": {"type": "object"},
+              "llm_insights": {"type": "object"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"mode": {"const": "competitor"}}},
+          "then": {
+            "required": ["content_strategy", "keyword_strategy", "strategic_opportunities"],
+            "properties": {
+              "content_strategy": {"type": "object"},
+              "keyword_strategy": {"type": "object"},
+              "strategic_opportunities": {"type": "object"},
+              "competitive_positioning": {"type": "object"},
+              "llm_insights": {"type": "object"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"mode": {"const": "prospect"}}},
+          "then": {
+            "required": ["missed_opportunities_audit", "proposal", "business_impact_analysis"],
+            "properties": {
+              "missed_opportunities_audit": {"type": "object"},
+              "proposal": {"type": "object"},
+              "business_impact_analysis": {"type": "object"},
+              "authority_metrics": {"type": "object"},
+              "llm_insights": {"type": "object"}
+            }
+          }
+        }
+      ]
+    },
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "List of actionable recommendations"
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 10,
+      "description": "Executive summary of the analysis"
+    },
+    "metadata": {
+      "type": "object",
+      "required": [
+        "model",
+        "tokens_used",
+        "latency_ms",
+        "cost_usd"
+      ],
+      "properties": {
+        "model": {
+          "type": "string",
+          "description": "Analysis model/version used"
+        },
+        "tokens_used": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of tokens used in analysis"
+        },
+        "latency_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Analysis execution time in milliseconds"
+        },
+        "cost_usd": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Estimated cost of analysis in USD"
+        },
+        "max_pages_crawled": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum pages analyzed"
+        },
+        "llm_enhanced": {
+          "type": "boolean",
+          "description": "Whether LLM enhancement was used"
+        },
+        "analysis_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Metadata timestamp"
+        },
+        "execution_time_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "CLI execution time"
+        },
+        "cli_version": {
+          "type": "string",
+          "description": "CLI version used"
+        }
+      }
+    }
+  }
+}
