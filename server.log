@@ -1,0 +1,316 @@
+
+> dev
+> next dev
+
+  ▲ Next.js 14.2.28
+  - Local:        http://localhost:3000
+  - Environments: .env
+  - Experiments (use with caution):
+    · outputFileTracingRoot
+
+ ✓ Starting...
+ ✓ Ready in 1580ms
+ ✓ Compiled /api/health in 224ms (56 modules)
+ GET /api/health 200 in 298ms
+ GET /api/health 200 in 10ms
+ ✓ Compiled /api/setup/secrets in 307ms (59 modules)
+Setup secrets - received request
+Setup secrets - processing: { kind: 'console_api_token' }
+Setup secrets - success: {
+  kind: 'console_api_token',
+  connectionId: 'cmevfm53h00008w4p3cjd836a'
+}
+ POST /api/setup/secrets 200 in 1065ms
+ ✓ Compiled /api/sites in 159ms (62 modules)
+ GET /api/sites 401 in 389ms
+ ✓ Compiled /api/weeks in 133ms (64 modules)
+ GET /api/weeks 401 in 280ms
+ GET /api/sites 200 in 230ms
+ GET /api/weeks 200 in 212ms
+ POST /api/sites 200 in 368ms
+ GET /api/health 200 in 7ms
+ GET /api/sites 200 in 215ms
+ GET /api/sites 200 in 314ms
+ GET /api/health 200 in 5ms
+ GET /api/sites 200 in 213ms
+ GET /api/weeks 200 in 238ms
+ POST /api/sites 200 in 209ms
+ GET /api/sites 200 in 231ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 695ms (271 modules)
+ GET /api/auth/providers 200 in 1128ms
+ GET /api/auth/signin 302 in 21ms
+ GET /api/auth/signin/google 302 in 11ms
+ GET /api/auth/providers 200 in 28ms
+ ✓ Compiled /api/health in 325ms (297 modules)
+ GET /api/health 200 in 375ms
+ GET /api/health 200 in 8ms
+ ✓ Compiled /api/sites in 126ms (60 modules)
+ GET /api/sites 200 in 927ms
+ ✓ Compiled /api/weeks in 35ms (62 modules)
+ GET /api/weeks 200 in 274ms
+Create site error: PrismaClientKnownRequestError: 
+Invalid `prisma.site.create()` invocation:
+
+
+Unique constraint failed on the fields: (`key`)
+    at ei.handleRequestError (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:121:7283)
+    at ei.handleAndLogRequestError (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:121:6608)
+    at ei.request (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:121:6315)
+    at async a (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:130:9551)
+    at async POST (webpack-internal:///(rsc)/./app/api/sites/route.ts:70:22)
+    at async /workspaces/orion-content/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57228
+    at async eT.execute (/workspaces/orion-content/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46851)
+    at async eT.handle (/workspaces/orion-content/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58760)
+    at async doRender (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1366:42)
+    at async cacheEntry.responseCache.get.routeKind (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1588:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1496:28)
+    at async DevServer.renderPageComponent (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1924:24)
+    at async DevServer.renderToResponseImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/workspaces/orion-content/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:818:17)
+    at async /workspaces/orion-content/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/workspaces/orion-content/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/workspaces/orion-content/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/workspaces/orion-content/node_modules/next/dist/server/lib/router-server.js:178:21)
+    at async handleRequest (/workspaces/orion-content/node_modules/next/dist/server/lib/router-server.js:355:24)
+    at async requestHandlerImpl (/workspaces/orion-content/node_modules/next/dist/server/lib/router-server.js:379:13)
+    at async Server.requestListener (/workspaces/orion-content/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  code: 'P2002',
+  meta: { modelName: 'Site', target: [ 'key' ] },
+  clientVersion: '6.15.0'
+}
+ POST /api/sites 500 in 223ms
+ GET /api/health 200 in 6ms
+ ✓ Compiled /api/setup/secrets in 138ms (64 modules)
+Setup secrets - received request
+Setup secrets - processing: { kind: 'console_api_token' }
+Setup secrets - success: {
+  kind: 'console_api_token',
+  connectionId: 'cmevfm53h00008w4p3cjd836a'
+}
+ POST /api/setup/secrets 200 in 270ms
+ GET /api/sites 200 in 213ms
+ POST /api/sites 200 in 210ms
+ GET /api/health 200 in 11ms
+ GET /api/sites 200 in 253ms
+ POST /api/weeks 400 in 125ms
+ GET /api/health 200 in 7ms
+ GET /api/sites 200 in 983ms
+ POST /api/weeks 200 in 257ms
+Create week error: PrismaClientKnownRequestError: 
+Invalid `prisma.week.create()` invocation:
+
+
+Unique constraint failed on the fields: (`isoWeek`)
+    at ei.handleRequestError (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:121:7283)
+    at ei.handleAndLogRequestError (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:121:6608)
+    at ei.request (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:121:6315)
+    at async a (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:130:9551)
+    at async POST (webpack-internal:///(rsc)/./app/api/weeks/route.ts:69:22)
+    at async /workspaces/orion-content/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57228
+    at async eT.execute (/workspaces/orion-content/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46851)
+    at async eT.handle (/workspaces/orion-content/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58760)
+    at async doRender (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1366:42)
+    at async cacheEntry.responseCache.get.routeKind (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1588:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1496:28)
+    at async DevServer.renderPageComponent (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1924:24)
+    at async DevServer.renderToResponseImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/workspaces/orion-content/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:818:17)
+    at async /workspaces/orion-content/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/workspaces/orion-content/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/workspaces/orion-content/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/workspaces/orion-content/node_modules/next/dist/server/lib/router-server.js:178:21)
+    at async handleRequest (/workspaces/orion-content/node_modules/next/dist/server/lib/router-server.js:355:24)
+    at async requestHandlerImpl (/workspaces/orion-content/node_modules/next/dist/server/lib/router-server.js:379:13)
+    at async Server.requestListener (/workspaces/orion-content/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  code: 'P2002',
+  meta: { modelName: 'Week', target: [ 'isoWeek' ] },
+  clientVersion: '6.15.0'
+}
+ POST /api/weeks 409 in 248ms
+Create week error: PrismaClientKnownRequestError: 
+Invalid `prisma.week.create()` invocation:
+
+
+Unique constraint failed on the fields: (`isoWeek`)
+    at ei.handleRequestError (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:121:7283)
+    at ei.handleAndLogRequestError (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:121:6608)
+    at ei.request (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:121:6315)
+    at async a (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:130:9551)
+    at async POST (webpack-internal:///(rsc)/./app/api/weeks/route.ts:69:22)
+    at async /workspaces/orion-content/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57228
+    at async eT.execute (/workspaces/orion-content/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46851)
+    at async eT.handle (/workspaces/orion-content/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58760)
+    at async doRender (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1366:42)
+    at async cacheEntry.responseCache.get.routeKind (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1588:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1496:28)
+    at async DevServer.renderPageComponent (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1924:24)
+    at async DevServer.renderToResponseImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/workspaces/orion-content/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:818:17)
+    at async /workspaces/orion-content/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/workspaces/orion-content/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/workspaces/orion-content/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/workspaces/orion-content/node_modules/next/dist/server/lib/router-server.js:178:21)
+    at async handleRequest (/workspaces/orion-content/node_modules/next/dist/server/lib/router-server.js:355:24)
+    at async requestHandlerImpl (/workspaces/orion-content/node_modules/next/dist/server/lib/router-server.js:379:13)
+    at async Server.requestListener (/workspaces/orion-content/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  code: 'P2002',
+  meta: { modelName: 'Week', target: [ 'isoWeek' ] },
+  clientVersion: '6.15.0'
+}
+ POST /api/weeks 409 in 219ms
+Create week error: PrismaClientKnownRequestError: 
+Invalid `prisma.week.create()` invocation:
+
+
+Unique constraint failed on the fields: (`isoWeek`)
+    at ei.handleRequestError (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:121:7283)
+    at ei.handleAndLogRequestError (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:121:6608)
+    at ei.request (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:121:6315)
+    at async a (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:130:9551)
+    at async POST (webpack-internal:///(rsc)/./app/api/weeks/route.ts:69:22)
+    at async /workspaces/orion-content/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57228
+    at async eT.execute (/workspaces/orion-content/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46851)
+    at async eT.handle (/workspaces/orion-content/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58760)
+    at async doRender (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1366:42)
+    at async cacheEntry.responseCache.get.routeKind (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1588:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1496:28)
+    at async DevServer.renderPageComponent (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1924:24)
+    at async DevServer.renderToResponseImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/workspaces/orion-content/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:818:17)
+    at async /workspaces/orion-content/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/workspaces/orion-content/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/workspaces/orion-content/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/workspaces/orion-content/node_modules/next/dist/server/lib/router-server.js:178:21)
+    at async handleRequest (/workspaces/orion-content/node_modules/next/dist/server/lib/router-server.js:355:24)
+    at async requestHandlerImpl (/workspaces/orion-content/node_modules/next/dist/server/lib/router-server.js:379:13)
+    at async Server.requestListener (/workspaces/orion-content/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  code: 'P2002',
+  meta: { modelName: 'Week', target: [ 'isoWeek' ] },
+  clientVersion: '6.15.0'
+}
+ POST /api/weeks 409 in 261ms
+ GET /api/weeks 200 in 218ms
+ GET /api/weeks 200 in 217ms
+ GET /api/weeks 200 in 214ms
+Create week error: PrismaClientKnownRequestError: 
+Invalid `prisma.week.create()` invocation:
+
+
+Unique constraint failed on the fields: (`isoWeek`)
+    at ei.handleRequestError (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:121:7283)
+    at ei.handleAndLogRequestError (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:121:6608)
+    at ei.request (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:121:6315)
+    at async a (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:130:9551)
+    at async POST (webpack-internal:///(rsc)/./app/api/weeks/route.ts:69:22)
+    at async /workspaces/orion-content/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57228
+    at async eT.execute (/workspaces/orion-content/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46851)
+    at async eT.handle (/workspaces/orion-content/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58760)
+    at async doRender (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1366:42)
+    at async cacheEntry.responseCache.get.routeKind (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1588:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1496:28)
+    at async DevServer.renderPageComponent (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1924:24)
+    at async DevServer.renderToResponseImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/workspaces/orion-content/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:818:17)
+    at async /workspaces/orion-content/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/workspaces/orion-content/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/workspaces/orion-content/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/workspaces/orion-content/node_modules/next/dist/server/lib/router-server.js:178:21)
+    at async handleRequest (/workspaces/orion-content/node_modules/next/dist/server/lib/router-server.js:355:24)
+    at async requestHandlerImpl (/workspaces/orion-content/node_modules/next/dist/server/lib/router-server.js:379:13)
+    at async Server.requestListener (/workspaces/orion-content/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  code: 'P2002',
+  meta: { modelName: 'Week', target: [ 'isoWeek' ] },
+  clientVersion: '6.15.0'
+}
+ POST /api/weeks 409 in 224ms
+ GET /api/weeks 200 in 207ms
+ GET /api/health 200 in 11ms
+ GET /api/sites 200 in 221ms
+Create week error: PrismaClientKnownRequestError: 
+Invalid `prisma.week.create()` invocation:
+
+
+Unique constraint failed on the fields: (`isoWeek`)
+    at ei.handleRequestError (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:121:7283)
+    at ei.handleAndLogRequestError (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:121:6608)
+    at ei.request (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:121:6315)
+    at async a (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:130:9551)
+    at async POST (webpack-internal:///(rsc)/./app/api/weeks/route.ts:69:22)
+    at async /workspaces/orion-content/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57228
+    at async eT.execute (/workspaces/orion-content/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46851)
+    at async eT.handle (/workspaces/orion-content/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58760)
+    at async doRender (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1366:42)
+    at async cacheEntry.responseCache.get.routeKind (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1588:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1496:28)
+    at async DevServer.renderPageComponent (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1924:24)
+    at async DevServer.renderToResponseImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/workspaces/orion-content/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:818:17)
+    at async /workspaces/orion-content/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/workspaces/orion-content/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/workspaces/orion-content/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/workspaces/orion-content/node_modules/next/dist/server/lib/router-server.js:178:21)
+    at async handleRequest (/workspaces/orion-content/node_modules/next/dist/server/lib/router-server.js:355:24)
+    at async requestHandlerImpl (/workspaces/orion-content/node_modules/next/dist/server/lib/router-server.js:379:13)
+    at async Server.requestListener (/workspaces/orion-content/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  code: 'P2002',
+  meta: { modelName: 'Week', target: [ 'isoWeek' ] },
+  clientVersion: '6.15.0'
+}
+ POST /api/weeks 409 in 226ms
+ GET /api/weeks 200 in 252ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 5.8s (753 modules)
+ POST /api/sites/my-site/categories 404 in 5926ms
+ ✓ Compiled in 464ms (364 modules)
+ GET /api/sites 200 in 245ms
+ POST /api/sites/my-site/categories 404 in 26ms
+ GET /api/health 200 in 11ms
+ GET /api/sites 200 in 881ms
+Create week error: PrismaClientKnownRequestError: 
+Invalid `prisma.week.create()` invocation:
+
+
+Unique constraint failed on the fields: (`isoWeek`)
+    at ei.handleRequestError (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:121:7283)
+    at ei.handleAndLogRequestError (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:121:6608)
+    at ei.request (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:121:6315)
+    at async a (/workspaces/orion-content/node_modules/@prisma/client/runtime/library.js:130:9551)
+    at async POST (webpack-internal:///(rsc)/./app/api/weeks/route.ts:69:22)
+    at async /workspaces/orion-content/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57228
+    at async eT.execute (/workspaces/orion-content/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46851)
+    at async eT.handle (/workspaces/orion-content/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58760)
+    at async doRender (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1366:42)
+    at async cacheEntry.responseCache.get.routeKind (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1588:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1496:28)
+    at async DevServer.renderPageComponent (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1924:24)
+    at async DevServer.renderToResponseImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/workspaces/orion-content/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/workspaces/orion-content/node_modules/next/dist/server/base-server.js:818:17)
+    at async /workspaces/orion-content/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/workspaces/orion-content/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/workspaces/orion-content/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/workspaces/orion-content/node_modules/next/dist/server/lib/router-server.js:178:21)
+    at async handleRequest (/workspaces/orion-content/node_modules/next/dist/server/lib/router-server.js:355:24)
+    at async requestHandlerImpl (/workspaces/orion-content/node_modules/next/dist/server/lib/router-server.js:379:13)
+    at async Server.requestListener (/workspaces/orion-content/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  code: 'P2002',
+  meta: { modelName: 'Week', target: [ 'isoWeek' ] },
+  clientVersion: '6.15.0'
+}
+ POST /api/weeks 409 in 275ms
+ GET /api/weeks 200 in 234ms
+ GET /api/weeks 200 in 210ms

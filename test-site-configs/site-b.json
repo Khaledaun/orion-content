@@ -1,0 +1,7 @@
+{
+  "site_id": "lifestyle-blog",
+  "wp_url": "https://lifestyle-blog.example.com", 
+  "wp_username": "lifestyle_admin",
+  "wp_password": "lifestyle_secret_abc789",
+  "publishing_cadence": "weekly"
+}

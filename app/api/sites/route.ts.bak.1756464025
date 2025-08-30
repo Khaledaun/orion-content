@@ -1,0 +1,80 @@
+// app/api/sites/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { requireAuth } from '@/lib/auth'
+
+export const runtime = 'nodejs'
+
+// GET /api/sites  -> list sites
+async function handleGET(_req: NextRequest) {
+  const sites = await prisma.site.findMany({
+    orderBy: { createdAt: 'desc' },
+    include: {
+      _count: { select: { categories: true, topics: true } },
+    },
+  })
+  return NextResponse.json({ ok: true, sites })
+}
+
+// POST /api/sites -> create site
+// Accepts either:
+//   A) { key, name, timezone, publisher, locales, baseUrl }
+//   B) { name, slug, baseUrl }   (legacy)
+async function handlePOST(req: NextRequest) {
+  const body = await req.json().catch(() => ({} as any))
+
+  // Normalize payload
+  const key: string | undefined = body.key ?? body.slug
+  const name: string | undefined = body.name
+  const baseUrl: string | undefined = body.baseUrl
+  const timezone: string = body.timezone ?? 'UTC'
+  const publisher: string = body.publisher ?? 'wordpress'
+  const locales: string[] = Array.isArray(body.locales) ? body.locales : ['en']
+
+  if (!key || !name || !baseUrl) {
+    return NextResponse.json(
+      { error: 'Missing required fields: key/slug, name, baseUrl' },
+      { status: 400 }
+    )
+  }
+
+  try {
+    const site = await prisma.site.create({
+      data: {
+        key,
+        name,
+        baseUrl,
+        timezone,
+        publisher,
+        locales, // ensure your Prisma schema supports this; remove if not present
+      } as any,
+    })
+    return NextResponse.json({ ok: true, site })
+  } catch (error: unknown) {
+    const msg = (error as any)?.message ?? String(error)
+    const code = (error as any)?.code as string | undefined
+    if (code === 'P2002') {
+      return NextResponse.json(
+        { error: 'Site already exists', details: msg },
+        { status: 409 }
+      )
+    }
+    return NextResponse.json(
+      { error: 'Failed to create site', details: msg },
+      { status: 500 }
+    )
+  }
+}
+
+// Auth wrappers (unify across routes)
+export async function GET(req: NextRequest) {
+  const unauth = await requireAuth(req)
+  if (unauth) return unauth
+  return handleGET(req)
+}
+
+export async function POST(req: NextRequest) {
+  const unauth = await requireAuth(req)
+  if (unauth) return unauth
+  return handlePOST(req)
+}

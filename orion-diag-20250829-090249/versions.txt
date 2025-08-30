@@ -1,0 +1,21 @@
+node: v22.17.0
+python: Python 3.12.1
+pnpm: 10.13.1
+
+next version:
+14.2.28
+
+prisma version:
+Prisma schema loaded from prisma/schema.prisma
+prisma                  : 6.15.0
+@prisma/client          : 6.15.0
+Computed binaryTarget   : debian-openssl-1.1.x
+Operating System        : linux
+Architecture            : x64
+Node.js                 : v22.17.0
+TypeScript              : 5.2.2
+Query Engine (Node-API) : libquery-engine 85179d7826409ee107a6ba334b5e305ae3fba9fb (at node_modules/.pnpm/@prisma+engines@6.15.0/node_modules/@prisma/engines/libquery_engine-debian-openssl-1.1.x.so.node)
+PSL                     : @prisma/prisma-schema-wasm 6.15.0-5.85179d7826409ee107a6ba334b5e305ae3fba9fb
+Schema Engine           : schema-engine-cli 85179d7826409ee107a6ba334b5e305ae3fba9fb (at node_modules/.pnpm/@prisma+engines@6.15.0/node_modules/@prisma/engines/schema-engine-debian-openssl-1.1.x)
+Default Engines Hash    : 85179d7826409ee107a6ba334b5e305ae3fba9fb
+Studio                  : 0.511.0

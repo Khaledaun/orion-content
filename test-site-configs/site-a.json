@@ -1,0 +1,7 @@
+{
+  "site_id": "tech-blog",
+  "wp_url": "https://tech-blog.example.com",
+  "wp_username": "tech_admin",
+  "wp_password": "tech_secret_xyz123",
+  "publishing_cadence": "daily"
+}

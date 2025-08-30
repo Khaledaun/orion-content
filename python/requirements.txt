@@ -1,4 +1,11 @@
 
+
 requests>=2.32
 python-dateutil>=2.9
 pytest>=8.2
+aiohttp>=3.8.0
+pytest-asyncio>=0.21.0
+
+# Phase 7: Quality Framework Dependencies
+textstat>=0.7.3
+

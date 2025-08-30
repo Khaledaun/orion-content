@@ -1,0 +1,168 @@
+
+name: Orion Publish (Cron)
+
+on:
+  schedule:
+    # Run twice daily UTC (6 AM and 4 PM UTC)
+    - cron: "5 6,16 * * *"
+  workflow_dispatch:
+    inputs:
+      sites:
+        description: 'Sites to run (comma-separated, optional)'
+        required: false
+        type: string
+      topic_count:
+        description: 'Number of topics per site'
+        required: false
+        default: '5'
+        type: string
+      dry_run:
+        description: 'Run in dry-run mode'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  run-multisite:
+    runs-on: ubuntu-latest
+    
+    env:
+      ORION_BASE_URL: ${{ secrets.CONSOLE_BASE_URL }}
+      ORION_CONSOLE_TOKEN: ${{ secrets.CONSOLE_API_TOKEN }}
+      ORION_SITES: ${{ inputs.sites || secrets.ORION_SITES || 'my-site' }}
+      TOPIC_COUNT: ${{ inputs.topic_count || secrets.TOPIC_COUNT || '5' }}
+      
+      # Content generation strategy (optional)
+      ENRICH_PROMPT_STRATEGY: ${{ secrets.ENRICH_PROMPT_STRATEGY || 'default' }}
+      
+      # Default WordPress credentials (can be overridden per site)
+      WP_BASE_URL: ${{ secrets.WP_BASE_URL }}
+      WP_USERNAME: ${{ secrets.WP_USERNAME }}
+      WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        working-directory: ./python
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Validate configuration
+        working-directory: ./python
+        run: |
+          source .venv/bin/activate
+          echo "Validating multi-site configuration..."
+          PYTHONPATH=. python -m orion.automate.multisite --list-sites
+          
+          # Test API connectivity
+          PYTHONPATH=. python -c "
+          from orion.api_client import client
+          try:
+              health = client.health_check()
+              print(f'API Health: {health}')
+              if not health.get('ok'):
+                  exit(1)
+          except Exception as e:
+              print(f'API Error: {e}')
+              exit(1)
+          "
+      
+      - name: Run automation pipeline per site
+        working-directory: ./python
+        run: |
+          source .venv/bin/activate
+          
+          # Parse sites from environment
+          IFS=',' read -ra SITE_ARRAY <<< "${ORION_SITES}"
+          
+          TOTAL_SITES=${#SITE_ARRAY[@]}
+          echo "Running pipeline for ${TOTAL_SITES} site(s): ${ORION_SITES}"
+          
+          FAILED_SITES=0
+          
+          for SITE in "${SITE_ARRAY[@]}"; do
+            SITE=$(echo "$SITE" | xargs)  # Trim whitespace
+            echo ""
+            echo "=========================================="
+            echo "Processing Site: $SITE"
+            echo "=========================================="
+            
+            # Load site-specific WordPress credentials if available
+            # Pattern: WP_BASE_URL__<SITE>, WP_USERNAME__<SITE>, WP_APP_PASSWORD__<SITE>
+            SITE_ENV_KEY=$(echo "$SITE" | sed 's/-/_/g')  # Replace hyphens with underscores for env var names
+            SITE_WP_URL_VAR="WP_BASE_URL__${SITE_ENV_KEY}"
+            SITE_WP_USER_VAR="WP_USERNAME__${SITE_ENV_KEY}"
+            SITE_WP_PASS_VAR="WP_APP_PASSWORD__${SITE_ENV_KEY}"
+            
+            # Set site-specific credentials if they exist
+            export WP_BASE_URL="${!SITE_WP_URL_VAR:-$WP_BASE_URL}"
+            export WP_USERNAME="${!SITE_WP_USER_VAR:-$WP_USERNAME}"
+            export WP_APP_PASSWORD="${!SITE_WP_PASS_VAR:-$WP_APP_PASSWORD}"
+            
+            if [[ -n "$WP_BASE_URL" && -n "$WP_USERNAME" && -n "$WP_APP_PASSWORD" ]]; then
+              echo "WordPress publishing: ENABLED"
+            else
+              echo "WordPress publishing: DRY-RUN MODE (missing credentials)"
+            fi
+            
+            # Determine publish flag based on dry-run input
+            PUBLISH_FLAG=1
+            if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+              PUBLISH_FLAG=0
+              echo "Dry-run mode: Only generating topics (no WordPress publishing)"
+            fi
+            
+            # Run pipeline for this site
+            if PYTHONPATH=. python -m orion.automate.run_pipeline \
+              --site-key "$SITE" \
+              --topics "$TOPIC_COUNT" \
+              --publish "$PUBLISH_FLAG"; then
+              echo "✅ Pipeline completed successfully for $SITE"
+            else
+              echo "❌ Pipeline failed for $SITE"
+              FAILED_SITES=$((FAILED_SITES + 1))
+            fi
+          done
+          
+          echo ""
+          echo "=========================================="
+          echo "AUTOMATION SUMMARY"
+          echo "=========================================="
+          echo "Total sites: $TOTAL_SITES"
+          echo "Failed sites: $FAILED_SITES"
+          echo "Success rate: $(( (TOTAL_SITES - FAILED_SITES) * 100 / TOTAL_SITES ))%"
+          
+          if [[ $FAILED_SITES -gt 0 ]]; then
+            echo "❌ Some sites failed - check logs above"
+            exit 1
+          else
+            echo "✅ All sites completed successfully"
+          fi
+      
+      - name: Upload automation logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: automation-logs-${{ github.run_id }}
+          path: python/automation-logs/
+          retention-days: 30
+      
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "🚨 Automation pipeline failed!"
+          echo "Check the logs and automation-logs artifact for details."
+          echo "Run ID: ${{ github.run_id }}"
+          
+          # Future: Add Slack/Discord/email notifications here

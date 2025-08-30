@@ -1,0 +1,27 @@
+== catch(error) unknown ==
+app/lib/auth.ts:55:  } catch (error) {
+app/setup/page.tsx:70:    } catch (error) {
+app/setup/page.tsx:160:    } catch (error) {
+app/setup/page.tsx:180:    } catch (error) {
+app/weeks/approve-button.tsx:34:    } catch (error) {
+app/app/api/rulebook/route.ts:19:  } catch (error) {
+app/sites/create-site-form.tsx:42:    } catch (error) {
+app/dashboard/logout-button.tsx:24:    } catch (error) {
+app/login/login-form.tsx:36:    } catch (error) {
+app/api/connections/route.ts:23:  } catch (error) {
+app/api/jobrun/route.ts:34:  } catch (error) {
+app/api/auth/logout/route.ts:8:  } catch (error) {
+app/api/weeks/[id]/topics/route.ts:49:  } catch (error) {
+app/api/weeks/[id]/approve/route.ts:20:  } catch (error) {
+app/api/weeks/route.ts.backup:38:    } catch (error) {
+app/api/weeks/route.ts.backup:58:    } catch (error) {
+app/api/weeks/current/route.ts:50:  } catch (error) {
+app/api/sites/route.ts:26:  } catch (error) {
+app/api/sites/route.ts:66:  } catch (error) {
+app/api/daily-picks/route.ts:84:  } catch (error) {
+app/api/logout/route.ts:9:  } catch (error) {
+app/api/user/route.ts:14:  } catch (error) {
+app/api/rulebook/route.ts:30:  } catch (error) {
+app/api/rulebook/route.ts:70:  } catch (error) {
+
+== direct access to error.message / error.code ==

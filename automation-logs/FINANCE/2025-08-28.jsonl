@@ -1,0 +1,4 @@
+{"ts": "2025-08-28T16:45:35.435929+00:00", "site": "FINANCE", "stage": "jitter_applied", "ok": true, "jitter_seconds": 107}
+{"ts": "2025-08-28T16:47:22.436958+00:00", "site": "FINANCE", "stage": "pipeline_failed", "ok": false, "error": "'SiteConfig' object has no attribute 'topic_count_range'"}
+{"ts": "2025-08-28T17:00:07.170742+00:00", "site": "FINANCE", "stage": "jitter_applied", "ok": true, "jitter_seconds": 26}
+{"ts": "2025-08-28T17:00:33.171883+00:00", "site": "FINANCE", "stage": "pipeline_failed", "ok": false, "error": "'SiteConfig' object has no attribute 'topic_count_range'"}

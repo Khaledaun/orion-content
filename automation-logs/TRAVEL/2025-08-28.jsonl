@@ -1,0 +1,4 @@
+{"ts": "2025-08-28T16:45:35.435753+00:00", "site": "TRAVEL", "stage": "jitter_applied", "ok": true, "jitter_seconds": 134}
+{"ts": "2025-08-28T16:47:49.436797+00:00", "site": "TRAVEL", "stage": "pipeline_failed", "ok": false, "error": "'SiteConfig' object has no attribute 'topic_count_range'"}
+{"ts": "2025-08-28T17:00:07.171728+00:00", "site": "TRAVEL", "stage": "jitter_applied", "ok": true, "jitter_seconds": 116}
+{"ts": "2025-08-28T17:02:03.172457+00:00", "site": "TRAVEL", "stage": "pipeline_failed", "ok": false, "error": "'SiteConfig' object has no attribute 'topic_count_range'"}

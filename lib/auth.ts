@@ -7,7 +7,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth-config'
 import { prisma } from './prisma'
 import { decryptJson } from './crypto'
 
@@ -149,3 +149,15 @@ export async function requireSessionAuth() {
   }
   return user
 }
+
+// For API routes that require authentication
+export async function requireApiAuth(req: NextRequest): Promise<{ id: string; email: string }> {
+  const user = await getBearerOrSessionUser(req)
+  if (!user) {
+    throw new Error('Bearer token required')
+  }
+  return user
+}
+
+// Alias for compatibility
+export const deleteSession = destroySession

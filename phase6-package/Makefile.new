@@ -1,0 +1,266 @@
+
+# Orion Content Management System - Makefile
+# Provides convenient targets for development, testing, and automation
+
+.PHONY: help install test test-all lint clean dev-server
+.PHONY: gather audit publish automate automate-dry validate-config
+.PHONY: test-api test-automation package zip-phase4
+
+# Default target
+help:
+	@echo "Orion Content Management System - Available Commands"
+	@echo ""
+	@echo "Development:"
+	@echo "  install         Install Python dependencies"
+	@echo "  test            Run all tests"
+	@echo "  test-api        Test API connectivity"
+	@echo "  test-automation Test automation pipeline"
+	@echo "  lint            Run code linting"
+	@echo "  clean           Clean temporary files"
+	@echo "  dev-server      Start development server"
+	@echo ""
+	@echo "Phase 3 - CLI Tools:"
+	@echo "  gather          Generate topics (SITE=my-site COUNT=30)"
+	@echo "  audit           Audit WordPress posts"
+	@echo "  publish         Create WordPress draft (TITLE='Post Title' CONTENT='Content')"
+	@echo ""
+	@echo "Phase 4 - Automation:"
+	@echo "  automate        Run automation pipeline (SITE=my-site COUNT=5)"
+	@echo "  automate-dry    Run automation without WordPress publishing"
+	@echo "  validate-config Validate multi-site configuration"
+	@echo ""
+	@echo "Packaging:"
+	@echo "  package         Create distributable ZIP"
+	@echo "  zip-phase4      Create Phase 4 ZIP artifact"
+	@echo ""
+	@echo "Examples:"
+	@echo "  make gather SITE=my-site COUNT=10"
+	@echo "  make automate SITE=ai-news COUNT=5"
+	@echo "  make test-automation"
+
+# Variables
+SITE ?= my-site
+COUNT ?= 5
+TITLE ?= Test Post Title
+CONTENT ?= Test post content
+PYTHON_PATH = PYTHONPATH=python
+
+# Installation and setup
+install:
+	@echo "Installing Orion dependencies..."
+	cd python && python -m pip install --upgrade pip
+	cd python && pip install -r requirements.txt
+	@echo "✅ Dependencies installed"
+
+# Testing
+test:
+	@echo "Running all tests..."
+	cd python && python -m pytest tests/ -v
+	@echo "✅ All tests passed"
+
+test-api:
+	@echo "Testing API connectivity..."
+	$(PYTHON_PATH) python -c "\
+	from orion.api_client import client; \
+	print('API Health:', client.health_check()); \
+	print('Sites:', len(client.get_sites()))"
+	@echo "✅ API test completed"
+
+test-automation:
+	@echo "Running automation pipeline tests..."
+	cd python && python -m pytest tests/test_automate_pipeline.py -v
+	@echo "✅ Automation tests passed"
+
+# Development tools
+lint:
+	@echo "Running code linting..."
+	cd python && python -m flake8 orion/ --max-line-length=120 --ignore=E203,W503 || echo "⚠️  Linting warnings found"
+
+clean:
+	@echo "Cleaning temporary files..."
+	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+	find . -name "*.pyc" -delete 2>/dev/null || true
+	find . -name "*.pyo" -delete 2>/dev/null || true
+	rm -rf python/.pytest_cache 2>/dev/null || true
+	rm -rf automation-logs 2>/dev/null || true
+	@echo "✅ Cleanup completed"
+
+dev-server:
+	@echo "Starting Orion development server..."
+	cd app && yarn dev
+
+# Phase 3 CLI Tools
+gather:
+	@echo "Generating $(COUNT) topics for site: $(SITE)"
+	$(PYTHON_PATH) python -m orion.gather_trends --site-key $(SITE) --count $(COUNT)
+
+gather-dry:
+	@echo "Dry run - generating $(COUNT) topics for site: $(SITE)"
+	$(PYTHON_PATH) python -m orion.gather_trends --site-key $(SITE) --count $(COUNT) --dry-run
+
+audit:
+	@echo "Auditing WordPress posts..."
+	$(PYTHON_PATH) python -m orion.audit.audit_wp
+
+publish:
+	@echo "Creating WordPress draft: $(TITLE)"
+	$(PYTHON_PATH) python -m orion.publish.publisher_wp \
+		--title "$(TITLE)" \
+		--content "$(CONTENT)" \
+		--status draft
+
+# Phase 4 Automation
+automate:
+	@echo "Running automation pipeline for site: $(SITE) ($(COUNT) topics)"
+	$(PYTHON_PATH) python -m orion.automate.run_pipeline \
+		--site-key $(SITE) \
+		--topics $(COUNT) \
+		--publish 1
+
+automate-dry:
+	@echo "Running automation pipeline (dry-run) for site: $(SITE) ($(COUNT) topics)"
+	$(PYTHON_PATH) python -m orion.automate.run_pipeline \
+		--site-key $(SITE) \
+		--topics $(COUNT) \
+		--publish 0
+
+automate-wp-dry:
+	@echo "Running automation pipeline (WordPress dry-run) for site: $(SITE) ($(COUNT) topics)"
+	$(PYTHON_PATH) python -m orion.automate.run_pipeline \
+		--site-key $(SITE) \
+		--topics $(COUNT) \
+		--publish 1 \
+		--dry-run-wp 1
+
+validate-config:
+	@echo "Validating multi-site configuration..."
+	$(PYTHON_PATH) python -m orion.automate.multisite
+	@echo "✅ Configuration validation completed"
+
+list-sites:
+	@echo "Configured sites:"
+	$(PYTHON_PATH) python -m orion.automate.multisite --list-sites
+
+# Advanced automation testing
+test-multisite:
+	@echo "Testing multi-site automation..."
+	@if [ -z "$$ORION_SITES" ]; then \
+		echo "Setting test sites: site1,site2"; \
+		export ORION_SITES="site1,site2"; \
+	fi
+	@for site in $$(echo $$ORION_SITES | tr ',' ' '); do \
+		echo "Testing site: $$site"; \
+		$(PYTHON_PATH) python -m orion.automate.run_pipeline \
+			--site-key $$site --topics 2 --publish 0; \
+	done
+	@echo "✅ Multi-site testing completed"
+
+# Content generation testing
+test-enrich:
+	@echo "Testing content enrichment..."
+	$(PYTHON_PATH) python -m orion.automate.enrich \
+		--title "AI Trend #05 — Machine Learning Revolution" \
+		--angle "Exploring how ML is transforming business operations" \
+		--score 0.8 \
+		--output json
+
+# Packaging and distribution
+package:
+	@echo "Creating distributable package..."
+	@rm -f orion-content.zip
+	zip -r orion-content.zip \
+		app/ \
+		python/ \
+		docs/ \
+		scripts/ \
+		tools/ \
+		.github/ \
+		README.md \
+		LICENSE \
+		Makefile \
+		-x "*/node_modules/*" "*/.*" "*/__pycache__/*" "*.pyc" "*/.venv/*"
+	@echo "✅ Package created: orion-content.zip"
+
+zip-phase4:
+	@echo "Creating Phase 4 artifact..."
+	@rm -f orion-phase4-automation.zip
+	cd python && zip -r ../orion-phase4-automation.zip \
+		orion/automate/ \
+		tests/test_automate_pipeline.py \
+		-x "*/__pycache__/*" "*.pyc"
+	zip -r orion-phase4-automation.zip \
+		.github/workflows/publish-cron.yml \
+		docs/PHASE4_AUTOMATION.md \
+		Makefile
+	@echo "✅ Phase 4 artifact created: orion-phase4-automation.zip"
+
+# Environment setup helpers
+setup-env:
+	@echo "Setting up environment variables..."
+	@echo "Create a .env file with:"
+	@echo "ORION_BASE_URL=http://localhost:3000"
+	@echo "ORION_CONSOLE_TOKEN=your_console_token"
+	@echo "WP_BASE_URL=https://your-wordpress-site.com"
+	@echo "WP_USERNAME=your_wp_username"
+	@echo "WP_APP_PASSWORD=your_wp_app_password"
+	@echo "ORION_SITES=my-site,site2,site3"
+
+check-env:
+	@echo "Checking environment variables..."
+	@echo "ORION_BASE_URL: $${ORION_BASE_URL:-❌ Not set}"
+	@echo "ORION_CONSOLE_TOKEN: $${ORION_CONSOLE_TOKEN:+✅ Set}$${ORION_CONSOLE_TOKEN:-❌ Not set}"
+	@echo "WP_BASE_URL: $${WP_BASE_URL:-⚠️ Not set (will run dry-run)}"
+	@echo "WP_USERNAME: $${WP_USERNAME:+✅ Set}$${WP_USERNAME:-⚠️ Not set (will run dry-run)}"
+	@echo "WP_APP_PASSWORD: $${WP_APP_PASSWORD:+✅ Set}$${WP_APP_PASSWORD:-⚠️ Not set (will run dry-run)}"
+	@echo "ORION_SITES: $${ORION_SITES:-my-site (default)}"
+
+# All-in-one targets
+setup: install check-env
+	@echo "✅ Setup completed"
+
+demo: gather automate
+	@echo "✅ Demo pipeline completed"
+
+ci-test: install test test-automation
+	@echo "✅ CI testing completed"
+
+# Documentation helpers
+docs:
+	@echo "Documentation files:"
+	@echo "  docs/PHASE4_AUTOMATION.md - Phase 4 automation guide"
+	@echo "  README.md - Main project documentation"
+	@echo "  This Makefile - Command reference"
+
+# Quick reference
+quick-ref:
+	@echo "Quick Reference - Common Commands:"
+	@echo ""
+	@echo "Development workflow:"
+	@echo "  make install && make check-env && make test"
+	@echo ""
+	@echo "Generate topics:"
+	@echo "  make gather SITE=my-site COUNT=10"
+	@echo ""
+	@echo "Run automation:"
+	@echo "  make automate SITE=my-site COUNT=5"
+	@echo ""
+	@echo "Test everything:"
+	@echo "  make ci-test"
+
+# Phase 6: Strategic Site Analyzer targets
+.PHONY: test-analyzer run-analyzer-demo analyze-my-site analyze-competitor analyze-prospect
+
+test-analyzer: ## Run analyzer tests
+	cd python && python -m pytest tests/analyzer/ -v
+
+run-analyzer-demo: ## Run analyzer demo
+	cd python && python -m orion.analyzer.run_analyzer my-site https://example.com
+
+analyze-my-site: ## Analyze your own site (set SITE_URL)
+	cd python && python -m orion.analyzer.run_analyzer my-site $(SITE_URL)
+
+analyze-competitor: ## Analyze competitor site (set COMPETITOR_URL)
+	cd python && python -m orion.analyzer.run_analyzer competitor $(COMPETITOR_URL)
+
+analyze-prospect: ## Analyze prospect site (set PROSPECT_URL)
+	cd python && python -m orion.analyzer.run_analyzer prospect $(PROSPECT_URL)

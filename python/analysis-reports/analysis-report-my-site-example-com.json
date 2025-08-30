@@ -1,0 +1,109 @@
+{
+  "mode": "my-site",
+  "target_url": "https://example.com",
+  "timestamp": "2025-08-29T05:06:59.360774",
+  "analysis": {
+    "seo_audit": {
+      "title_analysis": {
+        "optimized": true,
+        "length": 0
+      },
+      "meta_description": {
+        "present": false,
+        "optimized": true
+      },
+      "headings_structure": {
+        "h1_count": 1,
+        "hierarchy_valid": true
+      },
+      "internal_linking": {
+        "links_found": 0,
+        "structure_score": 8.5
+      },
+      "technical_seo": {
+        "page_speed_score": 85,
+        "mobile_friendly": true,
+        "https_enabled": true
+      }
+    },
+    "site_blueprint": {
+      "content_architecture": {
+        "depth_levels": 3,
+        "category_structure": "hierarchical"
+      },
+      "navigation_analysis": {
+        "main_menu_items": 6,
+        "footer_links": 12,
+        "breadcrumbs": true
+      },
+      "content_types": [
+        "blog_posts",
+        "product_pages",
+        "landing_pages"
+      ],
+      "user_journey_mapping": {
+        "entry_points": 5,
+        "conversion_paths": 3
+      },
+      "improvement_roadmap": [
+        "optimize_navigation",
+        "enhance_internal_linking",
+        "improve_content_hierarchy"
+      ]
+    },
+    "linking_opportunities": {
+      "internal_link_analysis": {
+        "total_internal_links": 45,
+        "orphaned_pages": 2
+      },
+      "anchor_text_optimization": {
+        "branded_anchors": 12,
+        "keyword_anchors": 8,
+        "generic_anchors": 25
+      },
+      "link_equity_distribution": {
+        "high_authority_pages": 5,
+        "link_depth_analysis": "shallow"
+      },
+      "opportunities": [
+        "Link high-traffic pages to conversion pages",
+        "Create topic clusters with hub pages",
+        "Add contextual links in blog content"
+      ]
+    },
+    "content_audit": {
+      "headings_structure": [
+        {
+          "level": 1,
+          "text": "Example Domain"
+        }
+      ],
+      "content_length": 908,
+      "has_meta_description": false,
+      "has_structured_data": false,
+      "heading_count": 1
+    },
+    "performance": {
+      "response_time_seconds": 0.084537,
+      "status_code": 200,
+      "content_size_bytes": 1256,
+      "performance_score": 10.0
+    }
+  },
+  "recommendations": [
+    "Consider expanding content length for better SEO value"
+  ],
+  "summary": "Comprehensive site analysis completed with actionable SEO and content optimization recommendations.",
+  "metadata": {
+    "model": "orion-analyzer-v1.0",
+    "tokens_used": 0,
+    "latency_ms": 460,
+    "cost_usd": 0.0,
+    "max_pages_crawled": 2,
+    "llm_enhanced": false,
+    "analysis_timestamp": "2025-08-29T05:06:59.821139",
+    "execution_time_ms": 460,
+    "cli_version": "1.0.0",
+    "max_pages_requested": 2
+  }
+}

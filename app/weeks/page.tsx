@@ -1,5 +1,5 @@
 
-import { requireAuth } from '@/lib/auth'
+import { requireSessionAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -9,7 +9,7 @@ import ApproveButton from './approve-button'
 import { ArrowLeft, Calendar, CheckCircle, Clock } from 'lucide-react'
 
 export default async function WeeksPage() {
-  await requireAuth()
+  await requireSessionAuth()
   
   const weeks = await prisma.week.findMany({
     orderBy: { isoWeek: 'desc' },
