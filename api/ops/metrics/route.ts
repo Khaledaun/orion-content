@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server'
 import { requireBearerToken } from '@/lib/enhanced-auth'
 import { getCostMetrics, getObservabilityReports } from '@/lib/observability-prod'
@@ -10,53 +11,54 @@ export const dynamic = 'force-dynamic'
 interface MetricsQuery {
   days?: number
   includeDetails?: boolean
-  siteId?: string
 }
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await requireBearerToken(request)
-    
+    const user = await requireBearerToken(request, {
+      role: 'admin',
+      rateLimitConfig: { windowMs: 60000, limit: 60 } // 60 requests per minute
+    })
+
     const { searchParams } = new URL(request.url)
     const query: MetricsQuery = {
       days: parseInt(searchParams.get('days') || '7'),
-      includeDetails: searchParams.get('includeDetails') === 'true',
-      siteId: searchParams.get('siteId') || undefined
+      includeDetails: searchParams.get('includeDetails') === 'true'
     }
 
     const auditLogger = getAuditLogger()
     await auditLogger.log({
       actor: user.email,
       action: 'metrics_requested',
-      route: '/api/ops/metrics',
-      metadata: { query }
+      metadata: { route: '/api/ops/metrics', query }
     })
 
     const costMetrics = await getCostMetrics(query.days || 7)
-    const observabilityReports = await getObservabilityReports(String(query.days || 7))
+    const observabilityReports = query.includeDetails 
+      ? await getObservabilityReports()
+      : []
 
     const metrics = {
-      timestamp: new Date().toISOString(),
-      period: `${query.days} days`,
+      period: {
+        days: query.days || 7,
+        startDate: new Date(Date.now() - (query.days || 7) * 24 * 60 * 60 * 1000).toISOString(),
+        endDate: new Date().toISOString()
+      },
       costs: costMetrics,
-      observability: observabilityReports,
-      system: {
-        uptime: process.uptime(),
-        memory: process.memoryUsage(),
-        cpu: process.cpuUsage()
-      }
+      ...(query.includeDetails && {
+        observability: observabilityReports.slice(0, 100) // Limit to recent 100
+      })
     }
 
-    logger.info('Metrics requested', { user: user.email, query })
-
+    logger.info({ userId: user.id, query }, 'Metrics requested')
     return createSecureResponse(metrics)
-  } catch (error: any) {
-    logger.error('Metrics request failed', { error: error.message })
-    
-    if (error.message.includes('Unauthorized') || error.message.includes('Forbidden')) {
-      return createSecureErrorResponse('Unauthorized', 401)
+
+  } catch (error) {
+    if (error instanceof NextResponse) {
+      return error
     }
     
+    logger.error({ error }, 'Metrics error')
     return createSecureErrorResponse('Internal server error', 500)
   }
 }

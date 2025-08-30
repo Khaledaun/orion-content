@@ -1,4 +1,4 @@
-import { getSessionUser } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 
 import { requireAuth, ensurePageAuth } from '@/lib/auth'
 import Link from 'next/link'
@@ -9,7 +9,7 @@ import { Calendar, Globe, Users, Activity } from 'lucide-react'
 
 export default async function DashboardPage() {
   await ensurePageAuth();
-  const user = await getSessionUser();
+  const user = await getSession();
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -82,7 +82,7 @@ export class ProductionPipelineOrchestrator {
       // Step 1: Check enforcement controls
       const shouldContinue = await this.checkEnforcementControls(request.flags)
       if (!shouldContinue.proceed) {
-        return this.createFailureResult(pipelineId, request, shouldContinue.reason || "Unknown error")
+        return this.createFailureResult(pipelineId, request, shouldContinue.reason)
       }
 
       // Step 2: Research phase (if enabled)

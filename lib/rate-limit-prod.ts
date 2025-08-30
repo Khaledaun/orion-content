@@ -38,7 +38,7 @@ export async function rateLimitProd(req: NextRequest, config: RateLimitConfig): 
       await redisStore.zrange(windowKey, 0, windowStart)
       
       // Count current requests in window
-      const currentCount = (await redisStore.zrange(windowKey, windowStart, Date.now())).length
+      const currentCount = (await redisStore.zrange(windowKey, windowStart, '+inf')).length
       
       if (currentCount >= config.limit) {
         return {

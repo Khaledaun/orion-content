@@ -1,0 +1,67 @@
++ set -euo pipefail
++ cd /workspaces/orion-content
++ '[' -n 'postgresql://user:pass@ep-abc123-pooler.us-east-1.aws.neon.tech/mydb?sslmode=require&pgbouncer=true&connection_limit=1' ']'
++ '[' -n 'postgresql://user:pass@ep-abc123.us-east-1.aws.neon.tech/mydb?sslmode=require' ']'
++ case "$NEON_DATABASE_URL" in
++ case "$NEON_DIRECT_URL" in
++ say 'Stopping Next.js & clearing Prisma caches'
++ printf '\n==> %s\n' 'Stopping Next.js & clearing Prisma caches'
+
+==> Stopping Next.js & clearing Prisma caches
+++ lsof -ti :3000
++ kill -9
++ true
++ rm -rf .next node_modules/.prisma app/node_modules/.prisma
++ say 'Keeping ONE Prisma schema (root) and switching provider to postgresql'
++ printf '\n==> %s\n' 'Keeping ONE Prisma schema (root) and switching provider to postgresql'
+
+==> Keeping ONE Prisma schema (root) and switching provider to postgresql
++ rm -rf app/prisma
++ grep -q 'datasource[[:space:]]\+db' prisma/schema.prisma
++ perl -0777 -i -pe 's/(datasource\s+db\s*\{[^}]*provider\s*=\s*)"(?:sqlite|postgresql)"/${1}"postgresql"/s' prisma/schema.prisma
++ grep -q 'url\s*=\s*env("DATABASE_URL")' prisma/schema.prisma
++ grep -q 'directUrl\s*=\s*env("DIRECT_URL")' prisma/schema.prisma
++ perl -0777 -i -pe 's/(datasource\s+db\s*\{[^}]*url\s*=\s*env\("DATABASE_URL"\)[^}]*)\}/$1\n  directUrl = env("DIRECT_URL")\n}/s' prisma/schema.prisma
++ say 'Writing .env & .env.production'
++ printf '\n==> %s\n' 'Writing .env & .env.production'
+
+==> Writing .env & .env.production
++ printf 'DATABASE_URL=%s\nDIRECT_URL=%s\n' 'postgresql://user:pass@ep-abc123-pooler.us-east-1.aws.neon.tech/mydb?sslmode=require&pgbouncer=true&connection_limit=1' 'postgresql://user:pass@ep-abc123.us-east-1.aws.neon.tech/mydb?sslmode=require'
++ printf 'DATABASE_URL=%s\nDIRECT_URL=%s\n' 'postgresql://user:pass@ep-abc123-pooler.us-east-1.aws.neon.tech/mydb?sslmode=require&pgbouncer=true&connection_limit=1' 'postgresql://user:pass@ep-abc123.us-east-1.aws.neon.tech/mydb?sslmode=require'
++ say 'Pinning Prisma versions'
++ printf '\n==> %s\n' 'Pinning Prisma versions'
+
+==> Pinning Prisma versions
++ npm i -D prisma@6.7.0
++ npm i @prisma/client@6.7.0
++ say 'Generating Prisma Client'
++ printf '\n==> %s\n' 'Generating Prisma Client'
+
+==> Generating Prisma Client
++ npx prisma generate --schema=prisma/schema.prisma
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Warning: You did not specify an output path for your `generator` in schema.prisma. This behavior is deprecated and will no longer be supported in Prisma 7.0.0. To learn more visit https://pris.ly/cli/output-path
+
+✔ Generated Prisma Client (v6.7.0) to ./node_modules/@prisma/client in 270ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
+
++ say 'Migrating schema on Neon'
++ printf '\n==> %s\n' 'Migrating schema on Neon'
+
+==> Migrating schema on Neon
++ '[' -d prisma/migrations ']'
+++ ls -A prisma/migrations
+++ wc -l
++ '[' 5 -gt 0 ']'
++ npx prisma migrate deploy --schema=prisma/schema.prisma
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "mydb", schema "public" at "ep-abc123.us-east-1.aws.neon.tech"
+
+Error: P1001: Can't reach database server at `ep-abc123.us-east-1.aws.neon.tech:5432`
+
+Please make sure your database server is running at `ep-abc123.us-east-1.aws.neon.tech:5432`.

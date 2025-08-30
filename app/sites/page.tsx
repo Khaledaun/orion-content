@@ -1,5 +1,5 @@
 
-import { requireSessionAuth } from '@/lib/auth'
+import { requireAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -8,7 +8,7 @@ import CreateSiteForm from './create-site-form'
 import { ArrowLeft, Globe } from 'lucide-react'
 
 export default async function SitesPage() {
-  await requireSessionAuth()
+  await requireAuth()
   
   const sites = await prisma.site.findMany({
     orderBy: { createdAt: 'desc' },

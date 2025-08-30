@@ -313,30 +313,3 @@ export async function getObservabilityReports(
     return []
   }
 }
-
-export async function generateObservabilityReport(): Promise<any> {
-  const redisStore = getRedisStore()
-  
-  return {
-    timestamp: new Date().toISOString(),
-    service: 'orion-content',
-    version: '1.0.0',
-    environment: process.env.NODE_ENV || 'development',
-    metrics: {
-      uptime: process.uptime(),
-      memory: process.memoryUsage(),
-      cpu: process.cpuUsage()
-    },
-    config: {
-      databaseUrl: '[REDACTED]',
-      redisUrl: '[REDACTED]'
-    },
-    recentRequests: [{
-      method: 'POST',
-      url: '/api/auth/login',
-      headers: {},
-      body: {}
-    }]
-  }
-}
-

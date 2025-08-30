@@ -1,4 +1,4 @@
-import { getSessionUser } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 
 import { requireAuth, ensurePageAuth } from '@/lib/auth'
 import Link from 'next/link'

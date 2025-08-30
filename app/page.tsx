@@ -1,8 +1,8 @@
 
-import { requireSessionAuth } from '@/lib/auth'
+import { requireAuth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 
 export default async function HomePage() {
-  await requireSessionAuth()
+  await requireAuth()
   redirect('/dashboard')
 }
