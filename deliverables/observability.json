@@ -1,0 +1,32 @@
+{
+  "timestamp": "2025-08-30T06:49:01.484Z",
+  "service": "orion-content",
+  "version": "1.0.0",
+  "environment": "development",
+  "metrics": {
+    "uptime": 0.291023723,
+    "memory": {
+      "rss": 95985664,
+      "heapTotal": 11829248,
+      "heapUsed": 8365592,
+      "external": 2295504,
+      "arrayBuffers": 44104
+    },
+    "cpu": {
+      "user": 151281,
+      "system": 57150
+    }
+  },
+  "config": {
+    "databaseUrl": "[REDACTED]",
+    "redisUrl": "[REDACTED]"
+  },
+  "recentRequests": [
+    {
+      "method": "POST",
+      "url": "/api/auth/login",
+      "headers": {},
+      "body": {}
+    }
+  ]
+}
