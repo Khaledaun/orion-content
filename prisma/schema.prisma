@@ -1,39 +1,48 @@
+
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+    output = "/home/ubuntu/orion-content/app/node_modules/.prisma/client"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
 }
 
+// Phase 8 Core Models
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  passwordHash  String?
-  name          String?
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  emailVerified DateTime? @db.Timestamp(6)
-  Account       Account[]
-  Session       Session[]
+  id           String     @id @default(cuid())
+  email        String     @unique
+  passwordHash String?
+  name         String?
+  image        String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  accounts     Account[]
+  sessions     Session[]
+  roles        UserRole[]
+  reviews      Review[]
 
   @@map("users")
 }
 
 model Site {
-  id         String        @id @default(cuid())
-  key        String        @unique
+  id         String         @id @default(cuid())
+  key        String         @unique
   name       String
-  timezone   String        @default("UTC")
+  timezone   String         @default("UTC")
   publisher  String?
   locales    Json?
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
   categories Category[]
-  strategy   SiteStrategy?
   topics     Topic[]
+  tenWebSite TenWebSite?
+  gscConnection GscConnection?
+  ga4Connection Ga4Connection?
+  drafts     Draft[]
+  siteStrategy SiteStrategy?
 
   @@map("sites")
 }
@@ -47,12 +56,18 @@ model Category {
   site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
   topics    Topic[]
 
+  @@index([siteId])
   @@map("categories")
+}
+
+enum WeekStatus {
+  PENDING
+  APPROVED
 }
 
 model Week {
   id        String     @id @default(cuid())
-  isoWeek   String     @unique
+  isoWeek   String     @unique // Format: YYYY-WW
   status    WeekStatus @default(PENDING)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -73,17 +88,20 @@ model Topic {
   flags      Json?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  site       Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
   week       Week     @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  site       Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
+  @@index([weekId])
+  @@index([siteId])
+  @@index([categoryId])
   @@map("topics")
 }
 
 model Connection {
   id        String   @id @default(cuid())
   kind      String   @unique
-  dataEnc   String
+  dataEnc   String   // Encrypted connection data for Phase 2 vault
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -102,6 +120,7 @@ model JobRun {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
+  @@index([jobType])
   @@map("job_runs")
 }
 
@@ -139,8 +158,9 @@ model RulebookVersion {
   @@map("rulebook_versions")
 }
 
+// NextAuth.js Models
 model Account {
-  id                String  @id
+  id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
@@ -152,17 +172,22 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-  users             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
 }
 
 model Session {
-  id           String   @id
+  id           String   @id @default(cuid())
   sessionToken String   @unique
   userId       String
   expires      DateTime
-  users        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
 }
 
 model VerificationToken {
@@ -171,9 +196,191 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+  @@map("verification_tokens")
 }
 
-enum WeekStatus {
+// Phase 9: MVP Readiness Models
+
+enum Role {
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+model UserRole {
+  id     String  @id @default(cuid())
+  userId String
+  role   Role    @default(VIEWER)
+  siteId String?
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, siteId])
+  @@index([userId])
+  @@index([siteId])
+  @@map("user_roles")
+}
+
+model ScopedToken {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  siteId    String?
+  scopes    Json      // ['read:drafts', 'write:drafts', etc.]
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([token])
+  @@index([siteId])
+  @@map("scoped_tokens")
+}
+
+enum DraftStatus {
   PENDING
+  NEEDS_REVIEW
   APPROVED
+  REJECTED
+  PUBLISHED
+}
+
+model Draft {
+  id         String      @id @default(cuid())
+  siteId     String
+  title      String
+  content    String?
+  score      Float?
+  status     DraftStatus @default(PENDING)
+  violations Json?
+  externalId String?     // WordPress post ID
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  site       Site        @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  reviews    Review[]
+
+  @@index([siteId])
+  @@index([status])
+  @@index([externalId])
+  @@map("drafts")
+}
+
+enum ReviewAction {
+  APPROVE
+  REJECT
+  BYPASS
+}
+
+model Review {
+  id        String       @id @default(cuid())
+  draftId   String
+  userId    String
+  action    ReviewAction
+  reason    String?
+  createdAt DateTime     @default(now())
+  draft     Draft        @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([draftId])
+  @@index([userId])
+  @@map("reviews")
+}
+
+model TenWebSite {
+  id           String    @id @default(cuid())
+  siteId       String    @unique
+  tenWebSiteId String
+  tenWebUrl    String
+  status       String    @default("active")
+  lastSync     DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  site         Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([tenWebSiteId])
+  @@map("tenweb_sites")
+}
+
+model GscConnection {
+  id             String   @id @default(cuid())
+  siteId         String   @unique
+  gscSiteUrl     String
+  credentialsEnc String
+  verified       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  site           Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([gscSiteUrl])
+  @@map("gsc_connections")
+}
+
+model GscSnapshot {
+  id         String   @id @default(cuid())
+  siteId     String
+  dataType   String   // 'performance', 'sitemaps', etc.
+  data       Json
+  capturedAt DateTime @default(now())
+
+  @@index([siteId])
+  @@index([dataType])
+  @@map("gsc_snapshots")
+}
+
+model Ga4Connection {
+  id             String   @id @default(cuid())
+  siteId         String   @unique
+  propertyId     String
+  credentialsEnc String
+  verified       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  site           Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@map("ga4_connections")
+}
+
+model WebhookEndpoint {
+  id         String            @id @default(cuid())
+  url        String
+  secret     String
+  events     Json              // ['draft_created', 'needs_review', 'approved']
+  active     Boolean           @default(true)
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  deliveries WebhookDelivery[]
+
+  @@index([active])
+  @@map("webhook_endpoints")
+}
+
+model WebhookDelivery {
+  id         String          @id @default(cuid())
+  endpointId String
+  eventType  String
+  payload    Json
+  success    Boolean         @default(false)
+  httpStatus Int?
+  response   String?
+  createdAt  DateTime        @default(now())
+  endpoint   WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+
+  @@index([endpointId])
+  @@index([eventType])
+  @@index([success])
+  @@map("webhook_deliveries")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  resource  String
+  details   Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([createdAt])
+  @@map("audit_logs")
 }
