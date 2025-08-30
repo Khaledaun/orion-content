@@ -8,3 +8,4 @@ node_modules
 .venv-phase3/
 .__phase3_tmp/
 orion-phase3-python.zip
+backup-*.tar.gz
