@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { requireBearerToken } from '@/lib/enhanced-auth'
 import { getCostMetrics, getObservabilityReports } from '@/lib/observability-prod'
@@ -11,54 +10,53 @@ export const dynamic = 'force-dynamic'
 interface MetricsQuery {
   days?: number
   includeDetails?: boolean
+  siteId?: string
 }
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await requireBearerToken(request, {
-      role: 'admin',
-      rateLimitConfig: { windowMs: 60000, limit: 60 } // 60 requests per minute
-    })
-
+    const user = await requireBearerToken(request)
+    
     const { searchParams } = new URL(request.url)
     const query: MetricsQuery = {
       days: parseInt(searchParams.get('days') || '7'),
-      includeDetails: searchParams.get('includeDetails') === 'true'
+      includeDetails: searchParams.get('includeDetails') === 'true',
+      siteId: searchParams.get('siteId') || undefined
     }
 
     const auditLogger = getAuditLogger()
     await auditLogger.log({
       actor: user.email,
       action: 'metrics_requested',
-      metadata: { route: '/api/ops/metrics', query }
+      route: '/api/ops/metrics',
+      metadata: { query }
     })
 
     const costMetrics = await getCostMetrics(query.days || 7)
-    const observabilityReports = query.includeDetails 
-      ? await getObservabilityReports()
-      : []
+    const observabilityReports = await getObservabilityReports(String(query.days || 7))
 
     const metrics = {
-      period: {
-        days: query.days || 7,
-        startDate: new Date(Date.now() - (query.days || 7) * 24 * 60 * 60 * 1000).toISOString(),
-        endDate: new Date().toISOString()
-      },
+      timestamp: new Date().toISOString(),
+      period: `${query.days} days`,
       costs: costMetrics,
-      ...(query.includeDetails && {
-        observability: observabilityReports.slice(0, 100) // Limit to recent 100
-      })
+      observability: observabilityReports,
+      system: {
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        cpu: process.cpuUsage()
+      }
     }
 
-    logger.info({ userId: user.id, query }, 'Metrics requested')
-    return createSecureResponse(metrics)
+    logger.info('Metrics requested', { user: user.email, query })
 
-  } catch (error) {
-    if (error instanceof NextResponse) {
-      return error
+    return createSecureResponse(metrics)
+  } catch (error: any) {
+    logger.error('Metrics request failed', { error: error.message })
+    
+    if (error.message.includes('Unauthorized') || error.message.includes('Forbidden')) {
+      return createSecureErrorResponse('Unauthorized', 401)
     }
     
-    logger.error({ error }, 'Metrics error')
     return createSecureErrorResponse('Internal server error', 500)
   }
 }

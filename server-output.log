@@ -1,0 +1,30 @@
+  ▲ Next.js 14.2.28
+  - Local:        http://localhost:3001
+  - Environments: .env.local, .env
+  - Experiments (use with caution):
+    · outputFileTracingRoot
+
+ ✓ Starting...
+ ✓ Ready in 2s
+ ○ Compiling /api/health ...
+ ✓ Compiled /api/health in 580ms (56 modules)
+ GET /api/health 200 in 656ms
+ ✓ Compiled /api/ops/status in 55ms (58 modules)
+ GET /api/ops/status 401 in 87ms
+ GET /api/ops/status 200 in 18ms
+ ✓ Compiled /api/ops/metrics in 73ms (60 modules)
+ GET /api/ops/metrics 200 in 96ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 7.8s (754 modules)
+ GET /api/nonexistent 404 in 7995ms
+ ✓ Compiled in 474ms (365 modules)
+ GET /api/health 200 in 15ms
+ GET /api/health 200 in 10ms
+ GET /api/health 200 in 10ms
+ GET /api/health 200 in 9ms
+ GET /api/health 200 in 9ms
+   Reload env: .env.local
+ ✓ Compiled in 319ms (349 modules)
+   Reload env: .env.local
+ ✓ Compiled in 86ms (349 modules)
+ ✓ Compiled in 63ms (349 modules)

@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     await auditLogger.log({
       action: `ops_control_${body.action}`,
       actor: user.id,
-      resource: '/api/ops/controls',
+      route: '/api/ops/controls',
       success: result.success,
       metadata: {
         action: body.action,
@@ -102,7 +102,7 @@ async function disableEnforcement(durationMinutes?: number, reason?: string) {
 
     const ttl = durationMinutes ? durationMinutes * 60 : undefined
     if (ttl) {
-      await redisStore.set('enforcement_disabled', JSON.stringify(config), { EX: ttl })
+      await redisStore.set('enforcement_disabled', JSON.stringify(config), ttl)
     } else {
       await redisStore.set('enforcement_disabled', JSON.stringify(config))
     }
@@ -158,7 +158,7 @@ async function setDryRunMode(durationMinutes?: number, reason?: string) {
 
     const ttl = durationMinutes ? durationMinutes * 60 : undefined
     if (ttl) {
-      await redisStore.set('dry_run_mode', JSON.stringify(config), { EX: ttl })
+      await redisStore.set('dry_run_mode', JSON.stringify(config), ttl)
     } else {
       await redisStore.set('dry_run_mode', JSON.stringify(config))
     }
