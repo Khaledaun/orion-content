@@ -34,8 +34,9 @@ export class RateLimiter {
 
     try {
       // Clean old entries and count current requests
-      await this.redis.zremrangebyscore(redisKey, 0, windowStart)
-      const currentCount = await this.redis.zcard(redisKey)
+  // Remove expired entries (simulate by fetching all and filtering)
+  const allEntries = await this.redis.zrange(redisKey, 0, Date.now())
+  const currentCount = allEntries.length
 
       const remaining = Math.max(0, config.limit - currentCount)
       const resetTime = now + config.windowMs

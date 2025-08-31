@@ -1,5 +1,5 @@
 
-import { randomBytes, createCipherGCM, createDecipherGCM } from 'crypto'
+import { randomBytes, createCipheriv, createDecipheriv } from 'crypto'
 
 // AES-256-GCM for tamper-evident encryption (Phase 8 upgrade)
 export function getEncryptionKey(): string {
@@ -21,7 +21,7 @@ export function encryptJson(obj: unknown): string {
   const iv = randomBytes(16) // 128-bit IV for GCM
   const plaintext = JSON.stringify(obj)
   
-  const cipher = createCipherGCM('aes-256-gcm', key, iv)
+  const cipher = createCipheriv('aes-256-gcm', key, iv)
   
   let encrypted = cipher.update(plaintext, 'utf8', 'hex')
   encrypted += cipher.final('hex')
@@ -46,7 +46,7 @@ export function decryptJson(encryptedData: string): unknown {
     const authTag = Buffer.from(data.authTag, 'hex')
     const encrypted = data.encrypted
     
-    const decipher = createDecipherGCM('aes-256-gcm', key, iv)
+  const decipher = createDecipheriv('aes-256-gcm', key, iv)
     decipher.setAuthTag(authTag)
     
     let decrypted = decipher.update(encrypted, 'hex', 'utf8')

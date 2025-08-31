@@ -35,10 +35,9 @@ export async function rateLimitProd(req: NextRequest, config: RateLimitConfig): 
       const windowKey = `${rateLimitKey}:window`
       
       // Remove expired entries
-      await redisStore.zrange(windowKey, 0, windowStart)
-      
-      // Count current requests in window
-      const currentCount = (await redisStore.zrange(windowKey, windowStart, '+inf')).length
+  await redisStore.zrange(windowKey, 0, windowStart)
+  // Count current requests in window
+  const currentCount = (await redisStore.zrange(windowKey, windowStart, Date.now())).length
       
       if (currentCount >= config.limit) {
         return {

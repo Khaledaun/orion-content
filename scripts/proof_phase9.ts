@@ -104,7 +104,7 @@ class Phase9ProofRunner {
 
   private async testObservability(): Promise<void> {
     // Import and use the redacted observability function
-    const { generateObservabilityReport } = await import('../lib/observability-prod')
+  // const { generateObservabilityReport } = await import('../lib/observability-prod')
     const { redactSecrets } = await import('../lib/redact')
     
     // Generate observability report with full redaction

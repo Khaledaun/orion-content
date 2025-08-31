@@ -18,9 +18,7 @@ export class RedisStore {
     if (this.isProduction && process.env.REDIS_URL) {
       this.redis = new Redis(process.env.REDIS_URL, {
         maxRetriesPerRequest: 3,
-        retryDelayOnFailover: 100,
-        enableReadyCheck: false,
-        maxLoadingTimeout: 1000
+        enableReadyCheck: false
       })
 
       this.redis.on('error', (error) => {

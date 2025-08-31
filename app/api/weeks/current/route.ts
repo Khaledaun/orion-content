@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/auth'
+import { requireApiAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 function getCurrentISOWeek(): string {
@@ -53,4 +53,4 @@ async function handler(req: NextRequest) {
   }
 }
 
-export const GET = requireAuth(handler)
+export const GET = requireApiAuth(handler)

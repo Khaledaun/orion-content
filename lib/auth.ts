@@ -1,74 +1,84 @@
+// lib/auth.ts
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/nextauth";
+import { prisma } from "@/lib/prisma";
 
-import { SessionOptions } from 'iron-session'
-import { sealData, unsealData } from 'iron-session'
-import bcrypt from 'bcrypt'
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
-
-export interface SessionData {
-  userId: string
-  email: string
-  isAuthenticated: boolean
+/** JSON-returning auth error for API routes (or redirect wrapper for non-API). */
+export class AuthError extends Error {
+  status: number;
+  body: any;
+  constructor(status: number, body: any) {
+    super(typeof body === "string" ? body : body?.error ?? "Unauthorized");
+    this.status = status;
+    this.body = body;
+  }
 }
 
-export const sessionOptions: SessionOptions = {
-  password: process.env.SESSION_SECRET!,
-  cookieName: 'orion-session',
-  cookieOptions: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    sameSite: 'lax',
-    path: '/',
-  },
-}
+export type Role = "ADMIN" | "EDITOR" | "VIEWER" | (string & {});
+export type AuthContext = { userId: string; roles: Role[]; via: "session" | "bearer" };
+export type RequireAuthOpts = { api?: boolean; roles?: Role[]; allowBearer?: boolean };
 
-export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 12)
-}
-
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  return bcrypt.compare(password, hash)
-}
-
-export async function encrypt(payload: SessionData) {
-  return sealData(payload, sessionOptions)
-}
-
-export async function decrypt(session: string | undefined = '') {
+function normalizeRoles(raw: unknown): Role[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw as Role[];
   try {
-    const payload = await unsealData(session, sessionOptions)
-    return payload as SessionData
-  } catch (error) {
-    return null
+    const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+    return Array.isArray(parsed) ? (parsed as Role[]) : [];
+  } catch { return []; }
+}
+
+async function rolesForUser(userId: string): Promise<Role[]> {
+  const u = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { roles: true as any }, // adjust if your schema differs
+  });
+  return normalizeRoles(u?.roles);
+}
+
+/** Main auth helper: Bearer first, then session. */
+export async function requireAuth(
+  req: NextRequest,
+  opts: RequireAuthOpts = {}
+): Promise<AuthContext> {
+  const { api = true, roles, allowBearer = true } = opts;
+
+  // Bearer token path
+  const authz = req.headers.get("authorization") || "";
+  const bearer = authz.toLowerCase().startsWith("bearer ") ? authz.slice(7).trim() : "";
+  if (allowBearer && bearer) {
+    const token = await prisma.connection.findFirst({
+      // remove disabledAt if your schema lacks it:
+      where: { kind: "console_api_token", secret: bearer, disabledAt: null } as any,
+      select: { userId: true },
+    });
+    if (!token) throw new AuthError(401, { error: "Invalid token" });
+
+    const userRoles = await rolesForUser(token.userId);
+    if (roles && !roles.some((r) => userRoles.includes(r)))
+      throw new AuthError(403, { error: "Insufficient role" });
+
+    return { userId: token.userId, roles: userRoles, via: "bearer" };
   }
-}
 
-export async function createSession(userId: string, email: string) {
-  const session = await encrypt({ userId, email, isAuthenticated: true })
-  const cookieStore = await cookies()
-  cookieStore.set('orion-session', session, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-  })
-}
-
-export async function deleteSession() {
-  const cookieStore = await cookies()
-  cookieStore.delete('orion-session')
-}
-
-export async function getSession() {
-  const cookieStore = await cookies()
-  const session = cookieStore.get('orion-session')?.value
-  return decrypt(session)
-}
-
-export async function requireAuth() {
-  const session = await getSession()
-  if (!session?.isAuthenticated) {
-    redirect('/login')
+  // Session path
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    if (api) throw new AuthError(401, { error: "Unauthorized" });
+    throw new AuthError(302, NextResponse.redirect(new URL("/signin", req.url)));
   }
-  return session
+
+  const userRoles = await rolesForUser(session.user.id);
+  if (roles && !roles.some((r) => userRoles.includes(r)))
+    throw new AuthError(403, { error: "Insufficient role" });
+
+  return { userId: session.user.id, roles: userRoles, via: "session" };
+}
+
+/** Back-compat shim for legacy routes. */
+export async function requireApiAuth(
+  req: NextRequest,
+  opts?: Omit<RequireAuthOpts, "api">
+): Promise<AuthContext> {
+  return requireAuth(req, { api: true, allowBearer: true, ...opts });
 }

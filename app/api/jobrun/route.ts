@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { requireAuth } from '@/lib/auth'
+import { requireApiAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 const jobRunSchema = z.object({
@@ -41,4 +41,4 @@ async function handler(req: NextRequest) {
   }
 }
 
-export const POST = requireAuth(handler)
+export const POST = requireApiAuth(handler)

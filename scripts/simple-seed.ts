@@ -16,8 +16,10 @@ async function main() {
       create: {
         email: 'admin@orion.com',
         name: 'Admin User',
-        passwordHash,  // Using correct field name
-        role: 'ADMIN'
+        passwordHash,
+        roles: {
+          create: [{ role: 'ADMIN' }]
+        }
       },
     });
     

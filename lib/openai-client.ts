@@ -1,4 +1,5 @@
 
+// If you see a module not found error, run: pnpm add openai
 import OpenAI from 'openai'
 import { getAuditLogger } from './audit-prod'
 

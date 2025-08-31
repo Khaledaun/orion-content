@@ -1,5 +1,5 @@
 
-#!/usr/bin/env tsx
+
 
 /**
  * Phase 8 Regression Test Suite Runner

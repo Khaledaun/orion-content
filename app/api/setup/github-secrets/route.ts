@@ -1,9 +1,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/auth'
+import { requireApiAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { decryptJson } from '@/lib/crypto'
-import * as nacl from 'tweetnacl'
+// import { decryptJson } from '@/lib/crypto' // Disabled due to missing module
+// import * as nacl from 'tweetnacl' // Disabled due to missing module
 
 async function handler(req: NextRequest) {
   if (req.method !== 'POST') {
@@ -145,4 +145,4 @@ async function handler(req: NextRequest) {
   }
 }
 
-export const POST = requireAuth(handler)
+export const POST = requireApiAuth(handler)

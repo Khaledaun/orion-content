@@ -91,7 +91,7 @@ export class IntegrationManager {
       const integration = await prisma.integration.upsert({
         where: {
           siteId_type: {
-            siteId: siteId ?? null,
+            siteId: siteId || '',
             type: type
           }
         },
@@ -101,7 +101,7 @@ export class IntegrationManager {
           updatedAt: new Date()
         },
         create: {
-          siteId: siteId ?? null,
+          siteId: siteId || '',
           type: type,
           credentialsEnc,
           verified: false
@@ -141,7 +141,7 @@ export class IntegrationManager {
       const integration = await prisma.integration.findUnique({
         where: {
           siteId_type: {
-            siteId: siteId ?? null,
+            siteId: siteId || '',
             type: type
           }
         }
@@ -173,7 +173,7 @@ export class IntegrationManager {
       const integration = await prisma.integration.findUnique({
         where: {
           siteId_type: {
-            siteId: siteId ?? null,
+            siteId: siteId || '',
             type: type
           }
         }
@@ -206,7 +206,7 @@ export class IntegrationManager {
     try {
       const integrations = await prisma.integration.findMany({
         where: {
-          siteId: siteId ?? null
+          siteId: siteId || ''
         },
         orderBy: {
           type: 'asc'
@@ -236,7 +236,7 @@ export class IntegrationManager {
     siteId?: string
   ): Promise<{ success: boolean; message: string }> {
     try {
-      const credentials = await this.getCredentials(type, siteId)
+  const credentials = await this.getCredentials(type, siteId || '')
       if (!credentials) {
         return { success: false, message: 'No credentials found' }
       }
@@ -269,7 +269,7 @@ export class IntegrationManager {
         await prisma.integration.update({
           where: {
             siteId_type: {
-              siteId: siteId ?? null,
+              siteId: siteId || '',
               type: type
             }
           },
@@ -305,7 +305,7 @@ export class IntegrationManager {
       await prisma.integration.delete({
         where: {
           siteId_type: {
-            siteId: siteId ?? null,
+            siteId: siteId || '',
             type: type
           }
         }
