@@ -25,7 +25,9 @@ function normalizeRoles(raw: unknown): Role[] {
   try {
     const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
     return Array.isArray(parsed) ? (parsed as Role[]) : [];
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 async function rolesForUser(userId: string): Promise<Role[]> {
@@ -82,3 +84,24 @@ export async function requireApiAuth(
 ): Promise<AuthContext> {
   return requireAuth(req, { api: true, allowBearer: true, ...opts });
 }
+
+/* ===== Legacy shims for older imports (temporary) ===== */
+
+/** Compare a plaintext password to a stored hash (legacy helper). */
+export async function verifyPassword(plain: string, hash: string): Promise<boolean> {
+  const bcryptjs = await import("bcryptjs");
+  try {
+    return await bcryptjs.compare(plain, hash);
+  } catch {
+    return false;
+  }
+}
+
+/** Return the current NextAuth session (legacy signature). */
+export async function getSession() {
+  return getServerSession(authOptions);
+}
+
+/** Session creators/deleters are managed by NextAuth; keep no-op shims for compatibility. */
+export async function createSession(..._args: any[]): Promise<void> { return; }
+export async function deleteSession(..._args: any[]): Promise<void> { return; }
