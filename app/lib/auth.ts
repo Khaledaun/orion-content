@@ -5,10 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 export class AuthError extends Error {
   status: number; body: any;
-  constructor(status: number, body: any) {
-    super(typeof body === "string" ? body : body?.error ?? "Unauthorized");
-    this.status = status; this.body = body;
-  }
+  constructor(status: number, body: any) { super(typeof body === "string" ? body : body?.error ?? "Unauthorized"); this.status = status; this.body = body; }
 }
 export type Role = "ADMIN" | "EDITOR" | "VIEWER" | (string & {});
 export type AuthContext = { userId: string; roles: Role[]; via: "session" | "bearer" };
