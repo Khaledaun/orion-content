@@ -1,5 +1,7 @@
 import { NextRequest } from "next/server";
 import { requireRole, createUnauthorizedResponse, createForbiddenResponse } from "@/lib/rbac";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/nextauth";
 
 type Options = { role?: "ADMIN" | "EDITOR" | "VIEWER"; siteId?: string };
 
@@ -12,8 +14,9 @@ export function withAuth<TParams = {}>(
       if (options?.role) {
         await requireRole(req, options.role, options.siteId);
       } else {
-        // treat VIEWER as "must be signed in"
-        await requireRole(req, "VIEWER");
+        // Just require a signed-in session
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) return createUnauthorizedResponse();
       }
       return handler(req, params);
     } catch (err: any) {
