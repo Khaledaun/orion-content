@@ -9,6 +9,7 @@ datasource db {
     url      = env("DATABASE_URL")
 
   directUrl = env("DIRECT_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 // Phase 8 Core Models
