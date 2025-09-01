@@ -1,10 +1,10 @@
 
-import { NextResponse } from "next/server";
-import { withAuth } from "@/lib/withAuth";
+import { NextRequest, NextResponse } from "next/server";
+import { requireApiAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 // GET /api/connections — list connections (admin only; no secrets returned)
-export const GET = withAuth(async (_req) => {
+async function handler(req: NextRequest) {
   const connections = await prisma.connection.findMany({
     select: {
       id: true,
@@ -17,4 +17,13 @@ export const GET = withAuth(async (_req) => {
   });
 
   return NextResponse.json({ connections });
-}, { roles: ["admin"], allowBearer: true });
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    await requireApiAuth(req, { roles: ["admin"] })
+    return await handler(req)
+  } catch (error) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+}

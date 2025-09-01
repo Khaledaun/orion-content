@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireApiAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { decryptJson } from '@/lib/crypto-gcm'
 // import { decryptJson } from '@/lib/crypto' // Disabled due to missing module
 // import * as nacl from 'tweetnacl' // Disabled due to missing module
 
@@ -52,25 +53,25 @@ async function handler(req: NextRequest) {
     
     // Map connections to GitHub secret names
     if (connectionMap.has('openai')) {
-      const data = decryptJson<{ apiKey: string }>(connectionMap.get('openai')!.dataEnc)
+      const data = decryptJson(connectionMap.get('openai')!.dataEnc) as { apiKey: string }
       secretsToWrite.push({ name: 'OPENAI_API_KEY', value: data.apiKey })
     }
     
     if (connectionMap.has('search_cse')) {
-      const data = decryptJson<{ id: string; key: string }>(connectionMap.get('search_cse')!.dataEnc)
+      const data = decryptJson(connectionMap.get('search_cse')!.dataEnc) as { id: string; key: string }
       secretsToWrite.push({ name: 'SEARCH_PROVIDER', value: 'CSE' })
       secretsToWrite.push({ name: 'GOOGLE_CSE_ID', value: data.id })
       secretsToWrite.push({ name: 'GOOGLE_CSE_KEY', value: data.key })
     }
     
     if (connectionMap.has('search_bing')) {
-      const data = decryptJson<{ key: string }>(connectionMap.get('search_bing')!.dataEnc)
+      const data = decryptJson(connectionMap.get('search_bing')!.dataEnc) as { key: string }
       secretsToWrite.push({ name: 'SEARCH_PROVIDER', value: 'BING' })
       secretsToWrite.push({ name: 'BING_SEARCH_KEY', value: data.key })
     }
     
     if (connectionMap.has('console_api_token')) {
-      const data = decryptJson<{ token: string }>(connectionMap.get('console_api_token')!.dataEnc)
+      const data = decryptJson(connectionMap.get('console_api_token')!.dataEnc) as { token: string }
       secretsToWrite.push({ name: 'CONSOLE_API_TOKEN', value: data.token })
     }
     
@@ -79,9 +80,9 @@ async function handler(req: NextRequest) {
     for (const site of sites) {
       const wpKind = `wp_${site.key}`
       if (connectionMap.has(wpKind)) {
-        const data = decryptJson<{ baseUrl: string; user: string; appPassword: string }>(
+        const data = decryptJson(
           connectionMap.get(wpKind)!.dataEnc
-        )
+        ) as { baseUrl: string; user: string; appPassword: string }
         secretsToWrite.push({ name: `WP_BASE_URL_${site.key.toUpperCase()}`, value: data.baseUrl })
         secretsToWrite.push({ name: `WP_USER_${site.key.toUpperCase()}`, value: data.user })
         secretsToWrite.push({ name: `WP_APP_PASSWORD_${site.key.toUpperCase()}`, value: data.appPassword })
@@ -145,4 +146,11 @@ async function handler(req: NextRequest) {
   }
 }
 
-export const POST = requireApiAuth(handler)
+export async function POST(req: NextRequest) {
+  try {
+    await requireApiAuth(req, { roles: ["admin"] })
+    return await handler(req)
+  } catch (error) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+}

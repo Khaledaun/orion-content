@@ -1,10 +1,10 @@
 
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/lib/withAuth";
+import { requireApiAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 // GET /api/daily-picks?date=YYYY-MM-DD&site=SITE_KEY&count=3
-export const GET = withAuth(async (req: NextRequest) => {
+async function handler(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const date = searchParams.get("date");
   const siteKey = searchParams.get("site");
@@ -65,4 +65,13 @@ export const GET = withAuth(async (req: NextRequest) => {
   }
 
   return NextResponse.json({ picks, date, site: siteKey, weekId: currentWeek.id });
-}, { roles: ["editor", "admin"], allowBearer: true });
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    await requireApiAuth(req, { roles: ["editor", "admin"] })
+    return await handler(req)
+  } catch (error) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+}

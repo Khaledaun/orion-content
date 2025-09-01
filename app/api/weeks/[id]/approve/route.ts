@@ -21,4 +21,11 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to approve week' }, { status: 500 })
   }
 }
-export const POST = requireApiAuth(handler)
+export async function POST(req: NextRequest) {
+  try {
+    await requireApiAuth(req, { roles: ["admin"] })
+    return await handler(req)
+  } catch (error) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+}

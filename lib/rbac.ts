@@ -6,7 +6,7 @@
 
 import { NextRequest } from 'next/server'
 import { prisma } from './prisma'
-import { getSession } from './auth'
+import { getSession } from '../app/lib/auth'
 import { redactSensitive } from './redact'
 import { logger } from './logger'
 
@@ -83,13 +83,13 @@ export async function getAuthUser(request?: NextRequest): Promise<AuthUser | nul
 
     // Fall back to session
     const session = await getSession()
-    if (!session?.userId) {
+    if (!session?.user?.id) {
       return null
     }
 
     // Get user with roles from database
     const user = await prisma.user.findUnique({
-      where: { id: session.userId },
+      where: { id: session.user.id },
       include: {
         roles: true
       }

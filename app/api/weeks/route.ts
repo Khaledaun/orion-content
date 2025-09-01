@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/withAuth'
+import { requireApiAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 function getCurrentISOWeek(): string {
@@ -60,5 +60,20 @@ async function weeksHandler(req: NextRequest, user: any, roles: string[]) {
   return NextResponse.json({ error: 'Method not allowed' }, { status: 405 })
 }
 
-export const GET = withAuth(weeksHandler)
-export const POST = withAuth(weeksHandler)
+export async function GET(req: NextRequest) {
+  try {
+    const authContext = await requireApiAuth(req, { roles: ["admin", "editor"] })
+    return await weeksHandler(req, authContext.userId, authContext.roles)
+  } catch (error) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const authContext = await requireApiAuth(req, { roles: ["admin", "editor"] })
+    return await weeksHandler(req, authContext.userId, authContext.roles)
+  } catch (error) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+}
