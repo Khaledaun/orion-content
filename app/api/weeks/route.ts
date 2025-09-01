@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/auth'
+import { withAuth } from '@/lib/withAuth'
 import { prisma } from '@/lib/prisma'
 
 function getCurrentISOWeek(): string {
@@ -19,7 +19,7 @@ function getISOWeek(date: Date): number {
   return 1 + Math.ceil(dayDiff / 7)
 }
 
-async function handler(req: NextRequest) {
+async function weeksHandler(req: NextRequest, user: any, roles: string[]) {
   if (req.method === 'GET') {
     try {
       const weeks = await prisma.week.findMany({
@@ -33,36 +33,32 @@ async function handler(req: NextRequest) {
         },
         orderBy: { createdAt: 'desc' },
       })
-      
       return NextResponse.json({ weeks })
     } catch (error) {
       console.error('Error fetching weeks:', error)
       return NextResponse.json({ error: 'Failed to fetch weeks' }, { status: 500 })
     }
   }
-  
   if (req.method === 'POST') {
+    // Example RBAC: require 'editor' role for POST
+    if (!roles.includes('editor')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
     try {
       const currentIsoWeek = getCurrentISOWeek()
-      
       const week = await prisma.week.upsert({
         where: { isoWeek: currentIsoWeek },
-        create: {
-          isoWeek: currentIsoWeek,
-          status: 'PENDING',
-        },
-        update: {}, // No update needed if exists
+        create: { isoWeek: currentIsoWeek, status: 'PENDING' },
+        update: {},
       })
-      
       return NextResponse.json({ week })
     } catch (error) {
       console.error('Error creating/fetching week:', error)
       return NextResponse.json({ error: 'Failed to create/fetch week' }, { status: 500 })
     }
   }
-  
   return NextResponse.json({ error: 'Method not allowed' }, { status: 405 })
 }
 
-export const GET = requireAuth(handler)
-export const POST = requireAuth(handler)
+export const GET = withAuth(weeksHandler)
+export const POST = withAuth(weeksHandler)

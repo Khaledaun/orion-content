@@ -304,7 +304,7 @@ class RealTestHarness {
 
     // Test 8: Observability Generation - Real File Creation
     await this.runTest('T008', 'Observability Generation - Real File Creation', async () => {
-      const { generateObservabilityReport } = await import('../lib/observability-prod')
+  // const { generateObservabilityReport } = await import('../lib/observability-prod')
       
       console.log('   Generating observability report...')
       const report = generateObservabilityReport()

@@ -1,0 +1,59 @@
+import { NextResponse, NextRequest } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/nextauth";
+
+export type Role = "ADMIN" | "EDITOR" | "VIEWER" | (string & {});
+
+async function rolesForUser(userId: string): Promise<string[]> {
+  // Fetch enum roles from relation table and return as UPPERCASE strings
+  const rows = await prisma.userRole.findMany({
+    where: { userId },
+    select: { role: true },
+  });
+  return rows.map(r => String(r.role).toUpperCase());
+}
+
+export async function getAuthUser(_req?: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return null;
+  const userId = (session.user as any).id as string;
+  const roles = await rolesForUser(userId);
+  return { userId, roles };
+}
+
+export function createUnauthorizedResponse() {
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+}
+export function createForbiddenResponse(msg = "Forbidden") {
+  return NextResponse.json({ error: msg }, { status: 403 });
+}
+
+export async function requireRole(req: NextRequest, role: Role, _siteId?: string) {
+  // 1) Bearer token
+  const authz = req.headers.get("authorization") || "";
+  const bearer = authz.toLowerCase().startsWith("bearer ") ? authz.slice(7).trim() : "";
+  if (bearer) {
+    const tok = await prisma.connection.findFirst({
+      where: { kind: "console_api_token", secret: bearer, disabledAt: null } as any,
+      select: { userId: true },
+    });
+    if (!tok) throw new Error("unauthorized");
+    const roles = await rolesForUser(tok.userId);
+    if (!roles.includes(String(role).toUpperCase())) throw new Error("forbidden");
+    return { userId: tok.userId, roles };
+  }
+
+  // 2) Session
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) throw new Error("unauthorized");
+  const userId = (session.user as any).id as string;
+  const roles = await rolesForUser(userId);
+  if (!roles.includes(String(role).toUpperCase())) throw new Error("forbidden");
+  return { userId, roles };
+}
+
+export async function requireEditAccess(req: NextRequest, siteId?: string) {
+  try { return await requireRole(req, "ADMIN", siteId); } catch {}
+  return requireRole(req, "EDITOR", siteId);
+}

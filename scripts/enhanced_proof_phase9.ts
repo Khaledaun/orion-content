@@ -138,7 +138,7 @@ class EnhancedPhase9ProofRunner {
     
     try {
       // Import and use the redacted observability function
-      const { generateObservabilityReport } = await import('../lib/observability-prod')
+  // const { generateObservabilityReport } = await import('../lib/observability-prod')
       const { redactSecrets } = await import('../lib/redact')
       
       // Generate observability report with full redaction

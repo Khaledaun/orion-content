@@ -55,9 +55,10 @@ export async function GET(request: NextRequest) {
 
     const auditLogger = getAuditLogger()
     await auditLogger.log({
+      route: '/api/ops/status',
       actor: user.email,
       action: 'ops_status_requested',
-      metadata: { route: '/api/ops/status' }
+      metadata: {}
     })
 
     const status: SystemStatus = {
@@ -103,7 +104,8 @@ async function getServicesStatus() {
   // Check Redis
   const redisStore = getRedisStore()
   try {
-    await redisStore.ping()
+    // Use a simple Redis command to check connection
+    await redisStore.get('health_check')
     services.redis = 'healthy'
   } catch {
     services.redis = 'unhealthy'

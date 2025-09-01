@@ -8,3 +8,19 @@ node_modules
 .venv-phase3/
 .__phase3_tmp/
 orion-phase3-python.zip
+backup-*.tar.gz
+backup-*.tar.gz
+# --- local/dev artifacts ---
+.cookies*.jar
+.dev.log
+*.bak.*
+# Next build output
+.next/
+# helper scripts created during smoke/debug
+*-smoke.sh
+signin-*.sh
+enable-credentials-and-login.sh
+login-and-smoke.sh
+dev-login-smoke.sh
+seed-and-smoke.sh
+yarn.lock

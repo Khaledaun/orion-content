@@ -28,9 +28,10 @@ export async function GET(request: NextRequest) {
 
     const auditLogger = getAuditLogger()
     await auditLogger.log({
+      route: '/api/ops/metrics',
       actor: user.email,
       action: 'metrics_requested',
-      metadata: { route: '/api/ops/metrics', query }
+      metadata: { query }
     })
 
     const costMetrics = await getCostMetrics(query.days || 7)

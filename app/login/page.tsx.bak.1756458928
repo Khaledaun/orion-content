@@ -1,11 +1,11 @@
-import { getSessionUser } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 
-import { getSessionUser } from '@/lib/auth'
+import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import LoginForm from './login-form'
 
 export default async function LoginPage() {
-  const user = await getSessionUser()
+  const user = await getSession()
   
   if (session?.isAuthenticated) {
     redirect('/dashboard')

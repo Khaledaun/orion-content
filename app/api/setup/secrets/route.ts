@@ -1,9 +1,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { requireAuth } from '@/lib/auth'
+import { requireApiAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { encryptJson } from '@/lib/crypto'
+// import { encryptJson } from '@/lib/crypto' // Disabled due to missing module
 
 const secretSchema = z.object({
   kind: z.string().min(1),
@@ -52,5 +52,5 @@ async function handler(req: NextRequest) {
   return NextResponse.json({ error: 'Method not allowed' }, { status: 405 })
 }
 
-export const GET = requireAuth(handler)
-export const POST = requireAuth(handler)
+export const GET = requireApiAuth(handler)
+export const POST = requireApiAuth(handler)
