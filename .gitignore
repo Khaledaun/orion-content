@@ -24,3 +24,5 @@ login-and-smoke.sh
 dev-login-smoke.sh
 seed-and-smoke.sh
 yarn.lock
+node_modules/
+*.log
