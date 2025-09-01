@@ -5,17 +5,21 @@ import { authOptions } from "@/lib/nextauth";
 
 export type Role = "ADMIN" | "EDITOR" | "VIEWER" | (string & {});
 
-function normalizeRoles(raw: unknown): string[] {
-  if (!raw) return [];
-  if (Array.isArray(raw)) return raw as string[];
-  try { const p = typeof raw === "string" ? JSON.parse(raw) : raw; return Array.isArray(p) ? p as string[] : []; } catch { return []; }
+async function rolesForUser(userId: string): Promise<string[]> {
+  // Fetch enum roles from relation table and return as UPPERCASE strings
+  const rows = await prisma.userRole.findMany({
+    where: { userId },
+    select: { role: true },
+  });
+  return rows.map(r => String(r.role).toUpperCase());
 }
 
 export async function getAuthUser(_req?: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return null;
-  const u = await prisma.user.findUnique({ where: { id: (session.user as any).id }, select: { roles: true as any } });
-  return { userId: (session.user as any).id as string, roles: normalizeRoles(u?.roles) };
+  const userId = (session.user as any).id as string;
+  const roles = await rolesForUser(userId);
+  return { userId, roles };
 }
 
 export function createUnauthorizedResponse() {
@@ -26,7 +30,7 @@ export function createForbiddenResponse(msg = "Forbidden") {
 }
 
 export async function requireRole(req: NextRequest, role: Role, _siteId?: string) {
-  // Bearer first
+  // 1) Bearer token
   const authz = req.headers.get("authorization") || "";
   const bearer = authz.toLowerCase().startsWith("bearer ") ? authz.slice(7).trim() : "";
   if (bearer) {
@@ -35,23 +39,21 @@ export async function requireRole(req: NextRequest, role: Role, _siteId?: string
       select: { userId: true },
     });
     if (!tok) throw new Error("unauthorized");
-    const u = await prisma.user.findUnique({ where: { id: tok.userId }, select: { roles: true as any } });
-    const roles = normalizeRoles(u?.roles);
-    if (!roles.includes(role)) throw new Error("forbidden");
+    const roles = await rolesForUser(tok.userId);
+    if (!roles.includes(String(role).toUpperCase())) throw new Error("forbidden");
     return { userId: tok.userId, roles };
   }
 
-  // Session fallback
+  // 2) Session
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) throw new Error("unauthorized");
-  const u = await prisma.user.findUnique({ where: { id: (session.user as any).id }, select: { roles: true as any } });
-  const roles = normalizeRoles(u?.roles);
-  if (!roles.includes(role)) throw new Error("forbidden");
-  return { userId: (session.user as any).id as string, roles };
+  const userId = (session.user as any).id as string;
+  const roles = await rolesForUser(userId);
+  if (!roles.includes(String(role).toUpperCase())) throw new Error("forbidden");
+  return { userId, roles };
 }
 
 export async function requireEditAccess(req: NextRequest, siteId?: string) {
-  // Simple EDITOR/ADMIN gate; extend with siteId checks if needed
   try { return await requireRole(req, "ADMIN", siteId); } catch {}
   return requireRole(req, "EDITOR", siteId);
 }
