@@ -1,15 +1,10 @@
-export type WithAuthOptions = { roles?: string[] }
+import { NextRequest } from "next/server"
 
-// No-op wrapper; replace with real RBAC when ready.
-// Signature matches Next.js Route Handler export pattern.
-export function withAuth<T extends (req: any) => any>(
-  handler: T,
-  _opts?: WithAuthOptions
-) {
-  return handler as any
-}
+type AnyHandler = (req: NextRequest) => Response | Promise<Response>
+type Options = { roles?: string[] } & Record<string, any>
 
-// Optional legacy helper to satisfy older usages.
-export async function requireApiAuth(_req: any, _opts?: WithAuthOptions) {
-  return
+// NOTE: Temporary no-op auth wrapper – replace with your real enforcement later.
+export function withAuth(handler: AnyHandler, _opts: Options = {}): AnyHandler {
+  return (req: NextRequest) => handler(req)
 }
+export default withAuth

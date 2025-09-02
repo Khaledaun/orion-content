@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { withAuth } from "@/lib/auth/withAuth"
 
-async function handler(req: NextRequest) {
-  // TODO: your actual jobrun logic here
+async function handler(_req: NextRequest) {
+  // TODO: real jobrun logic
   return NextResponse.json({ ok: true })
 }
 
