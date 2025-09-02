@@ -1,15 +1,11 @@
 // app/api/auth/[...nextauth]/route.ts
-import NextAuth from "next-auth";
-import Credentials from "next-auth/providers/credentials";
+import NextAuth from "next-auth/next";
+import CredentialsProvider from "next-auth/providers/credentials";
 
-export const dynamic = "force-dynamic"; // ensure not statically rendered
-export const runtime = "nodejs";
-
-export const { GET, POST } = NextAuth({
-  trustHost: true,
+const handler = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
-    Credentials({
+    CredentialsProvider({
       name: "Demo",
       credentials: {
         email: { label: "Email", type: "email" },
@@ -24,3 +20,5 @@ export const { GET, POST } = NextAuth({
     }),
   ],
 });
+
+export { handler as GET, handler as POST };
