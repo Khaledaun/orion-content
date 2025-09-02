@@ -1,5 +1,5 @@
 {
   "framework": "nextjs",
-  "installCommand": "npm ci --omit=dev --no-audit --no-fund",
-  "buildCommand": "next build"
+  "installCommand": "PRISMA_SKIP_POSTINSTALL=1 npm install --omit=dev --no-audit --no-fund",
+  "buildCommand": "npx prisma generate --schema=prisma/schema.prisma && next build"
 }
