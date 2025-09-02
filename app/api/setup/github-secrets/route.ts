@@ -1,3 +1,4 @@
+import type { Connection } from "@prisma/client";
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
@@ -49,7 +50,6 @@ async function handler(req: NextRequest) {
     const secretsToWrite: Array<{ name: string; value: string }> = []
     
     // Get connections from DB
-    import type { Connection } from "@prisma/client";
 
 const connections: Connection[] = await prisma.connection.findMany()
     const connectionMap = new Map<Connection["kind"], Connection>();
