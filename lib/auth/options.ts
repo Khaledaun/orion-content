@@ -13,7 +13,7 @@ export const authOptions: NextAuthOptions = {
         code:  { label: "One-time code", type: "text" },
       },
       async authorize(creds) {
-        // Phase-10: dummy auth. Any email/code works.
+        // Phase 10: dummy auth — any email/code works
         const email = creds?.email?.toString().trim() || "demo@orion.local";
         return { id: email, email, role: "admin" as const };
       },
