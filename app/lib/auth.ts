@@ -16,6 +16,20 @@ export async function auth(): Promise<AuthSession> {
 
 /** Minimal API/page guard. Extend with RBAC when needed. */
 export async function requireAuth(_req?: NextRequest, opts: { api?: boolean } = {}) {
+
+/**
+ * HOF wrapper for API routes. Usage: export const GET = requireApiAuth(handler, { roles: ["admin"] })
+ */
+export function requireApiAuth(
+  handler: (req: any) => Promise<Response> | Response,
+  _opts: { roles?: string[] | string; allowBearer?: boolean } = {}
+) {
+  return async function(req: any): Promise<Response> {
+    await requireAuth(req, { api: true });
+    // TODO: add RBAC checks using _opts.roles when your RBAC is wired
+    return handler(req);
+  };
+}
   const session = await getServerSession(authOptions as any);
   const isApi = opts.api ?? !!_req;
   if (!session || !(session as any).user) {
@@ -49,4 +63,12 @@ export async function createSession(_userId: string): Promise<void> {
 export async function deleteSession(): Promise<void> {
   // With NextAuth, session is cleared by its signOut handler/route.
   return;
+}
+
+/** Minimal AuthError (for legacy imports) */
+export class AuthError extends Error {
+  status: number
+  constructor(message = "Unauthorized", status = 401) {
+    super(message); this.name = "AuthError"; this.status = status
+  }
 }
