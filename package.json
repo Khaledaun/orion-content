@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "engines": {
-    "node": ">=18.18.0",
-    "npm": ">=9.0.0"
+    "node": "20.x"
   },
   "scripts": {
     "dev": "next dev",
@@ -163,5 +162,5 @@
     "last 2 versions",
     "not dead"
   ],
-  "packageManager":"pnpm@9.12.3"
+  "packageManager": "pnpm@9.12.3"
 }
