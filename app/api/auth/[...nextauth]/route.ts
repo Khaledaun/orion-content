@@ -1,11 +1,13 @@
 // app/api/auth/[...nextauth]/route.ts
-import NextAuth from "next-auth/next";
-import CredentialsProvider from "next-auth/providers/credentials";
+import NextAuth from "next-auth";
+import Credentials from "next-auth/providers/credentials";
 
 const handler = NextAuth({
-  secret: process.env.NEXTAUTH_SECRET,
+  // NEXTAUTH_SECRET / NEXTAUTH_URL can be set in Vercel, but are not required
+  // just to expose /api/auth/* endpoints.
+  session: { strategy: "jwt" },
   providers: [
-    CredentialsProvider({
+    Credentials({
       name: "Demo",
       credentials: {
         email: { label: "Email", type: "email" },
