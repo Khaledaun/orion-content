@@ -26,3 +26,8 @@ seed-and-smoke.sh
 yarn.lock
 node_modules/
 *.log
+.vercel
+
+# never commit secrets
+.env
+.env.*
