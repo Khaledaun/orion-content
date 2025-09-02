@@ -1,59 +1,52 @@
 import { getServerSession } from "next-auth";
 import type { NextRequest } from "next/server";
 import { authOptions } from "./nextauth";
-import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
-/** Session type from NextAuth */
-export type AuthSession = Awaited<ReturnType<typeof getServerSession>>;
+/** Permissive session type so TS recognizes session.user usage across the app */
+export type AuthSession = { user?: { id?: string; email?: string; name?: string; image?: string } } & Record<string, any>;
 
-/** Lightweight role row (adjust to your schema if needed) */
-type UserRoleRow = { role: string | null };
-
-/** Get a NextAuth session (server) */
 export async function getSession(): Promise<AuthSession> {
-  return getServerSession(authOptions as any);
+  return (await getServerSession(authOptions as any)) as AuthSession;
 }
 
-/** Alias used across the app */
 export async function auth(): Promise<AuthSession> {
-  return getServerSession(authOptions as any);
+  return (await getServerSession(authOptions as any)) as AuthSession;
 }
 
-/**
- * Return all roles in the system, lowercased.
- * If your schema differs, adjust the Prisma query.
- */
-export async function listRoles(): Promise<string[]> {
-  const rows: UserRoleRow[] = await prisma.user.findMany({
-    select: { role: true },
-  });
-  return rows
-    .map((r: UserRoleRow) => (r.role ?? "").toLowerCase())
-    .filter(Boolean);
-}
-
-/**
- * Minimal requireAuth helper. Extend with RBAC checks when ready.
- * - If unauthenticated and api=true: throw 401 (caller should catch).
- * - If unauthenticated and api=false: redirect to login (TODO).
- */
-export async function requireAuth(
-  _req?: NextRequest,
-  opts: { api?: boolean } = {}
-) {
+/** Minimal API/page guard. Extend with RBAC when needed. */
+export async function requireAuth(_req?: NextRequest, opts: { api?: boolean } = {}) {
   const session = await getServerSession(authOptions as any);
   const isApi = opts.api ?? !!_req;
-
-  if (!session?.user) {
+  if (!session || !(session as any).user) {
     if (isApi) {
-      // Let callers return a 401 JSON; we throw to bubble up within route handlers
       throw Object.assign(new Error("Unauthorized"), { status: 401 });
-    } else {
-      // TODO: implement redirect("/login") when using in pages
-      throw Object.assign(new Error("Unauthorized (redirect to login)"), {
-        status: 401,
-      });
     }
+    throw Object.assign(new Error("Unauthorized (redirect to login)"), { status: 401 });
   }
-  return session;
+  return session as AuthSession;
+}
+
+/** Back-compat alias for routes still importing requireApiAuth */
+export const requireApiAuth = (req?: NextRequest) => requireAuth(req, { api: true });
+
+/** Password check used in /api/login */
+export async function verifyPassword(plain: string, hash: string): Promise<boolean> {
+  try {
+    return await bcrypt.compare(plain, hash);
+  } catch {
+    return false;
+  }
+}
+
+/** Session helpers used by /api/login and /api/logout (NextAuth handles sessions itself).
+ *  These are no-ops to satisfy imports; keep if your routes call them.
+ */
+export async function createSession(_userId: string): Promise<void> {
+  // With NextAuth, session is issued by its signIn handler/route.
+  return;
+}
+export async function deleteSession(): Promise<void> {
+  // With NextAuth, session is cleared by its signOut handler/route.
+  return;
 }

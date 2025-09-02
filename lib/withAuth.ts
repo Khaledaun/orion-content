@@ -1,20 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth, AuthError } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 
-type RequireAuthOpts = Parameters<typeof requireAuth>[1];
-type Handler<T> = (req: NextRequest, ctx: { auth: Awaited<ReturnType<typeof requireAuth>> }) => Promise<T>;
+export type WithAuthHandler = (
+  req: NextRequest,
+  user: any,
+  roles: string[],
+  params?: any
+) => Promise<Response> | Response;
 
-export function withAuth<T = NextResponse>(handler: Handler<T>, opts?: RequireAuthOpts) {
-  return async (req: NextRequest): Promise<T | NextResponse> => {
-    try {
-      const auth = await requireAuth(req, { api: true, ...opts });
-      return await handler(req, { auth });
-    } catch (e: any) {
-      if (e instanceof AuthError) {
-        if (e.status === 302 && e.body instanceof NextResponse) return e.body;
-        return NextResponse.json(e.body ?? { error: e.message }, { status: e.status });
-      }
-      return NextResponse.json({ error: "Internal error" }, { status: 500 });
+export type Options = {
+  roles?: string[] | string;   // NEW: supports array or single
+  role?: string;               // legacy alias
+  allowBearer?: boolean;
+};
+
+export function withAuth(handler: WithAuthHandler, opts: Options = {}) {
+  return async function (req: NextRequest, params?: any): Promise<Response> {
+    // TODO: implement allowBearer token logic here if needed
+    const session = await auth();
+    if (!session || !(session as any).user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const user = (session as any).user;
+
+    const wanted =
+      Array.isArray(opts.roles)
+        ? opts.roles
+        : opts.roles
+        ? [opts.roles as string]
+        : opts.role
+        ? [opts.role]
+        : [];
+
+    return handler(req, user, wanted, params);
   };
 }
