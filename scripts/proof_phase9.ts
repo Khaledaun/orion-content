@@ -108,7 +108,7 @@ class Phase9ProofRunner {
     const { redactSecrets } = await import('../lib/redact')
     
     // Generate observability report with full redaction
-    const report = { status: "test", timestamp: new Date().toISOString() }
+    const report = generateObservabilityReport()
     writeFileSync('observability.json', JSON.stringify(report, null, 2))
 
     // Test redaction on sensitive data

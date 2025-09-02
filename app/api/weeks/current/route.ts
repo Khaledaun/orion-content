@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 import { NextRequest, NextResponse } from 'next/server'
 import { requireApiAuth } from '@/lib/auth'
@@ -53,11 +55,4 @@ async function handler(req: NextRequest) {
   }
 }
 
-export async function GET(req: NextRequest) {
-  try {
-    await requireApiAuth(req, { roles: ["admin", "editor", "viewer"] })
-    return await handler(req)
-  } catch (error) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-}
+export const GET = requireApiAuth(handler)
