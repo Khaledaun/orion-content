@@ -1,5 +1,5 @@
 {
   "framework": "nextjs",
-  "installCommand": "HUSKY=0 corepack enable && corepack prepare pnpm@9.12.3 --activate && pnpm install --prod --no-optional --no-frozen-lockfile",
+  "installCommand": "npm ci --omit=dev --no-audit --no-fund",
   "buildCommand": "next build"
 }
