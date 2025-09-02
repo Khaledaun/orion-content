@@ -138,7 +138,7 @@ importers:
         specifier: ^6.0.0
         version: 6.0.0
       bcryptjs:
-        specifier: 2.4.3
+        specifier: ^2.4.3
         version: 2.4.3
       chart.js:
         specifier: 4.4.9
@@ -2426,8 +2426,8 @@ packages:
     resolution: {integrity: sha512-QOSvevhslijgYwRx6Rv7zKdMF8lbRmx+uQGx2+vDc+KI/eBnsy9kit5aj23AgGu3pa4t9AgwbnXWqS+iOY+2aA==}
     engines: {node: '>= 6'}
 
-  caniuse-lite@1.0.30001737:
-    resolution: {integrity: sha512-BiloLiXtQNrY5UyF0+1nSJLXUENuhka2pzy2Fx5pGxqavdrxSCW4U6Pn/PoG3Efspi2frRbHpBV2XsrPE6EDlw==}
+  caniuse-lite@1.0.30001739:
+    resolution: {integrity: sha512-y+j60d6ulelrNSwpPyrHdl+9mJnQzHBr08xm48Qno0nSk4h3Qojh+ziv2qE6rXf4k3tadF4o1J/1tAbVm1NtnA==}
 
   canvas-fit@1.5.0:
     resolution: {integrity: sha512-onIcjRpz69/Hx5bB5HGbYKUF2uC6QT6Gp+pfpGm3A7mPfcluSLV5v4Zu+oflDUwLdUw0rLIBhUbi0v8hM4FJQQ==}
@@ -7761,7 +7761,7 @@ snapshots:
   autoprefixer@10.4.15(postcss@8.4.30):
     dependencies:
       browserslist: 4.25.4
-      caniuse-lite: 1.0.30001737
+      caniuse-lite: 1.0.30001739
       fraction.js: 4.3.7
       normalize-range: 0.1.2
       picocolors: 1.1.1
@@ -7825,7 +7825,7 @@ snapshots:
 
   browserslist@4.25.4:
     dependencies:
-      caniuse-lite: 1.0.30001737
+      caniuse-lite: 1.0.30001739
       electron-to-chromium: 1.5.211
       node-releases: 2.0.19
       update-browserslist-db: 1.1.3(browserslist@4.25.4)
@@ -7879,7 +7879,7 @@ snapshots:
 
   camelcase-css@2.0.1: {}
 
-  caniuse-lite@1.0.30001737: {}
+  caniuse-lite@1.0.30001739: {}
 
   canvas-fit@1.5.0:
     dependencies:
@@ -9994,7 +9994,7 @@ snapshots:
       '@next/env': 14.2.28
       '@swc/helpers': 0.5.5
       busboy: 1.6.0
-      caniuse-lite: 1.0.30001737
+      caniuse-lite: 1.0.30001739
       graceful-fs: 4.2.11
       postcss: 8.4.31
       react: 18.2.0
