@@ -1,6 +1,7 @@
 export type WithAuthOptions = { roles?: string[] }
 
-// No-op wrapper to unblock build; your real RBAC can replace this.
+// No-op wrapper; replace with real RBAC when ready.
+// Signature matches Next.js Route Handler export pattern.
 export function withAuth<T extends (req: any) => any>(
   handler: T,
   _opts?: WithAuthOptions
@@ -8,7 +9,7 @@ export function withAuth<T extends (req: any) => any>(
   return handler as any
 }
 
-// Optional legacy helper (no-op) to satisfy older imports if any remain.
+// Optional legacy helper to satisfy older usages.
 export async function requireApiAuth(_req: any, _opts?: WithAuthOptions) {
   return
 }
