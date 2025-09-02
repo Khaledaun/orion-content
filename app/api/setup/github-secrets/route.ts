@@ -1,10 +1,10 @@
-import type { Connection } from "@prisma/client";
 import { withAuthRoute } from "@/lib/route-auth";
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+type Conn = Awaited<ReturnType<typeof prisma.connection.findMany>>[number];
 
 // Temporary decryptJson fallback (expects base64 JSON or plaintext JSON)
 function decryptJson<T>(input: string): T {
@@ -62,10 +62,10 @@ async function handler(req: NextRequest) {
     
     // Get connections from DB
 
-const connections: Connection[] = await prisma.connection.findMany()
-    const connectionMap = new Map<Connection["kind"], Connection>();
+const connections: Conn[] = await prisma.connection.findMany()
+    const connectionMap = new Map<string, Conn>();
 for (const c of connections) {
-  connectionMap.set(c.kind, c);
+  connectionMap.set(String((c as any).kind ?? ""), c);
 }
     
     // Map connections to GitHub secret names
