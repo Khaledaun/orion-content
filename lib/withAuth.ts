@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 
-/**
- * Permissive wrapper that works with both:
- *   - handler(req, user, roles, params)
- *   - handler(req, params)
- * And accepts any options object (roles, role, allowBearer, etc.)
- */
+/** Make Options permissive to accept any flags used by callers (roles, role, allowBearer, etc.) */
+export type Options = { [key: string]: any };
+
 export function withAuth(
   handler: (...args: any[]) => Promise<Response> | Response,
-  opts?: any
+  opts?: Options
 ) {
   return async function (req: NextRequest, params?: any): Promise<Response> {
     const session = await auth();
