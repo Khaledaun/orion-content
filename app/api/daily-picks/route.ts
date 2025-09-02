@@ -1,10 +1,12 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 import { NextRequest, NextResponse } from "next/server";
-import { requireApiAuth } from "@/lib/auth";
+import { withAuth } from "@/lib/withAuth";
 import { prisma } from "@/lib/prisma";
 
 // GET /api/daily-picks?date=YYYY-MM-DD&site=SITE_KEY&count=3
-async function handler(req: NextRequest) {
+export const GET = withAuth(async (req: NextRequest) => {
   const { searchParams } = new URL(req.url);
   const date = searchParams.get("date");
   const siteKey = searchParams.get("site");
@@ -65,13 +67,4 @@ async function handler(req: NextRequest) {
   }
 
   return NextResponse.json({ picks, date, site: siteKey, weekId: currentWeek.id });
-}
-
-export async function GET(req: NextRequest) {
-  try {
-    await requireApiAuth(req, { roles: ["editor", "admin"] })
-    return await handler(req)
-  } catch (error) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-}
+}, ({ roles: ["editor", "admin"], allowBearer: true } as any));

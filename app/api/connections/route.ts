@@ -1,10 +1,12 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
-import { NextRequest, NextResponse } from "next/server";
-import { requireApiAuth } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import { withAuth } from "@/lib/withAuth";
 import { prisma } from "@/lib/prisma";
 
 // GET /api/connections — list connections (admin only; no secrets returned)
-async function handler(req: NextRequest) {
+export const GET = withAuth(async (_req) => {
   const connections = await prisma.connection.findMany({
     select: {
       id: true,
@@ -17,13 +19,4 @@ async function handler(req: NextRequest) {
   });
 
   return NextResponse.json({ connections });
-}
-
-export async function GET(req: NextRequest) {
-  try {
-    await requireApiAuth(req, { roles: ["admin"] })
-    return await handler(req)
-  } catch (error) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-}
+}, ({ roles: ["admin"], allowBearer: true } as any));
