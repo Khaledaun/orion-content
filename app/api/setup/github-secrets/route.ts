@@ -4,8 +4,18 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 import { NextRequest, NextResponse } from 'next/server'
-import { requireApiAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+
+// Temporary decryptJson fallback (expects base64 JSON or plaintext JSON)
+function decryptJson<T>(input: string): T {
+  try {
+    const buf = Buffer.from(input, "base64");
+    return JSON.parse(buf.toString("utf8")) as T;
+  } catch {
+    return JSON.parse(input) as T;
+  }
+}
+
 // import { decryptJson } from '@/lib/crypto' // Disabled due to missing module
 // import * as nacl from 'tweetnacl' // Disabled due to missing module
 
@@ -153,4 +163,4 @@ for (const c of connections) {
   }
 }
 
-export const POST = requireApiAuth(handler)
+export const POST = withAuthRoute(async (req) => await handler(req))
