@@ -1,6 +1,4 @@
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 import NextAuth from "next-auth";
-import { authOptions } from "@/lib/nextauth";
+import { authOptions } from "@/lib/auth/options"; // point to your existing options
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
