@@ -1,4 +1,5 @@
 import type { Connection } from "@prisma/client";
+import { withAuthRoute } from "@/lib/route-auth";
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
