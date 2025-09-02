@@ -2,32 +2,30 @@ import type { NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
 export const authOptions: NextAuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || "dev-secret-only",
   session: { strategy: "jwt" },
+  pages: { signIn: "/login" },
   providers: [
     Credentials({
-      name: "Demo",
+      name: "Code",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
+        code:  { label: "One-time code", type: "text" },
       },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
-        const email = String(credentials.email).toLowerCase().trim();
-        const role = email.endsWith("@admin.test") ? "admin" : "editor";
-        return { id: `demo-${role}`, name: email.split("@")[0], email, /* @ts-ignore */ role };
+      async authorize(creds) {
+        // Phase-10: dummy auth. Any email/code works.
+        const email = creds?.email?.toString().trim() || "demo@orion.local";
+        return { id: email, email, role: "admin" as const };
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
-      // @ts-ignore (augment types later)
-      if (user?.role) token.role = user.role;
+      if (user) token.role = (user as any).role ?? "editor";
       return token;
     },
     async session({ session, token }) {
-      // @ts-ignore (augment types later)
-      session.role = (token as any).role ?? "editor";
+      if (session.user) (session.user as any).role = (token as any).role ?? "editor";
       return session;
     },
   },
