@@ -1,0 +1,26 @@
+# Build outputs & caches
+.next/
+.build/
+out/
+dist/
+coverage/
+
+# Local envs & tooling
+node_modules/
+python/.venv/
+.venv*/
+.vscode/
+.DS_Store
+*.log
+
+# Big blobs & archives
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.mp4
+*.mov
+*.mp3
+
+# Data / scratch
+tmp/
