@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Do NOT set `output: 'export'` — we need SSR & API routes on Vercel.
-  // If you previously had `images: { unoptimized: true }` purely for export, remove it.
+  // DO NOT set output:'export' – we need SSR & API routes on Vercel.
 };
 module.exports = nextConfig;
