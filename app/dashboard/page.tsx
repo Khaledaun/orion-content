@@ -1,14 +1,54 @@
 export const dynamic = "force-dynamic";
+export const runtime = 'nodejs';
 
-import { requireAuth } from '@/lib/auth'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import LogoutButton from './logout-button'
-import { Calendar, Globe, Users, Activity } from 'lucide-react'
+import { getSession } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { withDB } from '@/lib/with-db';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import LogoutButton from './logout-button';
+import { Calendar, Globe, Activity } from 'lucide-react';
+import SetupGate from '@/components/SetupGate';
 
 export default async function DashboardPage() {
-  const session = await requireAuth()
+  // Get session without throwing errors
+  const session = await getSession();
+  
+  // If not authenticated, show setup gate
+  if (!session?.user) {
+    return <SetupGate hasAuth={false} hasSites={false} demoMode={!prisma} />;
+  }
+
+  // Get dashboard data with fallbacks
+  const siteCount = await withDB(
+    () => prisma?.site.count() || Promise.resolve(0),
+    0,
+    'dashboard.siteCount'
+  );
+
+  const weekCount = await withDB(
+    () => prisma?.week.count({ where: { status: 'pending' } }) || Promise.resolve(0),
+    0,
+    'dashboard.weekCount'
+  );
+
+  const topicCount = await withDB(
+    () => prisma?.topic.count() || Promise.resolve(0),
+    0,
+    'dashboard.topicCount'
+  );
+
+  const jobRunCount = await withDB(
+    () => prisma?.jobRun.count() || Promise.resolve(0),
+    0,
+    'dashboard.jobRunCount'
+  );
+
+  // If no sites exist, show setup gate
+  if (siteCount === 0) {
+    return <SetupGate hasAuth={true} hasSites={false} />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -97,19 +137,19 @@ export default async function DashboardPage() {
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">0</div>
+                    <div className="text-2xl font-bold text-blue-600">{siteCount}</div>
                     <div className="text-sm text-gray-500">Active Sites</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">0</div>
+                    <div className="text-2xl font-bold text-green-600">{weekCount}</div>
                     <div className="text-sm text-gray-500">Pending Weeks</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-600">0</div>
+                    <div className="text-2xl font-bold text-orange-600">{topicCount}</div>
                     <div className="text-sm text-gray-500">Total Topics</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">0</div>
+                    <div className="text-2xl font-bold text-purple-600">{jobRunCount}</div>
                     <div className="text-sm text-gray-500">Job Runs</div>
                   </div>
                 </div>

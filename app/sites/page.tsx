@@ -1,12 +1,15 @@
 export const dynamic = "force-dynamic";
+export const runtime = 'nodejs';
 
-import { requireAuth } from '@/lib/auth'
+import { getSession } from '@/lib/auth'
 import { prisma } from '@/app/lib/prisma'
+import { withDB } from '@/lib/with-db'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import CreateSiteForm from './create-site-form'
 import { ArrowLeft, Globe } from 'lucide-react'
+import SetupGate from '@/components/SetupGate'
 
 type Site = {
   id: string;
@@ -23,26 +26,27 @@ type Site = {
 };
 
 export default async function SitesPage() {
-  await requireAuth()
+  // Get session without throwing errors
+  const session = await getSession();
   
-  let sites: Site[] = [];
-  
-  // Handle case where Prisma is not available (e.g., due to DNS restrictions)
-  if (prisma) {
-    try {
-      sites = await prisma.site.findMany({
-        orderBy: { createdAt: 'desc' },
-        include: {
-          _count: {
-            select: { categories: true, topics: true }
-          }
-        }
-      });
-    } catch (error) {
-      console.warn("Error fetching sites:", error instanceof Error ? error.message : String(error));
-      // Fall back to empty array if database is not available
-    }
+  // If not authenticated, show setup gate
+  if (!session?.user) {
+    return <SetupGate hasAuth={false} hasSites={false} demoMode={!prisma} />;
   }
+
+  // Get sites with error handling
+  const sites = await withDB(
+    () => prisma?.site.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        _count: {
+          select: { categories: true, topics: true }
+        }
+      }
+    }) || Promise.resolve([]),
+    [] as Site[],
+    'sites.findMany'
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
