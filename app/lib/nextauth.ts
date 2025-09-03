@@ -17,7 +17,8 @@ try {
 import * as bcryptjs from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
+  // Provide fallback secret for demo/testing environments
+  secret: process.env.NEXTAUTH_SECRET || "demo-secret-please-set-in-production",
   session: { strategy: "jwt" },
 
   providers: [
