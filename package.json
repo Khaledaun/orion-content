@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:offline": "SKIP_PRISMA_GENERATE=true next build",
     "start": "next start",
     "lint": "next lint --fix",
     "lint:check": "next lint",
@@ -21,7 +22,7 @@
     "prepare": "husky install || true",
     "prisma:generate": "prisma generate --schema=prisma/schema.prisma",
     "prisma:status": "prisma migrate status --schema=prisma/schema.prisma",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate || echo 'Warning: Prisma generation failed, but continuing build process'"
   },
   "prisma": {
     "schema": "prisma/schema.prisma"

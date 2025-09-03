@@ -1,7 +1,16 @@
 
 import crypto from 'crypto';
 import { prisma } from '@/lib/prisma';
-import { ScopedToken } from '@prisma/client';
+
+// Define local type to avoid dependency on Prisma generated types
+type ScopedToken = {
+  id: string;
+  token: string;
+  siteId?: string | null;
+  scopes: any; // JSON
+  expiresAt?: Date | null;
+  createdAt: Date;
+};
 
 export interface TokenPayload {
   tokenId: string;

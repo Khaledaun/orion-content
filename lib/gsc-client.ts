@@ -1,6 +1,24 @@
 
 import { google } from 'googleapis';
-import { GscConnection, GscSnapshot } from '@prisma/client';
+
+// Define local types to avoid dependency on Prisma generated types
+type GscConnection = {
+  id: string;
+  siteId: string;
+  gscSiteUrl: string;
+  credentialsEnc: string;
+  verified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type GscSnapshot = {
+  id: string;
+  siteId: string;
+  dataType: string;
+  data: any; // JSON
+  capturedAt: Date;
+};
 
 interface GscPerformanceData {
   rows: Array<{

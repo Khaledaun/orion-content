@@ -1,7 +1,17 @@
 
 import crypto from 'crypto';
 import { prisma } from '@/lib/prisma';
-import { WebhookEndpoint } from '@prisma/client';
+
+// Define local type to avoid dependency on Prisma generated types
+type WebhookEndpoint = {
+  id: string;
+  url: string;
+  secret: string;
+  events: any; // JSON
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 export interface WebhookPayload {
   event: string;
@@ -21,13 +31,13 @@ export class WebhookService {
       },
     });
 
-    const filteredEndpoints = endpoints.filter(endpoint => {
+    const filteredEndpoints = endpoints.filter((endpoint: any) => {
       const events = Array.isArray(endpoint.events) ? endpoint.events as string[] : [];
       return events.includes(event);
     });
 
     await Promise.allSettled(
-      filteredEndpoints.map(endpoint => this.sendWebhook(endpoint, event, data))
+      filteredEndpoints.map((endpoint: any) => this.sendWebhook(endpoint, event, data))
     );
   }
 

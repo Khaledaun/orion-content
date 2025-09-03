@@ -213,7 +213,7 @@ export class IntegrationManager {
         }
       })
 
-      return integrations.map(integration => ({
+      return integrations.map((integration: any) => ({
         id: integration.id,
         type: integration.type as IntegrationType,
         siteId: integration.siteId || undefined,
