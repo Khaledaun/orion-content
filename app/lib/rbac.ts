@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/nextauth";
+import { authOptions } from "@/app/lib/nextauth";
 
 export type Role = "ADMIN" | "EDITOR" | "VIEWER" | (string & {});
 
