@@ -1,13 +1,16 @@
 export const dynamic = "force-dynamic";
+export const runtime = 'nodejs';
 
-import { requireAuth } from '@/lib/auth'
+import { getSession } from '@/lib/auth'
 import { prisma } from '@/app/lib/prisma'
+import { withDB } from '@/lib/with-db'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import ApproveButton from './approve-button'
 import { ArrowLeft, Calendar, CheckCircle, Clock } from 'lucide-react'
+import SetupGate from '@/components/SetupGate'
 
 type Week = {
   id: string;
@@ -21,26 +24,27 @@ type Week = {
 };
 
 export default async function WeeksPage() {
-  await requireAuth()
+  // Get session without throwing errors
+  const session = await getSession();
   
-  let weeks: Week[] = [];
-  
-  // Handle case where Prisma is not available (e.g., due to DNS restrictions)
-  if (prisma) {
-    try {
-      weeks = await prisma.week.findMany({
-        orderBy: { isoWeek: 'desc' },
-        include: {
-          _count: {
-            select: { topics: true }
-          }
-        }
-      });
-    } catch (error) {
-      console.warn("Error fetching weeks:", error instanceof Error ? error.message : String(error));
-      // Fall back to empty array if database is not available
-    }
+  // If not authenticated, show setup gate
+  if (!session?.user) {
+    return <SetupGate hasAuth={false} hasSites={false} demoMode={!prisma} />;
   }
+
+  // Get weeks with error handling
+  const weeks = await withDB(
+    () => prisma?.week.findMany({
+      orderBy: { isoWeek: 'desc' },
+      include: {
+        _count: {
+          select: { topics: true }
+        }
+      }
+    }) || Promise.resolve([]),
+    [] as Week[],
+    'weeks.findMany'
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
