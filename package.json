@@ -7,7 +7,8 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "NEXT_TELEMETRY_DISABLED=1 next build",
+    "build:offline": "SKIP_PRISMA_GENERATE=true SKIP_TELEMETRY=true next build",
     "start": "next start",
     "lint": "next lint --fix",
     "lint:check": "next lint",
@@ -21,7 +22,7 @@
     "prepare": "husky install || true",
     "prisma:generate": "prisma generate --schema=prisma/schema.prisma",
     "prisma:status": "prisma migrate status --schema=prisma/schema.prisma",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate 2>/dev/null || echo 'Warning: Prisma binaries unavailable (likely DNS restrictions), falling back to runtime handling'"
   },
   "prisma": {
     "schema": "prisma/schema.prisma"

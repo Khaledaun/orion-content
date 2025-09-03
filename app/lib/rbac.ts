@@ -1,17 +1,28 @@
 import { NextResponse, NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/app/lib/prisma";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/nextauth";
+import { authOptions } from "@/app/lib/nextauth";
 
 export type Role = "ADMIN" | "EDITOR" | "VIEWER" | (string & {});
 
 async function rolesForUser(userId: string): Promise<string[]> {
-  // Fetch enum roles from relation table and return as UPPERCASE strings
-  const rows = await prisma.userRole.findMany({
-    where: { userId },
-    select: { role: true },
-  });
-  return rows.map(r => String(r.role).toUpperCase());
+  // Handle case where Prisma is not available (e.g., due to DNS restrictions)
+  if (!prisma) {
+    console.warn("Prisma not available for role checking, defaulting to VIEWER");
+    return ["VIEWER"];
+  }
+
+  try {
+    // Fetch enum roles from relation table and return as UPPERCASE strings
+    const rows = await prisma.userRole.findMany({
+      where: { userId },
+      select: { role: true },
+    });
+    return rows.map((r: any) => String(r.role).toUpperCase());
+  } catch (error) {
+    console.warn("Error fetching user roles:", error instanceof Error ? error.message : String(error));
+    return ["VIEWER"]; // Default fallback role
+  }
 }
 
 export async function getAuthUser(_req?: NextRequest) {

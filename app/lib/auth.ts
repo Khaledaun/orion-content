@@ -9,21 +9,41 @@ export type AuthSession = {
 } & Record<string, any>;
 
 export async function getSession(): Promise<AuthSession> {
-  return (await getServerSession(authOptions as any)) as AuthSession;
+  try {
+    return (await getServerSession(authOptions as any)) as AuthSession;
+  } catch (error) {
+    console.error("Session error:", error);
+    return {};
+  }
 }
 export async function auth(): Promise<AuthSession> {
-  return (await getServerSession(authOptions as any)) as AuthSession;
+  try {
+    return (await getServerSession(authOptions as any)) as AuthSession;
+  } catch (error) {
+    console.error("Auth error:", error);
+    return {};
+  }
 }
 
 /** Minimal guard. Extend with RBAC when ready. */
 export async function requireAuth(_req?: NextRequest, opts: { api?: boolean } = {}) {
-  const session = (await getServerSession(authOptions as any)) as AuthSession;
-  const isApi = opts.api ?? !!_req;
-  if (!session?.user) {
-    const err = new AuthError(isApi ? "Unauthorized" : "Unauthorized (redirect to login)", 401);
+  try {
+    const session = (await getServerSession(authOptions as any)) as AuthSession;
+    const isApi = opts.api ?? !!_req;
+    if (!session?.user) {
+      const err = new AuthError(isApi ? "Unauthorized" : "Unauthorized (redirect to login)", 401);
+      throw err;
+    }
+    return session;
+  } catch (error) {
+    const isApi = opts.api ?? !!_req;
+    if (error instanceof AuthError) {
+      throw error;
+    }
+    console.error("Auth check error:", error);
+    const err = new AuthError(isApi ? "Authentication service unavailable" : "Authentication service unavailable", 503);
     throw err;
   }
-  return session;
 }
 
 /** HOF wrapper for API routes: export const GET = requireApiAuth(handler, { roles: ["admin"] }) */

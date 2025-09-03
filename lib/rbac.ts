@@ -103,7 +103,7 @@ export async function getAuthUser(request?: NextRequest): Promise<AuthUser | nul
       id: user.id,
       email: user.email,
       name: user.name || undefined,
-      roles: user.roles.map(r => ({
+      roles: user.roles.map((r: any) => ({
         role: r.role as Role,
         siteId: r.siteId
       }))

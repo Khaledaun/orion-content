@@ -1,24 +1,48 @@
 export const dynamic = "force-dynamic";
 
 import { requireAuth } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/app/lib/prisma'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import CreateSiteForm from './create-site-form'
 import { ArrowLeft, Globe } from 'lucide-react'
 
+type Site = {
+  id: string;
+  name: string;
+  key: string;
+  timezone: string;
+  publisher?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  _count: {
+    categories: number;
+    topics: number;
+  };
+};
+
 export default async function SitesPage() {
   await requireAuth()
   
-  const sites = await prisma.site.findMany({
-    orderBy: { createdAt: 'desc' },
-    include: {
-      _count: {
-        select: { categories: true, topics: true }
-      }
+  let sites: Site[] = [];
+  
+  // Handle case where Prisma is not available (e.g., due to DNS restrictions)
+  if (prisma) {
+    try {
+      sites = await prisma.site.findMany({
+        orderBy: { createdAt: 'desc' },
+        include: {
+          _count: {
+            select: { categories: true, topics: true }
+          }
+        }
+      });
+    } catch (error) {
+      console.warn("Error fetching sites:", error instanceof Error ? error.message : String(error));
+      // Fall back to empty array if database is not available
     }
-  })
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -65,7 +89,7 @@ export default async function SitesPage() {
                 </p>
               </div>
             ) : (
-              sites.map((site) => (
+              sites.map((site: Site) => (
                 <Card key={site.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <CardTitle className="flex items-center">

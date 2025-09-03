@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { requireAuth } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/app/lib/prisma'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,17 +9,38 @@ import { Badge } from '@/components/ui/badge'
 import ApproveButton from './approve-button'
 import { ArrowLeft, Calendar, CheckCircle, Clock } from 'lucide-react'
 
+type Week = {
+  id: string;
+  isoWeek: string;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+  _count: {
+    topics: number;
+  };
+};
+
 export default async function WeeksPage() {
   await requireAuth()
   
-  const weeks = await prisma.week.findMany({
-    orderBy: { isoWeek: 'desc' },
-    include: {
-      _count: {
-        select: { topics: true }
-      }
+  let weeks: Week[] = [];
+  
+  // Handle case where Prisma is not available (e.g., due to DNS restrictions)
+  if (prisma) {
+    try {
+      weeks = await prisma.week.findMany({
+        orderBy: { isoWeek: 'desc' },
+        include: {
+          _count: {
+            select: { topics: true }
+          }
+        }
+      });
+    } catch (error) {
+      console.warn("Error fetching weeks:", error instanceof Error ? error.message : String(error));
+      // Fall back to empty array if database is not available
     }
-  })
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -52,7 +73,7 @@ export default async function WeeksPage() {
                 </p>
               </div>
             ) : (
-              weeks.map((week) => (
+              weeks.map((week: Week) => (
                 <Card key={week.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">

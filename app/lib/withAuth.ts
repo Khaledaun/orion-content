@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
-import { requireRole, createUnauthorizedResponse, createForbiddenResponse } from "@/lib/rbac";
+import { requireRole, createUnauthorizedResponse, createForbiddenResponse } from "@/app/lib/rbac";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/nextauth";
+import { authOptions } from "@/app/lib/nextauth";
 
 type Options = { role?: "ADMIN" | "EDITOR" | "VIEWER"; siteId?: string };
 

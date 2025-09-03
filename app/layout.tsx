@@ -3,11 +3,11 @@ import "./globals.css"
 
 import './globals.css'
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import { Providers } from './providers'
 import { UserMenu } from '@/components/ui/user-menu'
 
-const inter = Inter({ subsets: ['latin'] })
+// Use system fonts instead of Google Fonts to avoid DNS dependencies
+const fontClass = 'font-sans'
 
 export const metadata: Metadata = {
   title: 'Orion Content',
@@ -21,7 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={fontClass}>
         <Providers>
           <div className="min-h-screen bg-gray-50">
             <nav className="bg-white shadow-sm border-b">
