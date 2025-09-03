@@ -1,7 +1,10 @@
+// NextAuth v4 + Next.js App Router
+export const runtime = 'nodejs';
+
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
-export const { GET, POST } = NextAuth({
+const handler = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
   session: { strategy: "jwt" },
   providers: [
@@ -20,3 +23,5 @@ export const { GET, POST } = NextAuth({
     }),
   ],
 });
+
+export { handler as GET, handler as POST };
