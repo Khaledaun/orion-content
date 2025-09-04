@@ -137,7 +137,7 @@ async function pageSafeBlock() {
     [],
     "'dashboard.sites'"
   );
-  const hasAuth = Boolean((session as any)?.user);
+  const hasAuth = !!session?.user;
   const hasSites = Array.isArray(sites) && sites.length > 0;
 
   if (demoMode || !hasAuth || !hasSites) {

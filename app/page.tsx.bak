@@ -17,6 +17,7 @@ export default async function HomePage() {
 async function pageSafeBlock() {
   const session = await getSession();
   // ---- Resilience: demo/auth/setup gates ----
+  const session = await getSession();
   // If Prisma is unavailable at runtime, treat as demo mode
   const demoMode = !prisma || !("site" in prisma);
   const sites = await withDB(
