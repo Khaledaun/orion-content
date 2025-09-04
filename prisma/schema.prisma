@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-    provider = "sqlite"
-    url      = "file:./dev.db"
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+    directUrl = env("DIRECT_URL")
 }
 
 // Phase 8 Core Models
@@ -373,18 +374,168 @@ model WebhookEndpoint {
 model WebhookDelivery {
   id         String          @id @default(cuid())
   endpointId String
-  eventType  String
+  event      String
   payload    Json
+  response   Json?
   success    Boolean         @default(false)
-  httpStatus Int?
-  response   String?
+  attempts   Int             @default(1)
   createdAt  DateTime        @default(now())
   endpoint   WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
 
   @@index([endpointId])
-  @@index([eventType])
-  @@index([success])
+  @@index([event])
   @@map("webhook_deliveries")
+}
+
+// Phase 10: Advanced Features
+
+enum OnboardingStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+model UserOnboarding {
+  id               String           @id @default(cuid())
+  userId           String           @unique
+  status           OnboardingStatus @default(NOT_STARTED)
+  currentStep      String?
+  completedSteps   Json?            // Array of completed step IDs
+  wordpressSetup   Boolean          @default(false)
+  gscSetup         Boolean          @default(false)
+  ga4Setup         Boolean          @default(false)
+  completedAt      DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@map("user_onboarding")
+}
+
+enum IntegrationType {
+  WORDPRESS
+  GSC
+  GA4
+  TENWEB
+  WEBHOOK
+}
+
+enum IntegrationStatus {
+  PENDING
+  ACTIVE
+  ERROR
+  DISABLED
+}
+
+model Integration {
+  id            String            @id @default(cuid())
+  siteId        String
+  type          IntegrationType
+  status        IntegrationStatus @default(PENDING)
+  config        Json?
+  credentials   String?           // Encrypted
+  lastSync      DateTime?
+  errorMessage  String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  site          Site              @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId])
+  @@index([type])
+  @@index([status])
+  @@map("integrations")
+}
+
+enum QAStatus {
+  PENDING
+  PASSED
+  FAILED
+  SKIPPED
+}
+
+model QAReport {
+  id          String   @id @default(cuid())
+  draftId     String   @unique
+  status      QAStatus @default(PENDING)
+  score       Float?
+  checks      Json?    // Detailed check results
+  violations  Json?    // Array of violation objects
+  suggestions Json?    // Improvement suggestions
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  draft       Draft    @relation(fields: [draftId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@map("qa_reports")
+}
+
+model ContentPipeline {
+  id            String    @id @default(cuid())
+  siteId        String
+  name          String
+  config        Json      // Pipeline configuration
+  active        Boolean   @default(true)
+  lastRun       DateTime?
+  nextRun       DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  executions    PipelineExecution[]
+
+  @@index([siteId])
+  @@index([active])
+  @@map("content_pipelines")
+}
+
+enum PipelineStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+model PipelineExecution {
+  id         String         @id @default(cuid())
+  pipelineId String
+  status     PipelineStatus @default(PENDING)
+  startedAt  DateTime       @default(now())
+  completedAt DateTime?
+  logs       Json?
+  results    Json?
+  pipeline   ContentPipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+
+  @@index([pipelineId])
+  @@index([status])
+  @@map("pipeline_executions")
+}
+
+model SiteMetrics {
+  id              String   @id @default(cuid())
+  siteId          String   @unique
+  totalDrafts     Int      @default(0)
+  publishedDrafts Int      @default(0)
+  avgQualityScore Float?
+  lastUpdated     DateTime @default(now())
+  site            Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@map("site_metrics")
+}
+
+model JobMetrics {
+  id          String   @id @default(cuid())
+  siteId      String
+  jobType     String
+  totalRuns   Int      @default(0)
+  successRuns Int      @default(0)
+  avgDuration Float?   // in seconds
+  lastRun     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  site        Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, jobType])
+  @@index([jobType])
+  @@map("job_metrics")
 }
 
 model AuditLog {
@@ -392,6 +543,7 @@ model AuditLog {
   userId    String?
   action    String
   resource  String
+  resourceId String?
   details   Json?
   ipAddress String?
   userAgent String?
@@ -404,95 +556,14 @@ model AuditLog {
   @@map("audit_logs")
 }
 
-// Phase 10: Enhanced Models for MVP
+model SystemConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  updatedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-// Integration credentials storage with encryption
-model Integration {
-  id             String   @id @default(cuid())
-  siteId         String?  // null for global integrations
-  type           String   // 'wordpress', 'gsc', 'ga4', 'openai', 'perplexity'
-  credentialsEnc String   // Encrypted JSON credentials
-  verified       Boolean  @default(false)
-  lastTestAt     DateTime?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  site           Site?    @relation(fields: [siteId], references: [id], onDelete: Cascade)
-
-  @@unique([siteId, type])
-  @@index([siteId])
-  @@index([type])
-  @@map("integrations")
-}
-
-// Enhanced User model with onboarding status
-model UserOnboarding {
-  id                String   @id @default(cuid())
-  userId            String   @unique
-  wpConfigured      Boolean  @default(false)
-  gscConfigured     Boolean  @default(false)
-  ga4Configured     Boolean  @default(false)
-  completedAt       DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("user_onboarding")
-}
-
-// QA Reports for content validation
-enum QAStatus {
-  PENDING
-  PASSED
-  FAILED
-}
-
-model QAReport {
-  id          String      @id @default(cuid())
-  draftId     String      @unique
-  status      QAStatus    @default(PENDING)
-  score       Float?      // 0-100 score
-  violations  Json        // Array of violation objects
-  passedAt    DateTime?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  draft       Draft       @relation(fields: [draftId], references: [id], onDelete: Cascade)
-
-  @@index([status])
-  @@index([draftId])
-  @@map("qa_reports")
-}
-
-// Site metrics and counters
-model SiteMetrics {
-  id            String   @id @default(cuid())
-  siteId        String   @unique
-  draftsCount   Int      @default(0)
-  qaPassed      Int      @default(0)
-  approved      Int      @default(0)
-  published     Int      @default(0)
-  totalTokens   Int      @default(0)
-  totalCost     Float    @default(0.0)
-  lastUpdated   DateTime @default(now())
-  site          Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
-
-  @@map("site_metrics")
-}
-
-// Job metrics for observability
-model JobMetrics {
-  id         String   @id @default(cuid())
-  jobId      String   @unique
-  siteId     String?
-  jobType    String
-  tokens     Int      @default(0)
-  cost       Float    @default(0.0)
-  latencyMs  Int      @default(0)
-  success    Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  site       Site?    @relation(fields: [siteId], references: [id], onDelete: Cascade)
-
-  @@index([siteId])
-  @@index([jobType])
-  @@index([success])
-  @@map("job_metrics")
+  @@index([key])
+  @@map("system_config")
 }
