@@ -1,0 +1,551 @@
+
+{
+  "info": {
+    "name": "Orion CMS - Phase 1 API Collection",
+    "description": "Complete API collection for Phase 1 Content Management System features including credential management, article CRUD, and admin endpoints.",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "credential_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "article_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "site_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "API Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "health"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Database Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/health/db",
+              "host": ["{{base_url}}"],
+              "path": ["api", "health", "db"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Credential Management",
+      "item": [
+        {
+          "name": "List Credentials",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/credentials",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "credentials"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Credential",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('credential_id', response.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"OpenAI API Key\",\n  \"key\": \"OPENAI_API_KEY\",\n  \"value\": \"sk-test123456789abcdefghijklmnopqrstuvwxyz\",\n  \"description\": \"API key for OpenAI GPT integration\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/credentials",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "credentials"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Credential",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/credentials/{{credential_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "credentials", "{{credential_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Credential",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"OpenAI API Key (Updated)\",\n  \"description\": \"Updated API key for OpenAI GPT integration\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/credentials/{{credential_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "credentials", "{{credential_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Test Credential",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"key\": \"OPENAI_API_KEY\",\n  \"testEndpoint\": \"https://api.openai.com/v1/models\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/credentials/test",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "credentials", "test"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Credential",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/credentials/{{credential_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "credentials", "{{credential_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Article Management",
+      "item": [
+        {
+          "name": "List Articles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/articles?page=1&limit=10&sortBy=createdAt&sortOrder=desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "articles"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Article",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('article_id', response.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Getting Started with Orion CMS\",\n  \"slug\": \"getting-started-orion-cms\",\n  \"content\": \"<h1>Welcome to Orion CMS</h1><p>This is a comprehensive guide to getting started with our content management system.</p>\",\n  \"excerpt\": \"Learn how to use Orion CMS effectively with this comprehensive guide.\",\n  \"status\": \"DRAFT\",\n  \"siteId\": \"{{site_id}}\",\n  \"seoData\": {\n    \"metaTitle\": \"Getting Started with Orion CMS - Complete Guide\",\n    \"metaDescription\": \"Learn how to use Orion CMS effectively with this comprehensive guide covering all essential features.\",\n    \"keywords\": [\"orion\", \"cms\", \"guide\", \"tutorial\"],\n    \"ogTitle\": \"Getting Started with Orion CMS\",\n    \"ogDescription\": \"Complete guide to Orion CMS\",\n    \"twitterTitle\": \"Getting Started with Orion CMS\",\n    \"twitterDescription\": \"Complete guide to Orion CMS\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/articles",
+              "host": ["{{base_url}}"],
+              "path": ["api", "articles"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Article",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/articles/{{article_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "articles", "{{article_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Article by Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/articles/slug/getting-started-orion-cms",
+              "host": ["{{base_url}}"],
+              "path": ["api", "articles", "slug", "getting-started-orion-cms"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Article",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Getting Started with Orion CMS (Updated)\",\n  \"content\": \"<h1>Welcome to Orion CMS</h1><p>This is an updated comprehensive guide to getting started with our content management system.</p><p>New content added here.</p>\",\n  \"excerpt\": \"Updated guide on how to use Orion CMS effectively.\",\n  \"seoData\": {\n    \"metaTitle\": \"Getting Started with Orion CMS - Updated Complete Guide\",\n    \"keywords\": [\"orion\", \"cms\", \"guide\", \"tutorial\", \"updated\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/articles/{{article_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "articles", "{{article_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Publish Article",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/articles/{{article_id}}/publish",
+              "host": ["{{base_url}}"],
+              "path": ["api", "articles", "{{article_id}}", "publish"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Filter Articles by Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/articles?status=PUBLISHED&page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "articles"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PUBLISHED"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Articles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/articles?search=orion&page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "articles"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "orion"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Article",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/articles/{{article_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "articles", "{{article_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Site Management",
+      "item": [
+        {
+          "name": "List Sites",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.length > 0) {",
+                  "        pm.collectionVariables.set('site_id', response.data[0].id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/sites",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sites"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Storage & Media",
+      "item": [
+        {
+          "name": "Upload File",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "folder",
+                  "value": "articles",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/upload",
+              "host": ["{{base_url}}"],
+              "path": ["api", "upload"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Storage Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/storage/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "storage", "stats"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin & System",
+      "item": [
+        {
+          "name": "System Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Encryption Test",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"testData\": \"This is a test string for encryption validation\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/test/encryption",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "test", "encryption"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set base URL if not already set",
+          "if (!pm.collectionVariables.get('base_url')) {",
+          "    pm.collectionVariables.set('base_url', 'http://localhost:3000');",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test to log response time",
+          "pm.test('Response time is reasonable', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "// Global test for successful responses",
+          "pm.test('Status code is successful', function () {",
+          "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204]);",
+          "});"
+        ]
+      }
+    }
+  ]
+}

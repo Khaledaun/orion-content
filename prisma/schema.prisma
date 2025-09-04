@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -21,6 +22,9 @@ model User {
   accounts Account[]
   sessions Session[]
 
+  // Phase 1: Content relations
+  articles Article[]
+
   @@map("users")
 }
 
@@ -36,6 +40,9 @@ model Site {
   categories Category[]
   topics     Topic[]
 
+  // Phase 1: Content relations
+  articles   Article[]
+
   @@map("sites")
 }
 
@@ -47,6 +54,9 @@ model Category {
   updatedAt DateTime @updatedAt
   site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
   topics    Topic[]
+
+  // Phase 1: Content relations
+  articles  Article[]
 
   @@map("categories")
 }
@@ -104,9 +114,96 @@ model JobRun {
   @@map("job_runs")
 }
 
+// Phase 1: Content Management Models
+
+model Article {
+  id          String        @id @default(cuid())
+  title       String
+  slug        String        @unique
+  content     String?       // Rich text content
+  excerpt     String?       // Brief summary
+  status      ArticleStatus @default(DRAFT)
+  publishedAt DateTime?
+  authorId    String
+  siteId      String
+  categoryId  String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  site     Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  media    Media[]
+  seoData  SEOData?
+
+  @@map("articles")
+}
+
+model Media {
+  id          String    @id @default(cuid())
+  filename    String
+  originalName String
+  mimeType    String
+  size        Int       // Size in bytes
+  path        String    // Storage path
+  url         String?   // Public URL if applicable
+  alt         String?   // Alt text for accessibility
+  articleId   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  article Article? @relation(fields: [articleId], references: [id], onDelete: SetNull)
+
+  @@map("media")
+}
+
+model SEOData {
+  id               String   @id @default(cuid())
+  articleId        String   @unique
+  metaTitle        String?
+  metaDescription  String?
+  keywords         String[] // Array of keywords
+  ogTitle          String?
+  ogDescription    String?
+  ogImage          String?
+  twitterTitle     String?
+  twitterDescription String?
+  twitterImage     String?
+  canonicalUrl     String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@map("seo_data")
+}
+
+// Phase 1: Secure Credential Storage
+model Credential {
+  id          String   @id @default(cuid())
+  name        String   @unique // Human-readable name (e.g., "OpenAI API Key")
+  key         String   @unique // The actual key identifier (e.g., "OPENAI_API_KEY")
+  valueEnc    String   // AES-256-GCM encrypted value
+  description String?  // Optional description
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("credentials")
+}
+
 enum WeekStatus {
   PENDING
   APPROVED
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
 }
 
 model Account {
