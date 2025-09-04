@@ -20,10 +20,11 @@
     "db:generate": "prisma generate",
     "db:seed": "tsx --require dotenv/config scripts/seed.ts",
     "db:reset": "prisma migrate reset --force",
-    "prepare": "is-ci || husky install",
+
     "prisma:generate": "prisma generate --schema=prisma/schema.prisma",
     "prisma:status": "prisma migrate status --schema=prisma/schema.prisma",
-    "postinstall": "prisma generate --schema=prisma/schema.prisma 2>/dev/null || echo 'Warning: Prisma binaries unavailable (likely DNS restrictions), falling back to runtime handling'"
+    "postinstall": "prisma generate --schema=prisma/schema.prisma 2>/dev/null || echo 'Warning: Prisma binaries unavailable (likely DNS restrictions), falling back to runtime handling'",
+    "postinstall:husky": "if [ -z \"$CI\" ] && [ -z \"$VERCEL\" ] && [ -z \"$GITHUB_ACTIONS\" ]; then husky install 2>/dev/null || true; fi"
   },
   "prisma": {
     "schema": "prisma/schema.prisma"
