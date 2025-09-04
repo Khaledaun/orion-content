@@ -2,14 +2,12 @@
 generator client {
     provider = "prisma-client-js"
     binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+    engineType = "library"
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
-
-  directUrl = env("DIRECT_URL")
-  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+    provider = "sqlite"
+    url      = "file:./dev.db"
 }
 
 // Phase 8 Core Models
@@ -112,6 +110,20 @@ model Connection {
   updatedAt DateTime @updatedAt
 
   @@map("connections")
+}
+
+// Phase 1: Basic credential storage
+model Credential {
+  id            String   @id @default(cuid())
+  name          String
+  type          String
+  encryptedData String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([type])
+  @@index([createdAt])
+  @@map("credentials")
 }
 
 model JobRun {

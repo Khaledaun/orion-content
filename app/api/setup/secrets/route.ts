@@ -19,7 +19,8 @@ async function handler(req: NextRequest) {
       const body = await req.json()
       const { kind, data } = secretSchema.parse(body)
       
-      const encrypted = encryptJson(data)
+      const encryptionKey = process.env.ENCRYPTION_KEY || 'fallback-key-for-development';
+      const encrypted = await encryptJson(data, encryptionKey)
       
       await prisma.connection.upsert({
         where: { kind },
