@@ -20,10 +20,10 @@
     "db:generate": "prisma generate",
     "db:seed": "tsx --require dotenv/config scripts/seed.ts",
     "db:reset": "prisma migrate reset --force",
-    "prepare": "husky install || true",
+    "prepare": "is-ci || husky install",
     "prisma:generate": "prisma generate --schema=prisma/schema.prisma",
     "prisma:status": "prisma migrate status --schema=prisma/schema.prisma",
-    "postinstall": "prisma generate 2>/dev/null || echo 'Warning: Prisma binaries unavailable (likely DNS restrictions), falling back to runtime handling'"
+    "postinstall": "prisma generate --schema=prisma/schema.prisma 2>/dev/null || echo 'Warning: Prisma binaries unavailable (likely DNS restrictions), falling back to runtime handling'"
   },
   "prisma": {
     "schema": "prisma/schema.prisma"
@@ -52,6 +52,7 @@
     "eslint-plugin-prettier": "5.1.3",
     "eslint-plugin-react-hooks": "4.6.0",
     "husky": "^8.0.3",
+    "is-ci": "^4.1.0",
     "lint-staged": "^15.2.0",
     "pino-pretty": "^10.2.3",
     "postcss": "^8.4.41",
