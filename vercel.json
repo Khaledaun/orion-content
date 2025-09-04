@@ -1,5 +1,11 @@
 {
   "framework": "nextjs",
-  "installCommand": "NPM_CONFIG_LEGACY_PEER_DEPS=1 npm install --no-audit --no-fund",
-  "buildCommand": "npx prisma generate --schema=prisma/schema.prisma && next build"
+  "functions": {
+    "app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
+  "env": {
+    "SKIP_ENV_VALIDATION": "1"
+  }
 }
