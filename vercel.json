@@ -1,1 +1,10 @@
-{"buildCommand": "npx prisma generate && next build"}
+{
+  "framework": "nextjs",
+  "installCommand": "corepack enable && pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm dlx prisma generate --schema=prisma/schema.prisma && pnpm build",
+  "functions": {
+    "app/api/**/*.ts": {
+      "runtime": "nodejs20.x"
+    }
+  }
+}
