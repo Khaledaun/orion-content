@@ -22,9 +22,9 @@ const nextConfig = {
     );
     
     if (isBuildEnvironment) {
-      console.log('Next.js: Build environment detected - completely excluding Prisma');
+      console.log('Next.js: Build environment detected - excluding Prisma from bundle');
       
-      // Completely exclude Prisma from the bundle
+      // Completely exclude Prisma modules from webpack bundling
       config.externals = config.externals || {};
       if (typeof config.externals === 'object' && !Array.isArray(config.externals)) {
         config.externals = {
@@ -34,28 +34,6 @@ const nextConfig = {
           '.prisma/client': 'commonjs .prisma/client',
         };
       }
-      
-      // Set up aliases to point to safe-prisma for any @/lib/prisma imports
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        '@/lib/prisma': path.resolve(__dirname, 'lib/safe-prisma'),
-      };
-      
-      // Ignore Prisma completely during build
-      const webpack = require('webpack');
-      config.plugins = config.plugins || [];
-      config.plugins.push(
-        new webpack.IgnorePlugin({
-          resourceRegExp: /@prisma\/client|prisma\/.*|\.prisma\/client/,
-          contextRegExp: /.*$/,
-        })
-      );
-    } else {
-      // In non-build environments, use normal Prisma client
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        '@/lib/prisma': path.resolve(__dirname, 'lib/prisma'),
-      };
     }
     
     return config;
