@@ -19,8 +19,9 @@
     ],
     "target": "es2017",
     "downlevelIteration": true,
+    "baseUrl": "..",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["../*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
