@@ -2,10 +2,28 @@ import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 
-// Safe prisma import using the main protected instance
-import { prisma } from '@/lib/prisma';
-
 import * as bcryptjs from "bcryptjs";
+
+// Function to safely get Prisma client - only loads at runtime when needed
+async function getPrismaClient() {
+  // During build, always return null
+  if (process.env.SKIP_PRISMA_GENERATE === 'true' || 
+      process.env.CI === 'true' || 
+      process.env.VERCEL === '1' || 
+      process.env.VERCEL_ENV ||
+      process.env.GITHUB_ACTIONS) {
+    return null;
+  }
+
+  try {
+    // Dynamic import to prevent webpack from bundling during build
+    const { prisma } = await import('@/lib/prisma');
+    return prisma;
+  } catch (error) {
+    console.warn('NextAuth: Failed to load Prisma client:', error);
+    return null;
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   // Provide fallback secret for demo/testing environments
@@ -24,6 +42,9 @@ export const authOptions: NextAuthOptions = {
         const password = credentials?.password?.toString() ?? "";
         if (!email || !password) return null;
 
+        // Get Prisma client safely - only at runtime
+        const prisma = await getPrismaClient();
+        
         // If Prisma is available, use database auth
         if (prisma) {
           try {
