@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-    provider = "sqlite"
-    url      = "file:./dev.db"
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+    directUrl = env("DIRECT_URL")
 }
 
 // Phase 8 Core Models
@@ -375,16 +376,126 @@ model WebhookDelivery {
   endpointId String
   eventType  String
   payload    Json
+  response   Json?
   success    Boolean         @default(false)
-  httpStatus Int?
-  response   String?
+  attempts   Int             @default(1)
   createdAt  DateTime        @default(now())
   endpoint   WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
 
   @@index([endpointId])
   @@index([eventType])
-  @@index([success])
   @@map("webhook_deliveries")
+}
+
+// Phase 10: Advanced Features
+
+model UserOnboarding {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  currentStep    String   @default("welcome")
+  completedSteps Json     @default("[]")
+  preferences    Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_onboarding")
+}
+
+enum QAStatus {
+  PENDING
+  PASSED
+  FAILED
+  SKIPPED
+}
+
+model QAReport {
+  id        String   @id @default(cuid())
+  draftId   String   @unique
+  status    QAStatus @default(PENDING)
+  score     Float?
+  checks    Json     // Detailed check results
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  draft     Draft    @relation(fields: [draftId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@map("qa_reports")
+}
+
+enum IntegrationType {
+  WORDPRESS
+  SLACK
+  WEBHOOK
+  API
+}
+
+model Integration {
+  id           String          @id @default(cuid())
+  siteId       String
+  type         IntegrationType
+  name         String
+  config       Json            // Integration-specific configuration
+  credentials  Json?           // Encrypted credentials
+  active       Boolean         @default(true)
+  lastSync     DateTime?
+  syncStatus   String?
+  errorMessage String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  site         Site            @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId])
+  @@index([type])
+  @@index([active])
+  @@map("integrations")
+}
+
+model SiteMetrics {
+  id              String   @id @default(cuid())
+  siteId          String   @unique
+  totalDrafts     Int      @default(0)
+  publishedDrafts Int      @default(0)
+  avgScore        Float?
+  lastCalculated  DateTime @default(now())
+  site            Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@map("site_metrics")
+}
+
+model JobMetrics {
+  id          String   @id @default(cuid())
+  siteId      String
+  jobType     String
+  successRate Float    @default(0)
+  avgDuration Int?     // in seconds
+  lastRun     DateTime?
+  totalRuns   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  site        Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, jobType])
+  @@index([siteId])
+  @@index([jobType])
+  @@map("job_metrics")
+}
+
+model SystemAlert {
+  id          String   @id @default(cuid())
+  type        String   // 'error', 'warning', 'info'
+  title       String
+  message     String
+  metadata    Json?
+  resolved    Boolean  @default(false)
+  resolvedAt  DateTime?
+  resolvedBy  String?
+  createdAt   DateTime @default(now())
+
+  @@index([type])
+  @@index([resolved])
+  @@index([createdAt])
+  @@map("system_alerts")
 }
 
 model AuditLog {
@@ -392,7 +503,8 @@ model AuditLog {
   userId    String?
   action    String
   resource  String
-  details   Json?
+  resourceId String?
+  metadata  Json?
   ipAddress String?
   userAgent String?
   createdAt DateTime @default(now())
@@ -402,97 +514,4 @@ model AuditLog {
   @@index([resource])
   @@index([createdAt])
   @@map("audit_logs")
-}
-
-// Phase 10: Enhanced Models for MVP
-
-// Integration credentials storage with encryption
-model Integration {
-  id             String   @id @default(cuid())
-  siteId         String?  // null for global integrations
-  type           String   // 'wordpress', 'gsc', 'ga4', 'openai', 'perplexity'
-  credentialsEnc String   // Encrypted JSON credentials
-  verified       Boolean  @default(false)
-  lastTestAt     DateTime?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  site           Site?    @relation(fields: [siteId], references: [id], onDelete: Cascade)
-
-  @@unique([siteId, type])
-  @@index([siteId])
-  @@index([type])
-  @@map("integrations")
-}
-
-// Enhanced User model with onboarding status
-model UserOnboarding {
-  id                String   @id @default(cuid())
-  userId            String   @unique
-  wpConfigured      Boolean  @default(false)
-  gscConfigured     Boolean  @default(false)
-  ga4Configured     Boolean  @default(false)
-  completedAt       DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("user_onboarding")
-}
-
-// QA Reports for content validation
-enum QAStatus {
-  PENDING
-  PASSED
-  FAILED
-}
-
-model QAReport {
-  id          String      @id @default(cuid())
-  draftId     String      @unique
-  status      QAStatus    @default(PENDING)
-  score       Float?      // 0-100 score
-  violations  Json        // Array of violation objects
-  passedAt    DateTime?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  draft       Draft       @relation(fields: [draftId], references: [id], onDelete: Cascade)
-
-  @@index([status])
-  @@index([draftId])
-  @@map("qa_reports")
-}
-
-// Site metrics and counters
-model SiteMetrics {
-  id            String   @id @default(cuid())
-  siteId        String   @unique
-  draftsCount   Int      @default(0)
-  qaPassed      Int      @default(0)
-  approved      Int      @default(0)
-  published     Int      @default(0)
-  totalTokens   Int      @default(0)
-  totalCost     Float    @default(0.0)
-  lastUpdated   DateTime @default(now())
-  site          Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
-
-  @@map("site_metrics")
-}
-
-// Job metrics for observability
-model JobMetrics {
-  id         String   @id @default(cuid())
-  jobId      String   @unique
-  siteId     String?
-  jobType    String
-  tokens     Int      @default(0)
-  cost       Float    @default(0.0)
-  latencyMs  Int      @default(0)
-  success    Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  site       Site?    @relation(fields: [siteId], references: [id], onDelete: Cascade)
-
-  @@index([siteId])
-  @@index([jobType])
-  @@index([success])
-  @@map("job_metrics")
 }
