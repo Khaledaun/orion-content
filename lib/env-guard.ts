@@ -7,6 +7,17 @@
  * Check if we're in a build environment where database access should be skipped
  */
 export function isBuildTime(): boolean {
+  // Check for explicit skip flag first
+  if (process.env.SKIP_PRISMA_GENERATE === 'true') {
+    return true;
+  }
+  
+  // Check for CI/build environment indicators
+  if (process.env.CI === 'true' || process.env.VERCEL === '1') {
+    return true;
+  }
+  
+  // Fallback to original logic
   return process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL;
 }
 

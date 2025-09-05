@@ -4,11 +4,23 @@ import { isDatabaseAvailable, isBuildTime } from './env-guard';
 let PrismaClient: any = null;
 let prismaInstance: any = null;
 
-// Skip Prisma initialization during build time or when database is not available
-if (!isBuildTime() && isDatabaseAvailable()) {
+// Skip Prisma completely in build/CI environments or when explicitly disabled
+const shouldSkipPrisma = (
+  process.env.SKIP_PRISMA_GENERATE === 'true' || 
+  process.env.CI === 'true' || 
+  process.env.VERCEL === '1' || 
+  isBuildTime() || 
+  !isDatabaseAvailable()
+);
+
+if (shouldSkipPrisma) {
+  console.log('Skipping Prisma initialization - build time, CI environment, or database not available');
+  prismaInstance = null;
+} else {
   try {
-    // Try to import PrismaClient, but don't fail if binaries aren't downloaded
-    PrismaClient = require('@prisma/client').PrismaClient;
+    // Only attempt to require Prisma in safe environments
+    const prismaModule = require('@prisma/client');
+    PrismaClient = prismaModule.PrismaClient;
     
     const globalForPrisma = global as unknown as { prisma?: any };
     
@@ -26,9 +38,6 @@ if (!isBuildTime() && isDatabaseAvailable()) {
     // Create a mock client that won't crash the application
     prismaInstance = null;
   }
-} else {
-  console.log('Skipping Prisma initialization - build time or database not available');
-  prismaInstance = null;
 }
 
 export const prisma = prismaInstance;
