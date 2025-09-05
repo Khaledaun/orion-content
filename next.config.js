@@ -10,8 +10,8 @@ const nextConfig = {
       '@': path.resolve(__dirname),
     };
     
-    // Enhanced Vercel detection and Prisma bypass
-    const isVercelBuild = (
+    // Detect build environment (including Vercel)
+    const isBuildEnvironment = (
       process.env.SKIP_PRISMA_GENERATE === 'true' || 
       process.env.CI === 'true' || 
       process.env.VERCEL === '1' || 
@@ -21,70 +21,41 @@ const nextConfig = {
       process.env.GITHUB_ACTIONS
     );
     
-    // Always set up the prisma client alias to point to our safe client
-    const safeClientPath = path.resolve(__dirname, 'lib/prisma-client.js');
-    
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@/lib/prisma': safeClientPath,
-    };
-    
-    if (isVercelBuild) {
-      console.log('Webpack: Setting up comprehensive Prisma build-time bypass for Vercel');
+    if (isBuildEnvironment) {
+      console.log('Next.js: Build environment detected - completely excluding Prisma');
       
-      // Point all prisma imports to our safe client  
-      const mockPath = path.resolve(__dirname, 'lib/prisma-mock.js');
+      // Completely exclude Prisma from the bundle
+      config.externals = config.externals || {};
+      if (typeof config.externals === 'object' && !Array.isArray(config.externals)) {
+        config.externals = {
+          ...config.externals,
+          '@prisma/client': 'commonjs @prisma/client',
+          'prisma': 'commonjs prisma',
+          '.prisma/client': 'commonjs .prisma/client',
+        };
+      }
       
-      // Comprehensive Prisma module aliasing
+      // Set up aliases to point to safe-prisma for any @/lib/prisma imports
       config.resolve.alias = {
         ...config.resolve.alias,
-        '@prisma/client': mockPath,
-        'prisma': mockPath,
-        '.prisma/client': mockPath,
-        '@prisma/engines': mockPath,
-        '@prisma/engines-version': mockPath,
-        // Ensure our lib/prisma points to safe client
-        '@/lib/prisma': safeClientPath,
-        '@/lib/prisma-client': safeClientPath,
+        '@/lib/prisma': path.resolve(__dirname, 'lib/safe-prisma'),
       };
       
-      // Enhanced fallbacks for Vercel environment
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-        crypto: false,
-        'child_process': false,
-        path: false,
-        os: false,
-        stream: false,
-        util: false,
-        'process': false,
-        '@prisma/client': false,
-        'prisma': false,
-        '.prisma/client': false,
-      };
-      
-      // Multiple layers of module replacement and ignoring
+      // Ignore Prisma completely during build
       const webpack = require('webpack');
       config.plugins = config.plugins || [];
       config.plugins.push(
-        // Replace any Prisma imports with our mock
-        new webpack.NormalModuleReplacementPlugin(
-          /@prisma\/client|prisma|\.prisma\/client|@prisma\/engines/,
-          mockPath
-        ),
-        // Ignore Prisma modules completely
         new webpack.IgnorePlugin({
-          resourceRegExp: /@prisma\/client|prisma|\.prisma\/client|@prisma\/engines/,
-        }),
-        // Define global to prevent Prisma from trying to load
-        new webpack.DefinePlugin({
-          'process.env.PRISMA_SKIP_POSTINSTALL_GENERATE': JSON.stringify('true'),
-          'process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL': JSON.stringify('true'),
+          resourceRegExp: /@prisma\/client|prisma\/.*|\.prisma\/client/,
+          contextRegExp: /.*$/,
         })
       );
+    } else {
+      // In non-build environments, use normal Prisma client
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        '@/lib/prisma': path.resolve(__dirname, 'lib/prisma'),
+      };
     }
     
     return config;

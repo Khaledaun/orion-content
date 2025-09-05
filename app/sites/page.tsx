@@ -2,8 +2,7 @@ export const dynamic = "force-dynamic";
 export const runtime = 'nodejs';
 
 import { getSession } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
-import { withDB } from '@/lib/with-db'
+import { safeDbOperation } from '@/lib/safe-prisma'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -31,21 +30,22 @@ export default async function SitesPage() {
   
   // If not authenticated, show setup gate
   if (!session?.user) {
-    return <SetupGate hasAuth={false} hasSites={false} demoMode={!prisma} />;
+    const demoMode = process.env.SKIP_PRISMA_GENERATE === 'true' || process.env.CI === 'true';
+    return <SetupGate hasAuth={false} hasSites={false} demoMode={demoMode} />;
   }
 
   // Get sites with error handling
-  const sites = await withDB(
-    () => prisma?.site.findMany({
+  const sites = await safeDbOperation(
+    'site.findMany',
+    [] as Site[],
+    {
       orderBy: { createdAt: 'desc' },
       include: {
         _count: {
           select: { categories: true, topics: true }
         }
       }
-    }) || Promise.resolve([]),
-    [] as Site[],
-    'sites.findMany'
+    }
   );
 
   return (

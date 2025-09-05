@@ -4,7 +4,7 @@ export const revalidate = 0;
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { withAuth } from '@/lib/withAuth'
-import { prisma } from '../../../lib/prisma'
+import { withDatabase } from '@/lib/database'
 
 const siteSchema = z.object({
   key: z.string().min(1).max(50),
@@ -17,10 +17,14 @@ const siteSchema = z.object({
 async function sitesHandler(req: NextRequest, user: any, roles: string[]) {
   if (req.method === 'GET') {
     try {
-      const sites = await prisma.site.findMany({
-        include: { categories: true },
-        orderBy: { createdAt: 'desc' },
-      })
+      const sites = await withDatabase(
+        async (db) => db.site.findMany({
+          include: { categories: true },
+          orderBy: { createdAt: 'desc' },
+        }),
+        [],
+        'sites.findMany'
+      )
       return NextResponse.json({ sites })
     } catch (error) {
       console.error('Error fetching sites:', error)
@@ -35,10 +39,14 @@ async function sitesHandler(req: NextRequest, user: any, roles: string[]) {
     try {
       const body = await req.json()
       const data = siteSchema.parse(body)
-      const site = await prisma.site.create({
-        data: { ...data, locales: data.locales },
-        include: { categories: true },
-      })
+      const site = await withDatabase(
+        async (db) => db.site.create({
+          data: { ...data, locales: data.locales },
+          include: { categories: true },
+        }),
+        null,
+        'sites.create'
+      )
       return NextResponse.json({ site })
     } catch (error) {
       if (error instanceof z.ZodError) {
