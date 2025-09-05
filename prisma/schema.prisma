@@ -6,9 +6,7 @@ generator client {
 }
 
 datasource db {
-    provider = "sqlite"
-    url      = "file:./dev.db"
-}
+
 
 // Phase 8 Core Models
 model User {
