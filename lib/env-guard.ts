@@ -1,6 +1,6 @@
 
 /**
- * Phase 1: Environment guards for safe Vercel Preview builds
+ * Enhanced environment guards for reliable Vercel builds
  */
 
 /**
@@ -12,16 +12,21 @@ export function isBuildTime(): boolean {
     return true;
   }
   
-  // Check for CI/build environment indicators
-  if (process.env.CI === 'true' || process.env.VERCEL === '1' || process.env.VERCEL_ENV) {
+  // Enhanced Vercel detection
+  if (
+    process.env.CI === 'true' || 
+    process.env.VERCEL === '1' || 
+    process.env.VERCEL_ENV ||
+    process.env.VERCEL_URL ||
+    process.env.NOW_REGION || // Legacy Vercel
+    process.env.GITHUB_ACTIONS
+  ) {
     return true;
   }
   
   // Check for common build/CI environment patterns
   if (process.env.NODE_ENV === 'production' && (
     !process.env.DATABASE_URL || 
-    process.env.VERCEL ||
-    process.env.GITHUB_ACTIONS ||
     process.env.BUILD_ENV === 'ci'
   )) {
     return true;

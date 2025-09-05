@@ -4,13 +4,16 @@ import { isDatabaseAvailable, isBuildTime } from './env-guard';
 let PrismaClient: any = null;
 let prismaInstance: any = null;
 
-// More comprehensive environment checks
+// Enhanced environment checks for Vercel
 const shouldSkipPrisma = (
   process.env.SKIP_PRISMA_GENERATE === 'true' || 
   process.env.CI === 'true' || 
   process.env.VERCEL === '1' || 
   process.env.VERCEL_ENV ||
   process.env.GITHUB_ACTIONS ||
+  // Additional Vercel-specific checks
+  typeof process.env.VERCEL_URL !== 'undefined' ||
+  process.env.NOW_REGION || // Legacy Vercel env
   isBuildTime() || 
   !isDatabaseAvailable()
 );
@@ -20,6 +23,8 @@ console.log('Prisma initialization check:', {
   CI: process.env.CI,
   VERCEL: process.env.VERCEL,
   VERCEL_ENV: process.env.VERCEL_ENV,
+  VERCEL_URL: process.env.VERCEL_URL,
+  NOW_REGION: process.env.NOW_REGION,
   shouldSkipPrisma,
   isBuildTime: isBuildTime(),
   isDatabaseAvailable: isDatabaseAvailable()
@@ -38,7 +43,6 @@ if (shouldSkipPrisma) {
     
     prismaInstance = globalForPrisma.prisma ?? new PrismaClient({ 
       log: ['warn', 'error'],
-      // Add error handling for connection issues
       errorFormat: 'minimal'
     });
     
@@ -47,7 +51,6 @@ if (shouldSkipPrisma) {
     }
   } catch (error) {
     console.warn('Prisma client not available (likely due to DNS restrictions during build):', error instanceof Error ? error.message : String(error));
-    // Create a mock client that won't crash the application
     prismaInstance = null;
   }
 }
