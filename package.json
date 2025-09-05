@@ -23,7 +23,7 @@
     "prepare": "husky install || true",
     "prisma:generate": "prisma generate --schema=prisma/schema.prisma",
     "prisma:status": "prisma migrate status --schema=prisma/schema.prisma",
-    "postinstall": "prisma generate 2>/dev/null || echo 'Warning: Prisma binaries unavailable (likely DNS restrictions), falling back to runtime handling'"
+    "postinstall": "if [ \"$SKIP_PRISMA_GENERATE\" != \"true\" ]; then prisma generate 2>/dev/null || echo 'Warning: Prisma binaries unavailable (likely DNS restrictions), falling back to runtime handling'; else echo 'Prisma generation skipped (SKIP_PRISMA_GENERATE=true)'; fi"
   },
   "prisma": {
     "schema": "prisma/schema.prisma"
