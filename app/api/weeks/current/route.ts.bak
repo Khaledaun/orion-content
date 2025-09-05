@@ -3,7 +3,7 @@ export const revalidate = 0;
 
 import { NextRequest, NextResponse } from 'next/server'
 import { requireApiAuth } from '@/lib/auth'
-import { prisma } from '../../../../lib/prisma'
+import { prisma } from '@/lib/prisma'
 
 function getCurrentISOWeek(): string {
   const now = new Date()

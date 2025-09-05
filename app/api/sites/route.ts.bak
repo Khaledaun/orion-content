@@ -4,7 +4,7 @@ export const revalidate = 0;
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { withAuth } from '@/lib/withAuth'
-import { prisma } from '../../../lib/prisma'
+import { prisma } from '@/lib/prisma'
 
 const siteSchema = z.object({
   key: z.string().min(1).max(50),

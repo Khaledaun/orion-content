@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '../../../../lib/prisma'
+import { prisma } from '@/lib/prisma'
 import { requireBearerToken } from '@/lib/enhanced-auth'
 import { auditLog } from '@/lib/audit'
 import { z } from 'zod'

@@ -1,4 +1,12 @@
-const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient();
+// Check if we're in a build environment and skip script execution
+if (process.env.SKIP_PRISMA_GENERATE === 'true' || process.env.CI === 'true' || process.env.VERCEL === '1') {
+  console.log('Skipping grant-admin script in build environment');
+  process.exit(0);
+}
+
+const { PrismaClient } = require('@prisma/client'); 
+const prisma = new PrismaClient();
+
 (async () => {
   const [email, siteKey] = process.argv.slice(2);
   if (!email) throw new Error("Usage: node scripts/grant-admin.js <email> [siteKey]");

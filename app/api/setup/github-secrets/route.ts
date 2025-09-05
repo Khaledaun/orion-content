@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '../../../../lib/prisma'
 type Conn = Awaited<ReturnType<typeof prisma.connection.findMany>>[number];
 
 // Temporary decryptJson fallback (expects base64 JSON or plaintext JSON)

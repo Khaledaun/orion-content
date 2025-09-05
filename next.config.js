@@ -4,6 +4,7 @@ const path = require('path');
 const nextConfig = {
   reactStrictMode: true,
   webpack: (config, { isServer }) => {
+    // Always set up the @ alias
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': path.resolve(__dirname),
@@ -20,11 +21,21 @@ const nextConfig = {
       process.env.GITHUB_ACTIONS
     );
     
+    // Always set up the prisma client alias to point to our safe client
+    const safeClientPath = path.resolve(__dirname, 'lib/prisma-client.js');
+    
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@/lib/prisma': safeClientPath,
+    };
+    
     if (isVercelBuild) {
       console.log('Webpack: Setting up comprehensive Prisma build-time bypass for Vercel');
       
-      // Comprehensive Prisma module aliasing to prevent any loading during build
+      // Point all prisma imports to our safe client  
       const mockPath = path.resolve(__dirname, 'lib/prisma-mock.js');
+      
+      // Comprehensive Prisma module aliasing
       config.resolve.alias = {
         ...config.resolve.alias,
         '@prisma/client': mockPath,
@@ -32,6 +43,9 @@ const nextConfig = {
         '.prisma/client': mockPath,
         '@prisma/engines': mockPath,
         '@prisma/engines-version': mockPath,
+        // Ensure our lib/prisma points to safe client
+        '@/lib/prisma': safeClientPath,
+        '@/lib/prisma-client': safeClientPath,
       };
       
       // Enhanced fallbacks for Vercel environment
@@ -47,32 +61,30 @@ const nextConfig = {
         stream: false,
         util: false,
         'process': false,
+        '@prisma/client': false,
+        'prisma': false,
+        '.prisma/client': false,
       };
       
-      // Comprehensive externals to prevent bundling any Prisma-related modules
-      config.externals = config.externals || [];
-      if (Array.isArray(config.externals)) {
-        config.externals.push(
-          '@prisma/engines', 
-          '@prisma/engines-version',
-          '@prisma/client',
-          'prisma/client',
-          '.prisma/client',
-          '@prisma/client/edge',
-          '@prisma/client/default',
-          'prisma',
-          '@prisma/generator-helper',
-          '@prisma/internals'
-        );
-      }
-      
-      // Module replacement to intercept require() calls
+      // Multiple layers of module replacement and ignoring
       const webpack = require('webpack');
       config.plugins = config.plugins || [];
-      config.plugins.push(new webpack.NormalModuleReplacementPlugin(
-        /@prisma\/client|prisma|\.prisma\/client/,
-        mockPath
-      ));
+      config.plugins.push(
+        // Replace any Prisma imports with our mock
+        new webpack.NormalModuleReplacementPlugin(
+          /@prisma\/client|prisma|\.prisma\/client|@prisma\/engines/,
+          mockPath
+        ),
+        // Ignore Prisma modules completely
+        new webpack.IgnorePlugin({
+          resourceRegExp: /@prisma\/client|prisma|\.prisma\/client|@prisma\/engines/,
+        }),
+        // Define global to prevent Prisma from trying to load
+        new webpack.DefinePlugin({
+          'process.env.PRISMA_SKIP_POSTINSTALL_GENERATE': JSON.stringify('true'),
+          'process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL': JSON.stringify('true'),
+        })
+      );
     }
     
     return config;
