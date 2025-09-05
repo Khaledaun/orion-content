@@ -1,10 +1,12 @@
 {
   "framework": "nextjs",
   "installCommand": "NPM_CONFIG_LEGACY_PEER_DEPS=1 npm install --no-audit --no-fund",
-  "buildCommand": "SKIP_PRISMA_GENERATE=true SKIP_TELEMETRY=true NEXT_TELEMETRY_DISABLED=1 CI=true npx next build",
+  "buildCommand": "npm run build:offline",
   "env": {
     "SKIP_PRISMA_GENERATE": "true",
     "SKIP_TELEMETRY": "true",
-    "NEXT_TELEMETRY_DISABLED": "1"
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "CI": "true",
+    "VERCEL": "1"
   }
 }

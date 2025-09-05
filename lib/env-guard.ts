@@ -13,12 +13,21 @@ export function isBuildTime(): boolean {
   }
   
   // Check for CI/build environment indicators
-  if (process.env.CI === 'true' || process.env.VERCEL === '1') {
+  if (process.env.CI === 'true' || process.env.VERCEL === '1' || process.env.VERCEL_ENV) {
     return true;
   }
   
-  // Fallback to original logic
-  return process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL;
+  // Check for common build/CI environment patterns
+  if (process.env.NODE_ENV === 'production' && (
+    !process.env.DATABASE_URL || 
+    process.env.VERCEL ||
+    process.env.GITHUB_ACTIONS ||
+    process.env.BUILD_ENV === 'ci'
+  )) {
+    return true;
+  }
+  
+  return false;
 }
 
 /**
