@@ -21,10 +21,18 @@ const nextConfig = {
     );
     
     if (isVercelBuild) {
-      console.log('Webpack: Setting up Prisma build-time bypass for Vercel');
+      console.log('Webpack: Setting up comprehensive Prisma build-time bypass for Vercel');
       
-      // Replace @prisma/client with mock during build
-      config.resolve.alias['@prisma/client'] = path.resolve(__dirname, 'lib/prisma-mock.js');
+      // Comprehensive Prisma module aliasing to prevent any loading during build
+      const mockPath = path.resolve(__dirname, 'lib/prisma-mock.js');
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        '@prisma/client': mockPath,
+        'prisma': mockPath,
+        '.prisma/client': mockPath,
+        '@prisma/engines': mockPath,
+        '@prisma/engines-version': mockPath,
+      };
       
       // Enhanced fallbacks for Vercel environment
       config.resolve.fallback = {
@@ -38,19 +46,33 @@ const nextConfig = {
         os: false,
         stream: false,
         util: false,
+        'process': false,
       };
       
-      // Exclude Prisma binaries and engines from bundling
+      // Comprehensive externals to prevent bundling any Prisma-related modules
       config.externals = config.externals || [];
       if (Array.isArray(config.externals)) {
         config.externals.push(
           '@prisma/engines', 
           '@prisma/engines-version',
+          '@prisma/client',
           'prisma/client',
+          '.prisma/client',
           '@prisma/client/edge',
-          '@prisma/client/default'
+          '@prisma/client/default',
+          'prisma',
+          '@prisma/generator-helper',
+          '@prisma/internals'
         );
       }
+      
+      // Module replacement to intercept require() calls
+      const webpack = require('webpack');
+      config.plugins = config.plugins || [];
+      config.plugins.push(new webpack.NormalModuleReplacementPlugin(
+        /@prisma\/client|prisma|\.prisma\/client/,
+        mockPath
+      ));
     }
     
     return config;

@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 export const runtime = 'nodejs';
 
 import { getSession } from '@/lib/auth'
-import { prisma } from '@/app/lib/prisma'
+import { prisma } from '@/lib/prisma'
 import { withDB } from '@/lib/with-db'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'

@@ -2,17 +2,8 @@ import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 
-// Safe prisma import that handles cases where Prisma client is not generated yet
-let prisma: any = null;
-try {
-  const prismaModule = require("@/app/lib/prisma");
-  prisma = prismaModule.prisma;
-  if (!prisma) {
-    console.warn("Prisma client is null, falling back to demo auth only");
-  }
-} catch (error) {
-  console.warn("Prisma client not available, falling back to demo auth only:", error instanceof Error ? error.message : String(error));
-}
+// Safe prisma import using the main protected instance
+import { prisma } from '@/lib/prisma';
 
 import * as bcryptjs from "bcryptjs";
 
