@@ -1,5 +1,10 @@
 {
   "framework": "nextjs",
   "installCommand": "NPM_CONFIG_LEGACY_PEER_DEPS=1 npm install --no-audit --no-fund",
-  "buildCommand": "npx prisma generate --schema=prisma/schema.prisma && next build"
+  "buildCommand": "npx prisma generate --schema=prisma/schema.prisma && next build",
+  "functions": {
+    "app/**/*.ts": {
+      "runtime": "nodejs18.x"
+    }
+  }
 }
