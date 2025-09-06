@@ -4,7 +4,7 @@ export const revalidate = 0;
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireApiAuth } from '@/lib/auth'
-import { getPrismaClient } from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 
 const topicsSchema = z.object({
   topics: z.array(z.object({
@@ -27,8 +27,6 @@ async function handler(req: NextRequest) {
     const weekId = urlParts[urlParts.length - 2] || urlParts[urlParts.length - 1]
     const body = await req.json()
     const { topics } = topicsSchema.parse(body)
-    
-    const prisma = await getPrismaClient()
     // Verify week exists
     const week = await prisma.week.findUnique({
       where: { id: weekId }

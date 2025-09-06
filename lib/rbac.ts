@@ -5,7 +5,7 @@
  */
 
 import { NextRequest } from 'next/server'
-import { prisma } from './prisma'
+import { getPrismaClient } from './prisma'
 import { getSession } from '../app/lib/auth'
 import { redactSensitive } from './redact'
 import { logger } from './logger'
@@ -44,6 +44,7 @@ export async function validateBearerToken(request: NextRequest): Promise<AuthUse
 
     const token = authHeader.substring(7)
     
+    const prisma = await getPrismaClient()
     // Look up token in scoped_tokens table
     const scopedToken = await prisma.scopedToken.findUnique({
       where: { token }
@@ -87,6 +88,7 @@ export async function getAuthUser(request?: NextRequest): Promise<AuthUser | nul
       return null
     }
 
+    const prisma = await getPrismaClient()
     // Get user with roles from database
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },

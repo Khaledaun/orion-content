@@ -1,13 +1,38 @@
 
 /**
- * Phase 1: Environment guards for safe Vercel Preview builds
+ * Enhanced environment guards for reliable Vercel builds
  */
 
 /**
  * Check if we're in a build environment where database access should be skipped
  */
 export function isBuildTime(): boolean {
-  return process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL;
+  // Check for explicit skip flag first
+  if (process.env.SKIP_PRISMA_GENERATE === 'true') {
+    return true;
+  }
+  
+  // Enhanced Vercel detection
+  if (
+    process.env.CI === 'true' || 
+    process.env.VERCEL === '1' || 
+    process.env.VERCEL_ENV ||
+    process.env.VERCEL_URL ||
+    process.env.NOW_REGION || // Legacy Vercel
+    process.env.GITHUB_ACTIONS
+  ) {
+    return true;
+  }
+  
+  // Check for common build/CI environment patterns
+  if (process.env.NODE_ENV === 'production' && (
+    !process.env.DATABASE_URL || 
+    process.env.BUILD_ENV === 'ci'
+  )) {
+    return true;
+  }
+  
+  return false;
 }
 
 /**

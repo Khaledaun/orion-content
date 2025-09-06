@@ -2,7 +2,8 @@ export const dynamic = "force-dynamic";
 export const runtime = 'nodejs';
 
 import { getSession } from '@/lib/auth';
-import { safeDbOperation } from '@/lib/safe-prisma';
+import { prisma } from '@/lib/prisma';
+import { withDB } from '@/lib/with-db';
 import { redirect } from 'next/navigation';
 import SetupGate from '@/components/SetupGate';
 
@@ -12,10 +13,10 @@ export default async function HomePage() {
   
   // If user is authenticated, check if they have sites and redirect to dashboard
   if (session?.user) {
-    const sites = await safeDbOperation(
-      'site.findMany',
+    const sites = await withDB(
+      () => prisma?.site.findMany({ take: 1 }) || Promise.resolve([]),
       [],
-      { take: 1 }
+      'home.sites'
     );
     
     // If user has sites, redirect to dashboard
@@ -27,8 +28,8 @@ export default async function HomePage() {
     return <SetupGate hasAuth={true} hasSites={false} />;
   }
 
-  // Check if we're in demo mode (during build or when database is unavailable)
-  const demoMode = process.env.SKIP_PRISMA_GENERATE === 'true' || process.env.CI === 'true';
+  // Check if we're in demo mode (when Prisma is unavailable)
+  const demoMode = !prisma;
   
   // User is not authenticated, show appropriate setup gate
   return <SetupGate hasAuth={false} hasSites={false} demoMode={demoMode} />;

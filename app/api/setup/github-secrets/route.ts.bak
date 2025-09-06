@@ -1,9 +1,21 @@
+import { withAuthRoute } from "@/lib/route-auth";
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 import { NextRequest, NextResponse } from 'next/server'
-import { requireApiAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+type Conn = Awaited<ReturnType<typeof prisma.connection.findMany>>[number];
+
+// Temporary decryptJson fallback (expects base64 JSON or plaintext JSON)
+function decryptJson<T>(input: string): T {
+  try {
+    const buf = Buffer.from(input, "base64");
+    return JSON.parse(buf.toString("utf8")) as T;
+  } catch {
+    return JSON.parse(input) as T;
+  }
+}
+
 // import { decryptJson } from '@/lib/crypto' // Disabled due to missing module
 // import * as nacl from 'tweetnacl' // Disabled due to missing module
 
@@ -49,8 +61,12 @@ async function handler(req: NextRequest) {
     const secretsToWrite: Array<{ name: string; value: string }> = []
     
     // Get connections from DB
-    const connections = await prisma.connection.findMany()
-    const connectionMap = new Map(connections.map(c => [c.kind, c]))
+
+const connections: Conn[] = await prisma.connection.findMany()
+    const connectionMap = new Map<string, Conn>();
+for (const c of connections) {
+  connectionMap.set(String((c as any).kind ?? ""), c);
+}
     
     // Map connections to GitHub secret names
     if (connectionMap.has('openai')) {
@@ -147,4 +163,4 @@ async function handler(req: NextRequest) {
   }
 }
 
-export const POST = requireApiAuth(handler)
+export const POST = withAuthRoute(async (req) => await handler(req))

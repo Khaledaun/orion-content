@@ -3,8 +3,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-type Conn = Awaited<ReturnType<typeof prisma.connection.findMany>>[number];
+import { getPrismaClient } from '@/lib/prisma'
 
 // Temporary decryptJson fallback (expects base64 JSON or plaintext JSON)
 function decryptJson<T>(input: string): T {
@@ -33,6 +32,7 @@ async function handler(req: NextRequest) {
   }
   
   try {
+    const prisma = await getPrismaClient()
     const [owner, repo] = GITHUB_REPO_FULL.split('/')
     if (!owner || !repo) {
       return NextResponse.json({ error: 'Invalid GITHUB_REPO_FULL format' }, { status: 400 })
@@ -62,8 +62,8 @@ async function handler(req: NextRequest) {
     
     // Get connections from DB
 
-const connections: Conn[] = await prisma.connection.findMany()
-    const connectionMap = new Map<string, Conn>();
+const connections = await prisma.connection.findMany()
+    const connectionMap = new Map();
 for (const c of connections) {
   connectionMap.set(String((c as any).kind ?? ""), c);
 }

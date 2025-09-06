@@ -1,11 +1,13 @@
 import { NextResponse, NextRequest } from "next/server";
-import { prisma } from "@/app/lib/prisma";
+import { getPrismaClient } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/nextauth";
 
 export type Role = "ADMIN" | "EDITOR" | "VIEWER" | (string & {});
 
 async function rolesForUser(userId: string): Promise<string[]> {
+  const prisma = await getPrismaClient();
+  
   // Handle case where Prisma is not available (e.g., due to DNS restrictions)
   if (!prisma) {
     console.warn("Prisma not available for role checking, defaulting to VIEWER");

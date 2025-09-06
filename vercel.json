@@ -1,5 +1,10 @@
 {
   "framework": "nextjs",
   "installCommand": "NPM_CONFIG_LEGACY_PEER_DEPS=1 npm install --no-audit --no-fund",
-  "buildCommand": "npx prisma generate --schema=prisma/schema.prisma && next build"
+  "buildCommand": "SKIP_PRISMA_GENERATE=true NEXT_TELEMETRY_DISABLED=1 next build",
+  "env": {
+    "SKIP_PRISMA_GENERATE": "true",
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "NODE_ENV": "production"
+  }
 }
