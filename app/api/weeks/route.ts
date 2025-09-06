@@ -3,7 +3,7 @@ export const revalidate = 0;
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/withAuth'
-import { prisma } from '../../../lib/prisma'
+import { getPrismaClient } from '@/lib/prisma'
 
 function getCurrentISOWeek(): string {
   const now = new Date()
@@ -24,6 +24,7 @@ function getISOWeek(date: Date): number {
 async function weeksHandler(req: NextRequest, user: any, roles: string[]) {
   if (req.method === 'GET') {
     try {
+      const prisma = await getPrismaClient()
       const weeks = await prisma.week.findMany({
         include: {
           topics: {
@@ -48,6 +49,7 @@ async function weeksHandler(req: NextRequest, user: any, roles: string[]) {
     }
     try {
       const currentIsoWeek = getCurrentISOWeek()
+      const prisma = await getPrismaClient()
       const week = await prisma.week.upsert({
         where: { isoWeek: currentIsoWeek },
         create: { isoWeek: currentIsoWeek, status: 'PENDING' },

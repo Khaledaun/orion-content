@@ -5,7 +5,7 @@ export const revalidate = 0;
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireApiAuth } from '@/lib/auth'
-import { prisma } from '../../../../lib/prisma'
+import { getPrismaClient } from '@/lib/prisma'
 // import { encryptJson } from '@/lib/crypto' // Disabled due to missing module
 
 const secretSchema = z.object({
@@ -22,6 +22,7 @@ async function handler(req: NextRequest) {
       const encryptionKey = process.env.ENCRYPTION_KEY || 'fallback-key-for-development';
       const encrypted = await encryptJson(data, encryptionKey)
       
+      const prisma = await getPrismaClient()
       await prisma.connection.upsert({
         where: { kind },
         create: {
@@ -42,6 +43,7 @@ async function handler(req: NextRequest) {
   
   if (req.method === 'GET') {
     try {
+      const prisma = await getPrismaClient()
       const connections = await prisma.connection.findMany({
         select: { kind: true, createdAt: true, updatedAt: true },
       })

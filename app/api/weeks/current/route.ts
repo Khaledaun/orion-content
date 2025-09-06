@@ -3,7 +3,7 @@ export const revalidate = 0;
 
 import { NextRequest, NextResponse } from 'next/server'
 import { requireApiAuth } from '@/lib/auth'
-import { prisma } from '../../../../lib/prisma'
+import { getPrismaClient } from '@/lib/prisma'
 
 function getCurrentISOWeek(): string {
   const now = new Date()
@@ -28,6 +28,7 @@ async function handler(req: NextRequest) {
   
   try {
     const currentIsoWeek = getCurrentISOWeek()
+    const prisma = await getPrismaClient()
     
     const week = await prisma.week.findUnique({
       where: { isoWeek: currentIsoWeek },

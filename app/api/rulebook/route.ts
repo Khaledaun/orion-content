@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '../../../lib/prisma'
+import { getPrismaClient } from '@/lib/prisma'
 import { requireBearerToken } from '@/lib/enhanced-auth'
 import { auditLog } from '@/lib/audit'
 import { z } from 'zod'
@@ -71,6 +71,7 @@ export async function GET(request: NextRequest) {
       rateLimitConfig: { windowMs: 60000, limit: 10 } // 10 requests per minute
     })
 
+    const prisma = await getPrismaClient()
     // Get the latest rulebook
     const rulebook = await prisma.globalRulebook.findFirst({
       orderBy: { version: 'desc' },
@@ -147,6 +148,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const prisma = await getPrismaClient()
     // Get the current highest version
     const latestRulebook = await prisma.globalRulebook.findFirst({
       orderBy: { version: 'desc' },

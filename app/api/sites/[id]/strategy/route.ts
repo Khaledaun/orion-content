@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '../../../../lib/prisma'
+import { getPrismaClient } from '@/lib/prisma'
 import { requireBearerToken } from '@/lib/enhanced-auth'
 import { auditLog } from '@/lib/audit'
 import { z } from 'zod'
@@ -34,6 +34,8 @@ export async function GET(
     })
     const resolvedParams = await params
     const siteId = resolvedParams.id
+
+    const prisma = await getPrismaClient()
 
     // Verify site exists
     const site = await prisma.site.findUnique({
@@ -94,6 +96,8 @@ export async function POST(
     })
     const resolvedParams = await params
     const siteId = resolvedParams.id
+
+    const prisma = await getPrismaClient()
 
     // Verify site exists
     const site = await prisma.site.findUnique({

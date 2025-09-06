@@ -4,7 +4,7 @@
  * Handles encrypted storage and retrieval of integration credentials
  */
 
-import { prisma } from './prisma'
+import { getPrismaClient } from './prisma'
 import { redactSensitive } from './redact'
 import { logger } from './logger'
 
@@ -87,6 +87,7 @@ export class IntegrationManager {
       // Encrypt credentials
       const credentialsEnc = encryptJson(credentials)
       
+      const prisma = await getPrismaClient()
       // Upsert integration record
       const integration = await prisma.integration.upsert({
         where: {
@@ -138,6 +139,7 @@ export class IntegrationManager {
     siteId?: string
   ): Promise<T | null> {
     try {
+      const prisma = await getPrismaClient()
       const integration = await prisma.integration.findUnique({
         where: {
           siteId_type: {
@@ -170,6 +172,7 @@ export class IntegrationManager {
     siteId?: string
   ): Promise<IntegrationInfo | null> {
     try {
+      const prisma = await getPrismaClient()
       const integration = await prisma.integration.findUnique({
         where: {
           siteId_type: {
@@ -204,6 +207,7 @@ export class IntegrationManager {
 
   async listIntegrations(siteId?: string): Promise<IntegrationInfo[]> {
     try {
+      const prisma = await getPrismaClient()
       const integrations = await prisma.integration.findMany({
         where: {
           siteId: siteId || ''
@@ -266,6 +270,7 @@ export class IntegrationManager {
 
       // Update verification status
       if (testResult.success) {
+        const prisma = await getPrismaClient()
         await prisma.integration.update({
           where: {
             siteId_type: {
@@ -302,6 +307,7 @@ export class IntegrationManager {
     siteId?: string
   ): Promise<boolean> {
     try {
+      const prisma = await getPrismaClient()
       await prisma.integration.delete({
         where: {
           siteId_type: {

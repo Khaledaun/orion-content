@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { prisma } from "./prisma"
+import { getPrismaClient } from "./prisma"
 
 
 
@@ -23,6 +23,7 @@ export async function authenticateBearer(req: NextRequest): Promise<AuthResult> 
       return { success: false, error: 'Empty Bearer token' }
     }
 
+    const prisma = await getPrismaClient()
     // Find stored token in database
     const connection = await prisma.connection.findFirst({
       where: { kind: 'console_api_token' }
@@ -76,7 +77,5 @@ export async function authenticateBearer(req: NextRequest): Promise<AuthResult> 
   } catch (error) {
     console.error('Bearer authentication error:', error)
     return { success: false, error: 'Authentication system error' }
-  } finally {
-    await prisma.$disconnect()
   }
 }

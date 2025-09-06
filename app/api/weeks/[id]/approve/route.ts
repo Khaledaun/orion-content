@@ -3,7 +3,7 @@ export const revalidate = 0;
 
 import { NextRequest, NextResponse } from 'next/server'
 import { requireApiAuth } from '@/lib/auth'
-import { prisma } from '../../../../lib/prisma'
+import { getPrismaClient } from '@/lib/prisma'
 
 async function handler(req: NextRequest) {
   if (req.method !== 'POST') {
@@ -13,6 +13,8 @@ async function handler(req: NextRequest) {
     // Extract id from URL
     const urlParts = req.url.split('/')
     const id = urlParts[urlParts.length - 2] || urlParts[urlParts.length - 1]
+    
+    const prisma = await getPrismaClient()
     const week = await prisma.week.update({
       where: { id },
       data: { status: 'APPROVED' },
