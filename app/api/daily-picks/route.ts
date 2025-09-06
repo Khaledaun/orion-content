@@ -3,7 +3,7 @@ export const revalidate = 0;
 
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/withAuth";
-import { prisma } from "@/lib/prisma";
+import { getPrismaClient } from "@/lib/prisma";
 
 // GET /api/daily-picks?date=YYYY-MM-DD&site=SITE_KEY&count=3
 export const GET = withAuth(async (req: NextRequest) => {
@@ -18,6 +18,8 @@ export const GET = withAuth(async (req: NextRequest) => {
       { status: 400 }
     );
   }
+
+  const prisma = await getPrismaClient();
 
   // Find site
   const site = await prisma.site.findUnique({ where: { key: siteKey } });

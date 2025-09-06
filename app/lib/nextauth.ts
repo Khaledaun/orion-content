@@ -3,27 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 
 import * as bcryptjs from "bcryptjs";
-
-// Function to safely get Prisma client - only loads at runtime when needed
-async function getPrismaClient() {
-  // During build, always return null
-  if (process.env.SKIP_PRISMA_GENERATE === 'true' || 
-      process.env.CI === 'true' || 
-      process.env.VERCEL === '1' || 
-      process.env.VERCEL_ENV ||
-      process.env.GITHUB_ACTIONS) {
-    return null;
-  }
-
-  try {
-    // Dynamic import to prevent webpack from bundling during build
-    const { prisma } = await import('@/lib/prisma');
-    return prisma;
-  } catch (error) {
-    console.warn('NextAuth: Failed to load Prisma client:', error);
-    return null;
-  }
-}
+import { getPrismaClient } from "@/lib/prisma";
 
 export const authOptions: NextAuthOptions = {
   // Provide fallback secret for demo/testing environments

@@ -1,6 +1,6 @@
 
 import crypto from 'crypto';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from "@/lib/prisma";
 
 // Define local type to avoid dependency on Prisma generated types
 type ScopedToken = {
@@ -27,6 +27,7 @@ export class ScopedTokenService {
     scopes: string[] = ['read:drafts'],
     expiryDays = 90
   ): Promise<{ token: string; tokenRecord: ScopedToken }> {
+    const prisma = await getPrismaClient();
     const tokenValue = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + expiryDays);
@@ -47,6 +48,7 @@ export class ScopedTokenService {
   }
 
   static async validateToken(token: string): Promise<TokenPayload | null> {
+    const prisma = await getPrismaClient();
     try {
       const tokenRecord = await prisma.scopedToken.findUnique({
         where: { token },
@@ -87,12 +89,14 @@ export class ScopedTokenService {
   }
 
   static async revokeToken(token: string): Promise<void> {
+    const prisma = await getPrismaClient();
     await prisma.scopedToken.delete({
       where: { token },
     });
   }
 
   static async listTokens(siteId?: string): Promise<ScopedToken[]> {
+    const prisma = await getPrismaClient();
     return await prisma.scopedToken.findMany({
       where: siteId ? { siteId } : {},
       orderBy: {
@@ -102,6 +106,7 @@ export class ScopedTokenService {
   }
 
   static async cleanupExpiredTokens(): Promise<number> {
+    const prisma = await getPrismaClient();
     const result = await prisma.scopedToken.deleteMany({
       where: {
         expiresAt: {

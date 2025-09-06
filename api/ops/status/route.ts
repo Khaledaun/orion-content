@@ -4,7 +4,7 @@ import { requireBearerToken } from '@/lib/enhanced-auth'
 import { getRedisStore } from '@/lib/redis-store'
 import { getCostMetrics, getObservabilityReports } from '@/lib/observability-prod'
 import { getAuditLogger } from '@/lib/audit-prod'
-import { prisma } from '@/lib/prisma'
+import { getPrismaClient } from "@/lib/prisma";
 import { createSecureResponse, createSecureErrorResponse } from '@/lib/security'
 import { logger } from '@/lib/logger'
 
@@ -84,6 +84,7 @@ export async function GET(request: NextRequest) {
 }
 
 async function getServicesStatus() {
+  const prisma = await getPrismaClient();
   const services = {
     database: 'unknown' as ServiceStatus,
     redis: 'unknown' as ServiceStatus,
@@ -119,6 +120,7 @@ async function getServicesStatus() {
 }
 
 async function getRulebookStatus() {
+  const prisma = await getPrismaClient();
   try {
     const activeRulebook = await prisma.globalRulebook.findFirst({
       orderBy: { version: 'desc' }

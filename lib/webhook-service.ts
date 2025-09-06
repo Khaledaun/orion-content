@@ -1,6 +1,6 @@
 
 import crypto from 'crypto';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from "@/lib/prisma";
 
 // Define local type to avoid dependency on Prisma generated types
 type WebhookEndpoint = {
@@ -25,6 +25,7 @@ export class WebhookService {
     event: 'draft_created' | 'needs_review' | 'approved',
     data: any
   ): Promise<void> {
+    const prisma = await getPrismaClient();
     const endpoints = await prisma.webhookEndpoint.findMany({
       where: {
         active: true,
@@ -100,6 +101,7 @@ export class WebhookService {
     events: string[],
     secret?: string
   ): Promise<WebhookEndpoint> {
+    const prisma = await getPrismaClient();
     const generatedSecret = secret || crypto.randomBytes(32).toString('hex');
     
     return await prisma.webhookEndpoint.create({
@@ -120,6 +122,7 @@ export class WebhookService {
       active?: boolean;
     }
   ): Promise<WebhookEndpoint> {
+    const prisma = await getPrismaClient();
     return await prisma.webhookEndpoint.update({
       where: { id },
       data: updates,
@@ -127,12 +130,14 @@ export class WebhookService {
   }
 
   static async deleteEndpoint(id: string): Promise<void> {
+    const prisma = await getPrismaClient();
     await prisma.webhookEndpoint.delete({
       where: { id },
     });
   }
 
   static async listEndpoints(): Promise<WebhookEndpoint[]> {
+    const prisma = await getPrismaClient();
     return await prisma.webhookEndpoint.findMany({
       orderBy: {
         createdAt: 'desc',

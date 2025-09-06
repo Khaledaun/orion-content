@@ -1,16 +1,18 @@
-// lib/prisma.ts - Build-safe Prisma client
-// This module exports either a real Prisma client or a static mock during build
+// lib/prisma.ts - Build-safe Prisma client with dynamic loading only
+// This module provides dynamic loading functions to prevent webpack build-time analysis
 
 // Detect build environment
-const isBuildEnvironment = (
-  process.env.SKIP_PRISMA_GENERATE === 'true' || 
-  process.env.CI === 'true' || 
-  process.env.VERCEL === '1' || 
-  process.env.VERCEL_ENV ||
-  process.env.VERCEL_URL ||
-  process.env.NOW_REGION ||
-  process.env.GITHUB_ACTIONS
-);
+function isBuildEnvironment() {
+  return (
+    process.env.SKIP_PRISMA_GENERATE === 'true' || 
+    process.env.CI === 'true' || 
+    process.env.VERCEL === '1' || 
+    process.env.VERCEL_ENV ||
+    process.env.VERCEL_URL ||
+    process.env.NOW_REGION ||
+    process.env.GITHUB_ACTIONS
+  );
+}
 
 // Static mock model for build time
 const mockModel = {
@@ -50,20 +52,22 @@ const mockPrismaClient = {
   connection: mockModel,
 };
 
-let prismaInstance: any;
+/**
+ * Dynamic Prisma client loader - prevents build-time analysis
+ * This function should be used instead of static imports
+ */
+export async function getPrismaClient() {
+  if (isBuildEnvironment()) {
+    console.log('Prisma: Using static mock for build environment');
+    return mockPrismaClient;
+  }
 
-if (isBuildEnvironment) {
-  // During build: use static mock - never load real Prisma
-  console.log('Prisma: Using static mock for build environment');
-  prismaInstance = mockPrismaClient;
-} else {
-  // Runtime: try to load real Prisma, fallback to mock if failed
   try {
     const globalForPrisma = global as unknown as { __prisma?: any };
     
     if (!globalForPrisma.__prisma) {
-      // Only load @prisma/client at runtime
-      const { PrismaClient } = require('@prisma/client');
+      // Dynamic require to prevent webpack bundling during build
+      const { PrismaClient } = eval('require')('@prisma/client');
       globalForPrisma.__prisma = new PrismaClient({
         log: ['warn', 'error'],
         errorFormat: 'minimal'
@@ -71,11 +75,27 @@ if (isBuildEnvironment) {
       console.log('Prisma: Real client initialized');
     }
     
-    prismaInstance = globalForPrisma.__prisma;
+    return globalForPrisma.__prisma;
   } catch (error) {
     console.warn('Prisma: Failed to load real client, using mock:', error instanceof Error ? error.message : String(error));
-    prismaInstance = mockPrismaClient;
+    return mockPrismaClient;
   }
+}
+
+// Legacy export for backward compatibility during transition
+// This will be a mock during build time to prevent webpack analysis
+let prismaInstance: any;
+
+if (isBuildEnvironment()) {
+  prismaInstance = mockPrismaClient;
+} else {
+  // For runtime, create a lazy-loaded proxy
+  prismaInstance = new Proxy({}, {
+    get(target, prop) {
+      console.warn(`Prisma: Legacy direct access to '${String(prop)}' detected. Please use getPrismaClient() instead.`);
+      return mockModel[prop as keyof typeof mockModel] || mockPrismaClient[prop as keyof typeof mockPrismaClient];
+    }
+  });
 }
 
 export const prisma = prismaInstance;

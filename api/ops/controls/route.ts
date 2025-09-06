@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireBearerToken } from '@/lib/enhanced-auth'
 import { getAuditLogger } from '@/lib/audit-prod'
 import { getRedisStore } from '@/lib/redis-store'
-import { prisma } from '@/lib/prisma'
+import { getPrismaClient } from "@/lib/prisma";
 
 export const dynamic = 'force-dynamic'
 
@@ -180,6 +180,7 @@ async function setDryRunMode(durationMinutes?: number, reason?: string) {
 }
 
 async function emergencyRollback(targetVersion: number, reason?: string) {
+  const prisma = await getPrismaClient();
   try {
     // Find the target version
     const targetRulebook = await prisma.rulebookVersion.findFirst({

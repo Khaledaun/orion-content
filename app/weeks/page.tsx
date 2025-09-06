@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 export const runtime = 'nodejs';
 
 import { getSession } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { getPrismaClient } from "@/lib/prisma";
 import { withDB } from '@/lib/with-db'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -26,6 +26,7 @@ type Week = {
 export default async function WeeksPage() {
   // Get session without throwing errors
   const session = await getSession();
+  const prisma = await getPrismaClient();
   
   // If not authenticated, show setup gate
   if (!session?.user) {

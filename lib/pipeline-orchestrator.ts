@@ -6,9 +6,7 @@ import { getAuditLogger } from './audit-prod'
 import { getRedisStore } from './redis-store'
 import { processQualityGating } from '@/lib/wordpress'
 import { validateExtendedI18nCompliance, generateExtendedSlug, formatExtendedCitation, generateExtendedArticleSchema } from './i18n-extended'
-import { prisma } from '@/lib/prisma'
-
-export interface PipelineRequest {
+import { getPrismaClient } from "@/lib/prisma";export interface PipelineRequest {
   siteId: string
   topic: string
   requirements?: {
@@ -434,6 +432,7 @@ export class ProductionPipelineOrchestrator {
   }
 
   private async getQualityThreshold(siteId: string): Promise<number> {
+    const prisma = await getPrismaClient();
     try {
       // Check site-specific strategy first
       const siteStrategy = await prisma.siteStrategy.findUnique({
