@@ -1,3 +1,4 @@
+
 {
   "compilerOptions": {
     "target": "es2020",
@@ -25,10 +26,13 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./app/*",
-        "./*"
-      ]
+      "@/*": ["./*"],
+      "@/app/*": ["./app/*"],
+      "@/components/*": ["./components/*"],
+      "@/lib/*": ["./lib/*"],
+      "@/hooks/*": ["./hooks/*"],
+      "@/types/*": ["./types/*"],
+      "@/utils/*": ["./utils/*"]
     }
   },
   "include": [
@@ -40,6 +44,10 @@
   ],
   "exclude": [
     "node_modules",
-    "scripts/**/*"
+    "scripts/**/*",
+    "python/**/*",
+    "orion-diag-*/**/*",
+    "phase*/**/*",
+    "__pycache__/**/*"
   ]
 }
