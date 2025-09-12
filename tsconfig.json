@@ -26,6 +26,7 @@
       }
     ],
     "paths": {
+<<<<<<< HEAD
       "@/*": ["./*"],
       "@/app/*": ["./app/*"],
       "@/components/*": ["./components/*"],
@@ -33,6 +34,23 @@
       "@/hooks/*": ["./hooks/*"],
       "@/types/*": ["./types/*"],
       "@/utils/*": ["./utils/*"]
+=======
+      "@/components/*": [
+        "./components/*"
+      ],
+      "@/lib/*": [
+        "./lib/*"
+      ],
+      "@/hooks/*": [
+        "./hooks/*"
+      ],
+      "@/app/*": [
+        "./app/*"
+      ],
+      "@/*": [
+        "./*"
+      ]
+>>>>>>> main
     }
   },
   "include": [

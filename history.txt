@@ -1,0 +1,30 @@
+d7a3a97 2025-09-11 chore: update TypeScript and @types dependencies to latest versions
+5609d32 2025-09-11 fix: move tailwindcss, tailwind-merge, postcss, and autoprefixer to dependencies for Vercel build
+a8377b5 2025-09-11 feat: production enhancements - UI/UX improvements, analytics dashboard, automation schedulers, SEO tools, security hardening
+5c4602b 2025-09-05 Fix Vercel workflow to use proper secrets and conditional execution
+709bfec 2025-09-05 Fix app/tsconfig.json path resolution for UI components
+b754363 2025-09-05 Fix Vercel deployment: Configure Prisma for Neon PostgreSQL
+00f4afd 2025-09-04 Change Vercel token in vercel-preview.yml
+47709a0 2025-09-04 Phase 1 Redux: Minimal credentials management with AES-GCM encryption (#9)
+064d672 2025-09-04 Fix JSON parsing and TypeScript errors for Vercel deployment
+aaea6f3 2025-09-03 Fix 500 errors on / and /dashboard by implementing graceful auth/DB failure handling (#7)
+4f9de79 2025-09-03 Fix NextAuth API routes returning 404 in production and resolve DNS blocking issues preventing builds (#4)
+7947395 2025-09-02 feat(auth): add minimal NextAuth route + health check
+d83878f 2025-09-02 fix(auth): restore valid NextAuth options & route exports
+991779f 2025-09-02 fix(auth): move authOptions out of route; export only handlers; ensure TS paths
+b9f31eb 2025-09-02 fix(auth): rewrite NextAuth app route + add safe middleware
+83da129 2025-09-02 fix(auth): known-good NextAuth app route + safe middleware + serverful next.config
+5a8f67c 2025-09-02 fix(auth): add NextAuth options and ensure @ alias
+133eda5 2025-09-02 fix: serverful build (no static export) + dynamic NextAuth API
+e5d77ac 2025-09-02 chore(vercel): use npm install; run prisma generate before build
+382af8d 2025-09-02 chore(ci): drop pnpm; force npm on Vercel
+5ce1444 2025-09-02 chore(vercel): use pnpm with --no-frozen-lockfile; ensure prisma generate
+52dfe59 2025-09-02 chore(deps): update pnpm lock after Prisma bump
+935b053 2025-09-02 fix(auth): inline NextAuth options in route to resolve missing import
+194fef0 2025-09-02 chore: include pending changes
+da811be 2025-09-02 feat(auth): add NextAuth App Router handler
+dc4525b 2025-09-02 chore(prisma): align prisma/@prisma-client to 6.15.0; ensure postinstall prisma generate
+d5b05eb 2025-09-02 build: replace broken next.config.js with minimal valid config
+6060ce7 2025-09-02 build: add withAuth shim; fix client-page directives; drop outputFileTracingRoot experiment
+74f3b82 2025-09-02 build: add withAuth shim + client/server page headers; ensure Tailwind/PostCSS devDeps
+39abda1 2025-09-02 chore(env): delete stray .env files from repo (use Vercel env only)
