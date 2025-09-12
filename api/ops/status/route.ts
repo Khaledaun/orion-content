@@ -120,14 +120,13 @@ async function getServicesStatus() {
 
 async function getRulebookStatus() {
   try {
-    const activeRulebook = await prisma.globalRulebook.findFirst({
-      orderBy: { version: 'desc' }
-    })
-
+    // Placeholder implementation since globalRulebook model doesn't exist yet
+    // This would be replaced with actual rulebook status logic once implemented
     return {
-      activeVersion: activeRulebook?.version || null,
-      lastUpdated: activeRulebook?.updatedAt?.toISOString() || null,
-      updatedBy: activeRulebook?.updatedBy || null
+      activeVersion: 1,
+      lastUpdated: new Date().toISOString(),
+      updatedBy: 'system',
+      note: 'Placeholder - requires globalRulebook model implementation'
     }
   } catch {
     return {

@@ -23,9 +23,9 @@ export async function authenticateBearer(req: NextRequest): Promise<AuthResult> 
       return { success: false, error: 'Empty Bearer token' }
     }
 
-    // Find stored token in database
-    const connection = await prisma.connection.findFirst({
-      where: { kind: 'console_api_token' }
+    // Find stored token in database using existing Credential model
+    const connection = await prisma.credential.findFirst({
+      where: { provider: 'console_api_token' }
     })
 
     if (!connection) {
@@ -35,7 +35,7 @@ export async function authenticateBearer(req: NextRequest): Promise<AuthResult> 
     // Parse stored token data
     let storedData
     try {
-      storedData = JSON.parse(connection.dataEnc)
+      storedData = JSON.parse(connection.encryptedData)
     } catch (error) {
       return { success: false, error: 'Invalid stored token format' }
     }

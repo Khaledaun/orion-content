@@ -12,14 +12,18 @@ import { ArrowLeft, Calendar, CheckCircle, Clock } from 'lucide-react'
 export default async function WeeksPage() {
   await requireAuth()
   
-  const weeks = await prisma.week.findMany({
-    orderBy: { isoWeek: 'desc' },
-    include: {
-      _count: {
-        select: { topics: true }
-      }
+  // Placeholder implementation since week model doesn't exist yet
+  const weeks = [
+    {
+      id: 'week-1',
+      isoWeek: '2024-W01',
+      status: 'ACTIVE',
+      startDate: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      _count: { topics: 0 },
+      note: 'Placeholder - requires week model implementation'
     }
-  })
+  ]
 
   return (
     <div className="min-h-screen bg-gray-50">

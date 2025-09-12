@@ -1,6 +1,20 @@
 
 import { google } from 'googleapis';
-import { GscConnection, GscSnapshot } from '@prisma/client';
+
+// Placeholder types since these models don't exist in current Prisma schema
+interface GscConnection {
+  id: string;
+  siteUrl: string;
+  accessToken?: string;
+  refreshToken?: string;
+}
+
+interface GscSnapshot {
+  id: string;
+  connectionId: string;
+  data: any;
+  createdAt: Date;
+}
 
 interface GscPerformanceData {
   rows: Array<{

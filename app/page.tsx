@@ -18,9 +18,9 @@ async function pageSafeBlock() {
   const session = await getSession();
   // ---- Resilience: demo/auth/setup gates ----
   // If Prisma is unavailable at runtime, treat as demo mode
-  const demoMode = !prisma || !("site" in prisma);
+  const demoMode = !prisma || !("credential" in prisma); // Use existing model for check
   const sites = await withDB(
-    () => prisma?.site.findMany({ take: 5 }) ?? Promise.resolve([]),
+    () => Promise.resolve([]), // Mock empty sites since model doesn't exist
     [],
     'home.sites'
   );
