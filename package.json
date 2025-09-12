@@ -51,6 +51,10 @@
     "@types/node": "20.6.2",
     "@types/react": "18.2.22",
     "@types/react-dom": "18.2.7",
+<<<<<<< HEAD
+    "@typescript-eslint/eslint-plugin": "7.0.0",
+    "@typescript-eslint/parser": "7.0.0",
+=======
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
     "autoprefixer": "^10.4.20",
@@ -64,9 +68,15 @@
     "pino-pretty": "^10.2.3",
     "prettier": "^3.1.0",
     "prisma": "6.15.0",
+<<<<<<< HEAD
     "ts-node": "^10.9.2",
     "tsx": "^4.19.1",
     "typescript": "^5.6.2"
+=======
+    "ts-node": "10.9.2",
+    "tsx": "4.20.3",
+    "typescript": "5.2.2"
+>>>>>>> production-enhancements
   },
   "dependencies": {
     "@floating-ui/react": "0.26.0",
