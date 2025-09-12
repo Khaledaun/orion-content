@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server'
 import { prisma } from "./prisma"
 
-
+// Build-time safety check
+const isBuildTime = process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL;
 
 export interface AuthResult {
   success: boolean
@@ -11,6 +12,11 @@ export interface AuthResult {
 
 export async function authenticateBearer(req: NextRequest): Promise<AuthResult> {
   try {
+    // Skip during build time
+    if (isBuildTime || !prisma) {
+      return { success: false, error: 'Database not available during build' }
+    }
+
     // Get Authorization header
     const authHeader = req.headers.get('authorization')
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -77,6 +83,8 @@ export async function authenticateBearer(req: NextRequest): Promise<AuthResult> 
     console.error('Bearer authentication error:', error)
     return { success: false, error: 'Authentication system error' }
   } finally {
-    await prisma.$disconnect()
+    if (prisma) {
+      await prisma.$disconnect()
+    }
   }
 }

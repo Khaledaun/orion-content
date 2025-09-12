@@ -4,8 +4,11 @@ import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "@/lib/prisma";
 import * as bcryptjs from "bcryptjs";
 
+// Build-time safety check - skip database operations during build
+const isBuildTime = process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL;
+
 export const authOptions: NextAuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || 'dev-fallback-secret',
   session: { strategy: "jwt" },
 
   providers: [
@@ -16,28 +19,38 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
+        // Skip database operations during build time
+        if (isBuildTime) {
+          return null;
+        }
+
         const email = credentials?.email?.toString().trim().toLowerCase();
         const password = credentials?.password?.toString() ?? "";
         if (!email || !password) return null;
 
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (!user) return null;
+        try {
+          const user = await prisma.user.findUnique({ where: { email } });
+          if (!user) return null;
 
-        // Pick the available password field in your schema
-        const hash =
-          (user as any).passwordHash ??
-          (user as any).hashedPassword ??
-          null;
-        if (!hash) return null;
+          // Pick the available password field in your schema
+          const hash =
+            (user as any).passwordHash ??
+            (user as any).hashedPassword ??
+            null;
+          if (!hash) return null;
 
-        const ok = await bcryptjs.compare(password, hash);
-        if (!ok) return null;
+          const ok = await bcryptjs.compare(password, hash);
+          if (!ok) return null;
 
-        return {
-          id: user.id,
-          email: (user as any).email ?? email,
-          name:  (user as any).name  ?? null
-        };
+          return {
+            id: user.id,
+            email: (user as any).email ?? email,
+            name:  (user as any).name  ?? null
+          };
+        } catch (error) {
+          console.error('Auth error:', error);
+          return null;
+        }
       }
     }),
 

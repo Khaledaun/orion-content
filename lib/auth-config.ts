@@ -6,8 +6,11 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 
+// Build-time safety check
+const isBuildTime = process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL;
+
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  adapter: prisma ? PrismaAdapter(prisma) : undefined,
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
   providers: [
@@ -23,12 +26,20 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        // Skip during build time
+        if (isBuildTime || !prisma) return null;
+        
         if (!credentials?.email || !credentials?.password) return null
-        const user = await prisma.user.findUnique({ where: { email: credentials.email } })
-        if (!user || !user.passwordHash) return null
-        const ok = await bcrypt.compare(credentials.password, user.passwordHash)
-        if (!ok) return null
-        return { id: user.id, email: user.email, name: user.name ?? null, image: user.image ?? null }
+        try {
+          const user = await prisma.user.findUnique({ where: { email: credentials.email } })
+          if (!user || !user.passwordHash) return null
+          const ok = await bcrypt.compare(credentials.password, user.passwordHash)
+          if (!ok) return null
+          return { id: user.id, email: user.email, name: user.name ?? null, image: user.image ?? null }
+        } catch (error) {
+          console.error('Credentials auth error:', error);
+          return null;
+        }
       },
     }),
   ],

@@ -10,6 +10,9 @@ import { getSession } from '../app/lib/auth'
 import { redactSensitive } from './redact'
 import { logger } from './logger'
 
+// Build-time safety check
+const isBuildTime = process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL;
+
 export enum Role {
   ADMIN = 'ADMIN',
   EDITOR = 'EDITOR',
@@ -68,6 +71,11 @@ export async function validateBearerToken(request: NextRequest): Promise<AuthUse
 // Get authenticated user with session fallback
 export async function getAuthUser(request?: NextRequest): Promise<AuthUser | null> {
   try {
+    // Skip during build time
+    if (isBuildTime || !prisma) {
+      return null;
+    }
+
     // Try bearer token first
     if (request) {
       const tokenUser = await validateBearerToken(request)
