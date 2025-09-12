@@ -1,3 +1,13 @@
 {
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "functions": {
+    "app/api/**/*.ts": {
+      "memory": 1024
+    },
+    "api/**/*.ts": {
+      "memory": 1024
+    }
+  },
+  "regions": ["iad1"]
 }
