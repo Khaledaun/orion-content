@@ -3,6 +3,8 @@
 
 import { SessionProvider } from 'next-auth/react'
 import { ReactNode } from 'react'
+import { LanguageProvider } from '@/lib/i18n/language-context'
+import { Toaster } from '@/components/ui/sonner'
 
 interface ProvidersProps {
   children: ReactNode
@@ -11,7 +13,10 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
   return (
     <SessionProvider>
-      {children}
+      <LanguageProvider>
+        {children}
+        <Toaster />
+      </LanguageProvider>
     </SessionProvider>
   )
 }
