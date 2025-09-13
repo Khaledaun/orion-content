@@ -1,0 +1,120 @@
+{
+  "timestamp": "2025-09-13T12:43:51.698Z",
+  "summary": {
+    "totalSuites": 6,
+    "passedSuites": 3,
+    "totalTests": 11,
+    "passedTests": 3,
+    "success": false
+  },
+  "suites": [
+    {
+      "name": "Core API Tests",
+      "tests": [
+        {
+          "name": "Health Endpoint",
+          "passed": false,
+          "duration": 29,
+          "error": "fetch failed"
+        },
+        {
+          "name": "Rulebook API Route",
+          "passed": false,
+          "duration": 1,
+          "error": "fetch failed"
+        },
+        {
+          "name": "Strategy API Route",
+          "passed": false,
+          "duration": 1,
+          "error": "fetch failed"
+        },
+        {
+          "name": "Ops Status Route",
+          "passed": false,
+          "duration": 2,
+          "error": "fetch failed"
+        }
+      ],
+      "passed": false,
+      "totalDuration": 33
+    },
+    {
+      "name": "Security Tests",
+      "tests": [
+        {
+          "name": "Rate Limiting",
+          "passed": false,
+          "duration": 6,
+          "error": "fetch failed"
+        },
+        {
+          "name": "Authentication Required",
+          "passed": false,
+          "duration": 3,
+          "error": "fetch failed"
+        }
+      ],
+      "passed": false,
+      "totalDuration": 9
+    },
+    {
+      "name": "Database Tests",
+      "tests": [
+        {
+          "name": "Migration Status",
+          "passed": false,
+          "duration": 1327,
+          "error": "Migration check failed: Error: Command failed: npx prisma migrate status\nError: Prisma schema validation - (get-config wasm)\nError code: P1012\nerror: Environment variable not found: DATABASE_URL.\n  -->  prisma/schema.prisma:10\n   | \n 9 |     provider = \"postgresql\"\n10 |     url      = env(\"DATABASE_URL\")\n   | \n\nValidation Error Count: 1\n[Context: getConfig]\n\nPrisma CLI Version : 6.15.0\n"
+        },
+        {
+          "name": "Rulebook Seeding",
+          "passed": false,
+          "duration": 709,
+          "error": "Seeding failed: Error: Command failed: npx tsx scripts/seed_rulebook.ts\n❌ Error seeding rulebook: PrismaClientInitializationError: \nInvalid `prisma.globalRulebook.findFirst()` invocation in\n/home/runner/work/orion-content/orion-content/scripts/seed_rulebook.ts:73:58\n\n  70 \n  71 try {\n  72   // Check if any rulebook exists\n→ 73   const existingRulebook = await prisma.globalRulebook.findFirst(\nerror: Environment variable not found: DATABASE_URL.\n  -->  schema.prisma:9\n   | \n 8 |   provider = \"postgresql\"\n 9 |   url      = env(\"DATABASE_URL\")\n   | \n\nValidation Error Count: 1\n    at ei.handleRequestError (/home/runner/work/orion-content/orion-content/node_modules/@prisma/client/src/runtime/RequestHandler.ts:242:13)\n    at ei.handleAndLogRequestError (/home/runner/work/orion-content/orion-content/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)\n    at ei.request (/home/runner/work/orion-content/orion-content/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)\n    at async a (/home/runner/work/orion-content/orion-content/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:833:24)\n    at async seedRulebook (/home/runner/work/orion-content/orion-content/scripts/seed_rulebook.ts:73:30) {\n  clientVersion: '6.15.0',\n  errorCode: undefined,\n  retryable: undefined\n}\n"
+        }
+      ],
+      "passed": false,
+      "totalDuration": 2036
+    },
+    {
+      "name": "Observability Tests",
+      "tests": [
+        {
+          "name": "Observability Module",
+          "passed": true,
+          "duration": 81,
+          "details": "Observability tracking functional"
+        }
+      ],
+      "passed": true,
+      "totalDuration": 81
+    },
+    {
+      "name": "i18n Tests",
+      "tests": [
+        {
+          "name": "Extended i18n Support",
+          "passed": true,
+          "duration": 21,
+          "details": "Extended i18n support functional"
+        }
+      ],
+      "passed": true,
+      "totalDuration": 21
+    },
+    {
+      "name": "Redis Tests",
+      "tests": [
+        {
+          "name": "Redis Connection",
+          "passed": true,
+          "duration": 8,
+          "details": "Redis not configured (development mode)"
+        }
+      ],
+      "passed": true,
+      "totalDuration": 8
+    }
+  ]
+}
