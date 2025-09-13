@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { enhancedMiddleware } from "@/lib/integration/enhanced-middleware";
 
 export const config = {
   // Enhanced matcher that includes API routes for health monitoring
@@ -16,12 +15,21 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // For deployment stability, use basic middleware instead of enhanced middleware
+  // which has Node.js dependencies incompatible with Edge Runtime
   try {
-    // Use enhanced middleware for comprehensive request processing
-    return await enhancedMiddleware(request);
+    // Basic security headers and request processing
+    const response = NextResponse.next();
+    
+    // Add basic security headers
+    response.headers.set('X-Frame-Options', 'DENY');
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    response.headers.set('Referrer-Policy', 'origin-when-cross-origin');
+    
+    return response;
   } catch (error) {
-    // Fallback to basic response if enhanced middleware fails
-    console.error('Enhanced middleware failed, falling back:', error);
+    // Fallback to basic response if middleware fails
+    console.error('Middleware failed, falling back:', error);
     return NextResponse.next();
   }
 }
