@@ -1,22 +1,39 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Minimal configuration for reliable Vercel builds
+  // Minimal but effective configuration for Vercel deployment
   reactStrictMode: true,
   swcMinify: true,
   poweredByHeader: false,
   
-  // Add build logging for debugging Vercel hangs
-  onDemandEntries: {
-    maxInactiveAge: 25 * 1000,
-    pagesBufferLength: 2,
+  // Enhanced webpack configuration to prevent build analyzer hangs
+  webpack: (config, { isServer, webpack }) => {
+    // Prevent client-side bundling of server-only packages
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+      };
+    }
+    
+    // Add externals for Prisma to prevent build-time issues
+    config.externals = config.externals || [];
+    if (isServer) {
+      config.externals.push('@prisma/client', 'prisma');
+    }
+    
+    return config;
   },
   
-  // Optimize for Vercel deployment
+  // Optimize for faster builds and better module resolution
   experimental: {
     optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react'],
+    serverComponentsExternalPackages: ['@prisma/client', 'prisma'],
   },
   
-  // Ensure proper module resolution
+  // Build-time optimizations
   typescript: {
     ignoreBuildErrors: false,
   },

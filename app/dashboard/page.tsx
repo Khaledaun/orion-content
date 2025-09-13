@@ -1,7 +1,6 @@
 import SetupGate from "@/components/SetupGate";
 import { getSession } from "@/lib/get-session";
 import { withDB } from "@/lib/with-db";
-import { prisma } from "@/lib/prisma";
 export const runtime = 'nodejs';
 export const dynamic = "force-dynamic";
 
@@ -130,8 +129,8 @@ export default async function DashboardPage() {
 /* ---- Resilience: demo/auth/setup gates ---- */
 async function pageSafeBlock() {
   const session = await getSession();
-  // If Prisma is unavailable at runtime, treat as demo mode
-  const demoMode = !prisma || !("credential" in prisma); // Use existing model for check
+  // Use simple demo mode detection without direct Prisma imports
+  const demoMode = !process.env.DATABASE_URL;
   const sites = await withDB(
     () => Promise.resolve([]), // Mock empty sites since model doesn't exist
     [],
