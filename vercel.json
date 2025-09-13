@@ -3,11 +3,23 @@
   "buildCommand": "npm run build",
   "functions": {
     "app/api/**/*.ts": {
-      "memory": 1024
+      "memory": 1024,
+      "maxDuration": 60
     },
     "api/**/*.ts": {
-      "memory": 1024
+      "memory": 1024,
+      "maxDuration": 60
     }
   },
-  "regions": ["iad1"]
+  "regions": ["iad1"],
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next",
+      "config": {
+        "memory": 1024,
+        "maxLambdaSize": "50mb"
+      }
+    }
+  ]
 }
