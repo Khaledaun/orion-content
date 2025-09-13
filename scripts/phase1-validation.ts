@@ -30,7 +30,7 @@ class Phase1Validator {
 
   public async runValidation(): Promise<ValidationSummary> {
     console.log('🚀 Starting Phase 1 Enhanced Foundation Validation')
-    console.log('=' .repeat(50))
+    console.log('='.repeat(50))
 
     // Stream A: Infrastructure & Database
     await this.validateInfrastructure()
