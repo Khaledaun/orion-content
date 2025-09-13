@@ -7,13 +7,14 @@ import { prisma } from "@/lib/prisma";
 
 // GET /api/connections — list connections (admin only; no secrets returned)
 export const GET = withAuth(async (_req) => {
-  const connections = await prisma.connection.findMany({
+  // Using existing Credential model instead of non-existent connection model
+  const connections = await prisma.credential.findMany({
     select: {
       id: true,
-      kind: true,
+      provider: true,
       createdAt: true,
       updatedAt: true,
-      // NEVER return secret here
+      // NEVER return encryptedData, iv, or tag here
     },
     orderBy: { createdAt: "desc" },
   });

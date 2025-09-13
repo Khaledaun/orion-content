@@ -1,5 +1,11 @@
 
-import { TenWebSite } from '@prisma/client';
+// TenWebSite type placeholder since it doesn't exist in current Prisma schema
+interface TenWebSite {
+  id: string;
+  url: string;
+  name: string;
+  status: 'active' | 'inactive';
+}
 
 interface TenWebSiteData {
   id: string;

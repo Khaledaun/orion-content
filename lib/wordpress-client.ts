@@ -157,7 +157,7 @@ export class WordPressClient {
 
   async uploadMedia(file: Buffer, filename: string, altText?: string): Promise<WordPressMedia> {
     const formData = new FormData();
-    formData.append('file', new Blob([file]), filename);
+    formData.append('file', new Blob([file as any]), filename);
     
     if (altText) {
       formData.append('alt_text', altText);

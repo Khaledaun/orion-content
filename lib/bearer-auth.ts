@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server'
 import { prisma } from "./prisma"
 
-
+// Build-time safety check
+const isBuildTime = process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL;
 
 export interface AuthResult {
   success: boolean
@@ -11,6 +12,11 @@ export interface AuthResult {
 
 export async function authenticateBearer(req: NextRequest): Promise<AuthResult> {
   try {
+    // Skip during build time
+    if (isBuildTime || !prisma) {
+      return { success: false, error: 'Database not available during build' }
+    }
+
     // Get Authorization header
     const authHeader = req.headers.get('authorization')
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -23,9 +29,9 @@ export async function authenticateBearer(req: NextRequest): Promise<AuthResult> 
       return { success: false, error: 'Empty Bearer token' }
     }
 
-    // Find stored token in database
-    const connection = await prisma.connection.findFirst({
-      where: { kind: 'console_api_token' }
+    // Find stored token in database using existing Credential model
+    const connection = await prisma.credential.findFirst({
+      where: { provider: 'console_api_token' }
     })
 
     if (!connection) {
@@ -35,7 +41,7 @@ export async function authenticateBearer(req: NextRequest): Promise<AuthResult> 
     // Parse stored token data
     let storedData
     try {
-      storedData = JSON.parse(connection.dataEnc)
+      storedData = JSON.parse(connection.encryptedData)
     } catch (error) {
       return { success: false, error: 'Invalid stored token format' }
     }
@@ -77,6 +83,8 @@ export async function authenticateBearer(req: NextRequest): Promise<AuthResult> 
     console.error('Bearer authentication error:', error)
     return { success: false, error: 'Authentication system error' }
   } finally {
-    await prisma.$disconnect()
+    if (prisma) {
+      await prisma.$disconnect()
+    }
   }
 }

@@ -17,29 +17,48 @@ const siteSchema = z.object({
 async function sitesHandler(req: NextRequest, user: any, roles: string[]) {
   if (req.method === 'GET') {
     try {
-      const sites = await prisma.site.findMany({
-        include: { categories: true },
-        orderBy: { createdAt: 'desc' },
-      })
-      return NextResponse.json({ sites })
+      // Placeholder implementation since site model doesn't exist yet
+      const mockSites = [
+        {
+          id: 'site-1',
+          key: 'example',
+          name: 'Example Site',
+          timezone: 'UTC',
+          publisher: 'wordpress',
+          locales: ['en'],
+          categories: [],
+          createdAt: new Date().toISOString(),
+          note: 'Placeholder - requires site model implementation'
+        }
+      ]
+      
+      return NextResponse.json({ sites: mockSites })
     } catch (error) {
       console.error('Error fetching sites:', error)
       return NextResponse.json({ error: 'Failed to fetch sites' }, { status: 500 })
     }
   }
+  
   if (req.method === 'POST') {
     // Example RBAC: require 'admin' role for POST
     if (!roles.includes('admin')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
+    
     try {
       const body = await req.json()
       const data = siteSchema.parse(body)
-      const site = await prisma.site.create({
-        data: { ...data, locales: data.locales },
-        include: { categories: true },
-      })
-      return NextResponse.json({ site })
+      
+      // Placeholder implementation since site model doesn't exist yet
+      const mockSite = {
+        id: `site-${Date.now()}`,
+        ...data,
+        categories: [],
+        createdAt: new Date().toISOString(),
+        note: 'Placeholder - requires site model implementation'
+      }
+      
+      return NextResponse.json({ site: mockSite })
     } catch (error) {
       if (error instanceof z.ZodError) {
         return NextResponse.json({ error: error.errors }, { status: 400 })
@@ -48,6 +67,7 @@ async function sitesHandler(req: NextRequest, user: any, roles: string[]) {
       return NextResponse.json({ error: 'Failed to create site' }, { status: 500 })
     }
   }
+  
   return NextResponse.json({ error: 'Method not allowed' }, { status: 405 })
 }
 

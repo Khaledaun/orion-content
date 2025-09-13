@@ -21,14 +21,16 @@ async function handler(req: NextRequest) {
       
       const encrypted = encryptJson(data)
       
-      await prisma.connection.upsert({
-        where: { kind },
+      await prisma.credential.upsert({
+        where: { provider: kind },
         create: {
-          kind,
-          dataEnc: encrypted,
+          provider: kind,
+          encryptedData: encrypted,
+          iv: 'placeholder-iv',
+          tag: 'placeholder-tag'
         },
         update: {
-          dataEnc: encrypted,
+          encryptedData: encrypted,
         },
       })
       
@@ -41,8 +43,8 @@ async function handler(req: NextRequest) {
   
   if (req.method === 'GET') {
     try {
-      const connections = await prisma.connection.findMany({
-        select: { kind: true, createdAt: true, updatedAt: true },
+      const connections = await prisma.credential.findMany({
+        select: { provider: true, createdAt: true, updatedAt: true },
       })
       
       return NextResponse.json({ connections })

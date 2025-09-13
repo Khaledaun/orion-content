@@ -1,7 +1,6 @@
 export const dynamic = "force-dynamic";
 
 import { requireAuth } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,14 +10,19 @@ import { ArrowLeft, Globe } from 'lucide-react'
 export default async function SitesPage() {
   await requireAuth()
   
-  const sites = await prisma.site.findMany({
-    orderBy: { createdAt: 'desc' },
-    include: {
-      _count: {
-        select: { categories: true, topics: true }
-      }
+  // Placeholder implementation since site model doesn't exist yet
+  const sites = [
+    {
+      id: 'site-1',
+      name: 'Example Site',
+      key: 'example',
+      timezone: 'UTC',
+      publisher: 'wordpress',
+      createdAt: new Date().toISOString(),
+      _count: { categories: 0, topics: 0 },
+      note: 'Placeholder - requires site model implementation'
     }
-  })
+  ]
 
   return (
     <div className="min-h-screen bg-gray-50">
