@@ -1,7 +1,5 @@
 'use client'
 
-
-
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { generateApiToken } from '@/lib/crypto'
@@ -12,6 +10,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { toast } from 'sonner'
+import { useDictionary, useLanguage } from '@/lib/i18n/language-context'
+import { LanguageSwitcher } from '@/components/ui/language-switcher'
+import { LoadingState, ErrorState } from '@/components/ui/enhanced-states'
+import { SkipLink, useFocusManagement } from '@/components/ui/accessibility'
 
 interface SiteData {
   key: string
@@ -32,6 +34,10 @@ interface ConnectorData {
 
 export default function SetupPage() {
   const router = useRouter()
+  const dict = useDictionary()
+  const { isRTL } = useLanguage()
+  const { focusMainContent } = useFocusManagement()
+  
   const [loading, setLoading] = useState(false)
   const [currentTab, setCurrentTab] = useState('site')
   
@@ -52,7 +58,7 @@ export default function SetupPage() {
 
   const handleCreateSite = async () => {
     if (!siteData.key || !siteData.name) {
-      toast.error('Site key and name are required')
+      toast.error(`${dict.setup.siteKey} and ${dict.setup.siteName} are required`)
       return
     }
     
@@ -186,32 +192,40 @@ export default function SetupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className={`min-h-screen bg-gray-50 py-8 ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+      <SkipLink href="#main-content">
+        {dict.accessibility.skipToMain}
+      </SkipLink>
+      
       <div className="max-w-4xl mx-auto px-4">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Setup Wizard</h1>
-          <p className="text-gray-600 mt-2">Configure your Orion Content system</p>
-        </div>
+        <header className="flex justify-between items-center mb-8">
+          <div className="text-center flex-1">
+            <h1 className="text-3xl font-bold text-gray-900">{dict.setup.title}</h1>
+            <p className="text-gray-600 mt-2">{dict.setup.subtitle}</p>
+          </div>
+          <LanguageSwitcher showText />
+        </header>
 
-        <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="site">Site Setup</TabsTrigger>
-            <TabsTrigger value="connectors">Connectors</TabsTrigger>
-            <TabsTrigger value="github">GitHub Secrets</TabsTrigger>
-          </TabsList>
+        <main id="main-content" role="main" tabIndex={-1}>
+          <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3" role="tablist">
+              <TabsTrigger value="site" role="tab">{dict.setup.siteSetup}</TabsTrigger>
+              <TabsTrigger value="connectors" role="tab">{dict.setup.connectors}</TabsTrigger>
+              <TabsTrigger value="github" role="tab">{dict.setup.githubSecrets}</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="site" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Create Your First Site</CardTitle>
-                <CardDescription>
-                  Set up your primary content site configuration
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="siteKey">Site Key</Label>
+            <TabsContent value="site" className="space-y-4" role="tabpanel">
+              <Card>
+                <CardHeader>
+                  <CardTitle>{dict.setup.createFirstSite}</CardTitle>
+                  <CardDescription>
+                    Set up your primary content site configuration
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="siteKey">{dict.setup.siteKey}</Label>
                     <Input
                       id="siteKey"
                       placeholder="e.g., main"
@@ -220,7 +234,7 @@ export default function SetupPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="siteName">Site Name</Label>
+                    <Label htmlFor="siteName">{dict.setup.siteName}</Label>
                     <Input
                       id="siteName"
                       placeholder="e.g., My Content Site"
@@ -232,7 +246,7 @@ export default function SetupPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="timezone">Timezone</Label>
+                    <Label htmlFor="timezone">{dict.setup.timezone}</Label>
                     <Input
                       id="timezone"
                       value={siteData.timezone}
@@ -240,7 +254,7 @@ export default function SetupPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="publisher">Publisher</Label>
+                    <Label htmlFor="publisher">{dict.setup.publisher}</Label>
                     <Input
                       id="publisher"
                       value={siteData.publisher}
@@ -250,7 +264,7 @@ export default function SetupPage() {
                 </div>
 
                 <Button onClick={handleCreateSite} disabled={loading}>
-                  {loading ? 'Creating...' : 'Create Site'}
+                  {loading ? dict.common.loading : dict.setup.createSite}
                 </Button>
               </CardContent>
             </Card>
@@ -464,6 +478,7 @@ export default function SetupPage() {
             </Card>
           </TabsContent>
         </Tabs>
+        </main>
       </div>
     </div>
   )
