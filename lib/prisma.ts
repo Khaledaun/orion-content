@@ -2,21 +2,29 @@ import { PrismaClient } from "@prisma/client";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-// Enhanced build-time safety check
-const isBuildTime = process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL;
-const isVercelBuild = process.env.VERCEL === '1' && !process.env.DATABASE_URL;
+// Simple and robust build-time safety check
+const shouldInitializePrisma = () => {
+  // Don't initialize during Vercel builds
+  if (process.env.VERCEL === '1' && !process.env.DATABASE_URL) {
+    return false;
+  }
+  
+  // Don't initialize if DATABASE_URL is missing
+  if (!process.env.DATABASE_URL) {
+    return false;
+  }
+  
+  return true;
+};
 
-// Don't initialize Prisma during build or when DATABASE_URL is missing
-const canInitializePrisma = !isBuildTime && !isVercelBuild && !!process.env.DATABASE_URL;
-
-export const prisma = canInitializePrisma
+export const prisma = shouldInitializePrisma()
   ? (globalForPrisma.prisma ??
     new PrismaClient({
       log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
     }))
   : null;
 
-if (process.env.NODE_ENV !== "production" && canInitializePrisma && prisma) {
+if (process.env.NODE_ENV !== "production" && shouldInitializePrisma() && prisma) {
   globalForPrisma.prisma = prisma;
 }
 

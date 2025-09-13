@@ -4,25 +4,14 @@
   "functions": {
     "app/api/**/*.ts": {
       "memory": 1024,
-      "maxDuration": 60
+      "maxDuration": 30
     },
     "api/**/*.ts": {
       "memory": 1024,
-      "maxDuration": 60
+      "maxDuration": 30
     }
   },
   "regions": ["iad1"],
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next",
-      "config": {
-        "memory": 1024,
-        "maxLambdaSize": "50mb",
-        "zeroConfig": true
-      }
-    }
-  ],
   "env": {
     "SKIP_ENV_VALIDATION": "1"
   }
