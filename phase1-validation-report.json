@@ -1,0 +1,166 @@
+{
+  "totalTests": 19,
+  "passed": 17,
+  "failed": 1,
+  "warnings": 1,
+  "results": [
+    {
+      "category": "File Structure",
+      "test": "Database Connection Manager",
+      "status": "pass",
+      "message": "File exists: lib/database/connection-manager.ts",
+      "details": {
+        "path": "/home/ubuntu/orion_content_enhanced/lib/database/connection-manager.ts"
+      }
+    },
+    {
+      "category": "File Structure",
+      "test": "Query Optimizer",
+      "status": "pass",
+      "message": "File exists: lib/database/query-optimizer.ts",
+      "details": {
+        "path": "/home/ubuntu/orion_content_enhanced/lib/database/query-optimizer.ts"
+      }
+    },
+    {
+      "category": "File Structure",
+      "test": "Migration Manager",
+      "status": "pass",
+      "message": "File exists: lib/database/migration-manager.ts",
+      "details": {
+        "path": "/home/ubuntu/orion_content_enhanced/lib/database/migration-manager.ts"
+      }
+    },
+    {
+      "category": "Database",
+      "test": "Prisma Schema Validation",
+      "status": "fail",
+      "message": "Prisma schema validation failed",
+      "details": "Command failed: npx prisma validate --schema=prisma/schema.prisma\nError: Prisma schema validation - (get-config wasm)\nError code: P1012\nerror: Environment variable not found: DATABASE_URL.\n  -->  prisma/schema.prisma:10\n   | \n 9 |     provider = \"postgresql\"\n10 |     url      = env(\"DATABASE_URL\")\n   | \n\nValidation Error Count: 1\n[Context: getConfig]\n\nPrisma CLI Version : 6.15.0\n"
+    },
+    {
+      "category": "File Structure",
+      "test": "Service Container",
+      "status": "pass",
+      "message": "File exists: lib/architecture/service-container.ts",
+      "details": {
+        "path": "/home/ubuntu/orion_content_enhanced/lib/architecture/service-container.ts"
+      }
+    },
+    {
+      "category": "File Structure",
+      "test": "Middleware Stack",
+      "status": "pass",
+      "message": "File exists: lib/architecture/middleware-stack.ts",
+      "details": {
+        "path": "/home/ubuntu/orion_content_enhanced/lib/architecture/middleware-stack.ts"
+      }
+    },
+    {
+      "category": "File Structure",
+      "test": "Error Handler",
+      "status": "pass",
+      "message": "File exists: lib/architecture/error-handler.ts",
+      "details": {
+        "path": "/home/ubuntu/orion_content_enhanced/lib/architecture/error-handler.ts"
+      }
+    },
+    {
+      "category": "Architecture",
+      "test": "Middleware Integration",
+      "status": "pass",
+      "message": "Enhanced middleware is properly integrated"
+    },
+    {
+      "category": "File Structure",
+      "test": "Enhanced Jest Config",
+      "status": "pass",
+      "message": "File exists: jest.config.js",
+      "details": {
+        "path": "/home/ubuntu/orion_content_enhanced/jest.config.js"
+      }
+    },
+    {
+      "category": "File Structure",
+      "test": "Test Helpers",
+      "status": "pass",
+      "message": "File exists: lib/testing/test-helpers.ts",
+      "details": {
+        "path": "/home/ubuntu/orion_content_enhanced/lib/testing/test-helpers.ts"
+      }
+    },
+    {
+      "category": "File Structure",
+      "test": "Performance Monitor",
+      "status": "pass",
+      "message": "File exists: lib/testing/performance-monitor.ts",
+      "details": {
+        "path": "/home/ubuntu/orion_content_enhanced/lib/testing/performance-monitor.ts"
+      }
+    },
+    {
+      "category": "File Structure",
+      "test": "Enhanced CI Pipeline",
+      "status": "pass",
+      "message": "File exists: .github/workflows/ci-enhanced.yml",
+      "details": {
+        "path": "/home/ubuntu/orion_content_enhanced/.github/workflows/ci-enhanced.yml"
+      }
+    },
+    {
+      "category": "Testing",
+      "test": "Jest Configuration",
+      "status": "warning",
+      "message": "Jest configuration incomplete"
+    },
+    {
+      "category": "Testing",
+      "test": "Integration Tests",
+      "status": "pass",
+      "message": "Phase 1 integration tests found"
+    },
+    {
+      "category": "File Structure",
+      "test": "Environment Manager",
+      "status": "pass",
+      "message": "File exists: lib/config/environment-manager.ts",
+      "details": {
+        "path": "/home/ubuntu/orion_content_enhanced/lib/config/environment-manager.ts"
+      }
+    },
+    {
+      "category": "File Structure",
+      "test": "Health Monitor",
+      "status": "pass",
+      "message": "File exists: lib/monitoring/health-monitor.ts",
+      "details": {
+        "path": "/home/ubuntu/orion_content_enhanced/lib/monitoring/health-monitor.ts"
+      }
+    },
+    {
+      "category": "File Structure",
+      "test": "Health API Endpoint",
+      "status": "pass",
+      "message": "File exists: app/api/health/route.ts",
+      "details": {
+        "path": "/home/ubuntu/orion_content_enhanced/app/api/health/route.ts"
+      }
+    },
+    {
+      "category": "File Structure",
+      "test": "Enhanced Middleware Integration",
+      "status": "pass",
+      "message": "File exists: lib/integration/enhanced-middleware.ts",
+      "details": {
+        "path": "/home/ubuntu/orion_content_enhanced/lib/integration/enhanced-middleware.ts"
+      }
+    },
+    {
+      "category": "Integration",
+      "test": "Health Endpoint",
+      "status": "pass",
+      "message": "Health endpoint properly implemented"
+    }
+  ],
+  "overallStatus": "fail"
+}
