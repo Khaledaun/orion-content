@@ -48,6 +48,8 @@
     "python/**/*",
     "orion-diag-*/**/*",
     "phase*/**/*",
-    "__pycache__/**/*"
+    "__pycache__/**/*",
+    "test/**/*",
+    "__tests__/**/*"
   ]
 }
