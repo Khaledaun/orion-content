@@ -50,6 +50,7 @@
     "phase*/**/*",
     "__pycache__/**/*",
     "test/**/*",
-    "__tests__/**/*"
+    "__tests__/**/*",
+    "lib/testing/**/*"
   ]
 }
