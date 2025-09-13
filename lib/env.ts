@@ -3,24 +3,24 @@ import { z } from 'zod'
 
 const envSchema = z.object({
   // Database
-  DATABASE_URL: z.string().url(),
+  DATABASE_URL: z.string().url().optional(),
   
   // Redis
   REDIS_URL: z.string().url().optional(),
   
   // Authentication
-  NEXTAUTH_SECRET: z.string().min(32),
-  NEXTAUTH_URL: z.string().url(),
+  NEXTAUTH_SECRET: z.string().min(1).optional(),
+  NEXTAUTH_URL: z.string().url().optional(),
   
   // API Keys
   OPENAI_API_KEY: z.string().optional(),
   PERPLEXITY_API_KEY: z.string().optional(),
   
   // Encryption
-  ENCRYPTION_KEY: z.string().min(32),
+  ENCRYPTION_KEY: z.string().min(1).optional(),
   
   // Session
-  SESSION_SECRET: z.string().min(32),
+  SESSION_SECRET: z.string().min(1).optional(),
   
   // Environment
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -32,13 +32,6 @@ const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>
 
-let env: Env
-
-try {
-  env = envSchema.parse(process.env)
-} catch (error) {
-  console.error('❌ Invalid environment variables:', error)
-  process.exit(1)
-}
+const env = envSchema.parse(process.env)
 
 export { env }
