@@ -1,18 +1,4 @@
 {
   "installCommand": "npm install",
-  "buildCommand": "npm run build",
-  "functions": {
-    "app/api/**/*.ts": {
-      "memory": 1024,
-      "maxDuration": 30
-    },
-    "api/**/*.ts": {
-      "memory": 1024,
-      "maxDuration": 30
-    }
-  },
-  "regions": ["iad1"],
-  "env": {
-    "SKIP_ENV_VALIDATION": "1"
-  }
+  "buildCommand": "npm run build"
 }
