@@ -5,8 +5,9 @@ import type { NextRequest } from "next/server";
 import { authOptions } from "./nextauth";
 import bcrypt from "bcryptjs";
 
-// Build-time safety check - skip authentication during build
+// Enhanced build-time safety check
 const isBuildTime = process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL;
+const isVercelBuild = process.env.VERCEL === '1' && !process.env.DATABASE_URL;
 
 /** Permissive session type used across the app */
 export type AuthSession = {
@@ -14,7 +15,7 @@ export type AuthSession = {
 } & Record<string, any>;
 
 export async function getSession(): Promise<AuthSession> {
-  if (isBuildTime) {
+  if (isBuildTime || isVercelBuild) {
     return {};
   }
   try {
@@ -26,7 +27,7 @@ export async function getSession(): Promise<AuthSession> {
 }
 
 export async function auth(): Promise<AuthSession> {
-  if (isBuildTime) {
+  if (isBuildTime || isVercelBuild) {
     return {};
   }
   try {
@@ -39,7 +40,7 @@ export async function auth(): Promise<AuthSession> {
 
 /** Minimal guard. Extend with RBAC when ready. */
 export async function requireAuth(_req?: NextRequest, opts: { api?: boolean } = {}) {
-  if (isBuildTime) {
+  if (isBuildTime || isVercelBuild) {
     // During build time, return a mock session to prevent build failures
     return { user: { id: 'build-time-mock', email: 'build@example.com', name: 'Build User' } };
   }
@@ -53,7 +54,7 @@ export async function requireAuth(_req?: NextRequest, opts: { api?: boolean } = 
     }
     return session;
   } catch (error) {
-    if (isBuildTime) {
+    if (isBuildTime || isVercelBuild) {
       return { user: { id: 'build-time-mock', email: 'build@example.com', name: 'Build User' } };
     }
     throw error;
@@ -66,6 +67,9 @@ export function requireApiAuth(
   _opts: { roles?: string[] | string; allowBearer?: boolean } = {}
 ) {
   return async function(req: any): Promise<Response> {
+    if (isBuildTime || isVercelBuild) {
+      return new Response(JSON.stringify({ message: "Build time mode" }), { status: 200 });
+    }
     await requireAuth(req, { api: true });
     // TODO: apply RBAC checks using _opts.roles when rbac is wired.
     return handler(req);

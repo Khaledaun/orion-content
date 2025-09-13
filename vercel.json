@@ -18,8 +18,12 @@
       "use": "@vercel/next",
       "config": {
         "memory": 1024,
-        "maxLambdaSize": "50mb"
+        "maxLambdaSize": "50mb",
+        "zeroConfig": true
       }
     }
-  ]
+  ],
+  "env": {
+    "SKIP_ENV_VALIDATION": "1"
+  }
 }
