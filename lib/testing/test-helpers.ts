@@ -109,7 +109,18 @@ export class DatabaseTestUtils {
 
     for (const table of tableOrder) {
       try {
-        await this.prisma.$executeRawUnsafe(`DELETE FROM "${table}" WHERE id LIKE 'test_%'`)
+        if (typeof (this.prisma as any)[table]?.deleteMany === 'function') {
+          await (this.prisma as any)[table].deleteMany({
+            where: {
+              id: {
+                startsWith: 'test_'
+              }
+            }
+          })
+        } else {
+          // Fallback: skip if model delegate does not exist
+          console.warn(`Prisma model for table ${table} does not exist or does not support deleteMany`)
+        }
       } catch (error) {
         // Ignore errors for tables that might not exist
         console.warn(`Could not clean up table ${table}:`, error)
