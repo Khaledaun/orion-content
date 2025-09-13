@@ -61,28 +61,16 @@ log "Using admin token: ${TOKEN:0:10}..."
 log "== SECTION A: BUILD AND TYPE CHECKING =="
 
 {
-    echo "=== pnpm typecheck ==="
-    if command -v pnpm >/dev/null 2>&1; then
-        pnpm typecheck 2>&1 || echo "TypeScript check completed with warnings/errors"
-    else
-        npm run typecheck 2>&1 || echo "TypeScript check completed with warnings/errors"
-    fi
+    echo "=== npm typecheck ==="
+    npm run typecheck 2>&1 || echo "TypeScript check completed with warnings/errors"
     
     echo ""
-    echo "=== pnpm lint ==="
-    if command -v pnpm >/dev/null 2>&1; then
-        pnpm lint:check 2>&1 || echo "Lint check completed with warnings/errors"
-    else
-        npm run lint:check 2>&1 || echo "Lint check completed with warnings/errors"
-    fi
+    echo "=== npm lint ==="
+    npm run lint:check 2>&1 || echo "Lint check completed with warnings/errors"
     
     echo ""
-    echo "=== pnpm build ==="
-    if command -v pnpm >/dev/null 2>&1; then
-        timeout 120s pnpm build 2>&1 || echo "Build completed or timed out"
-    else
-        timeout 120s npm run build 2>&1 || echo "Build completed or timed out"
-    fi
+    echo "=== npm build ==="
+    timeout 120s npm run build 2>&1 || echo "Build completed or timed out"
 } | tee "$LOGDIR/build_output.log"
 
 # ============================================================================
@@ -97,11 +85,7 @@ sleep 2
 
 # Start server in background
 log "Starting server on port $PORT..."
-if command -v pnpm >/dev/null 2>&1; then
-    pnpm start -p $PORT -H 0.0.0.0 >"$LOGDIR/server.log" 2>&1 &
-else
-    npm start -- -p $PORT -H 0.0.0.0 >"$LOGDIR/server.log" 2>&1 &
-fi
+npm start -- -p $PORT -H 0.0.0.0 >"$LOGDIR/server.log" 2>&1 &
 
 SERVER_PID=$!
 log "Server started with PID: $SERVER_PID"
@@ -201,27 +185,15 @@ log "== SECTION D: DATABASE VERIFICATION =="
 
 {
     echo "=== Prisma Migration Status ==="
-    if command -v pnpm >/dev/null 2>&1; then
-        pnpm prisma migrate status 2>&1 || echo "Migration status check completed"
-    else
-        npx prisma migrate status 2>&1 || echo "Migration status check completed"
-    fi
+    npx prisma migrate status 2>&1 || echo "Migration status check completed"
     echo ""
     
     echo "=== Prisma Version ==="
-    if command -v pnpm >/dev/null 2>&1; then
-        pnpm prisma version 2>&1
-    else
-        npx prisma version 2>&1
-    fi
+    npx prisma version 2>&1
     echo ""
     
     echo "=== Database Schema Verification ==="
-    if command -v pnpm >/dev/null 2>&1; then
-        pnpm prisma db pull --print 2>&1 || echo "Schema verification completed"
-    else
-        npx prisma db pull --print 2>&1 || echo "Schema verification completed"
-    fi
+    npx prisma db pull --print 2>&1 || echo "Schema verification completed"
     echo ""
     
 } | tee "$LOGDIR/database_verification.log"
@@ -234,11 +206,7 @@ log "== SECTION E: OBSERVABILITY AND REDACTION =="
 
 {
     echo "=== Running Observability Generation ==="
-    if command -v pnpm >/dev/null 2>&1; then
-        pnpm proof 2>&1 || echo "Proof script completed"
-    else
-        npm run proof 2>&1 || echo "Proof script completed"
-    fi
+    npm run proof 2>&1 || echo "Proof script completed"
     echo ""
     
     echo "=== Observability.json Content Check ==="
