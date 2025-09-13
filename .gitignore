@@ -31,3 +31,6 @@ node_modules/
 # never commit secrets
 .env
 .env.*
+
+# test scripts
+test-enterprise-fixes.sh
