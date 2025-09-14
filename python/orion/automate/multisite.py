@@ -20,6 +20,38 @@ from ..config import config
 logger = logging.getLogger(__name__)
 
 
+def parse_topic_count_range(topic_count_str: str) -> Tuple[int, int]:
+    """
+    Parse topic count string as range or single value.
+    
+    Args:
+        topic_count_str: String like "5" or "3-7"
+        
+    Returns:
+        Tuple of (min_count, max_count)
+    """
+    if not topic_count_str or not isinstance(topic_count_str, str):
+        return (5, 5)
+    
+    if "-" in topic_count_str:
+        try:
+            min_val, max_val = topic_count_str.split("-", 1)
+            min_count = int(min_val.strip())
+            max_count = int(max_val.strip())
+            # Swap if values are reversed
+            if min_count > max_count:
+                min_count, max_count = max_count, min_count
+            return (min_count, max_count)
+        except (ValueError, AttributeError):
+            return (5, 5)
+    else:
+        try:
+            count = int(topic_count_str)
+            return (count, count)
+        except (ValueError, TypeError):
+            return (5, 5)
+
+
 @dataclass
 class SiteConfig:
     """Configuration for a single site."""
@@ -32,25 +64,33 @@ class SiteConfig:
     cron_spec: Optional[str] = None  # For future CI scheduling
     
     @property
+    def topic_count_range(self) -> Tuple[int, int]:
+        """Get topic count as range tuple."""
+        return self.get_topic_count_range()
+    
+    @property
     def has_wordpress_config(self) -> bool:
         """Check if WordPress configuration is complete."""
         return all([self.wp_base_url, self.wp_username, self.wp_app_password])
     
     def get_topic_count_range(self) -> Tuple[int, int]:
         """Parse topic count as range or single value."""
-        if "-" in self.topic_count:
+        # Use the current topic_count string to compute the range
+        topic_count_str = self.topic_count
+        
+        if "-" in topic_count_str:
             try:
-                min_val, max_val = self.topic_count.split("-", 1)
+                min_val, max_val = topic_count_str.split("-", 1)
                 return int(min_val.strip()), int(max_val.strip())
             except (ValueError, AttributeError):
-                logger.warning(f"Invalid topic count range '{self.topic_count}', using default 5")
+                logger.warning(f"Invalid topic count range '{topic_count_str}', using default 5")
                 return 5, 5
         else:
             try:
-                count = int(self.topic_count)
+                count = int(topic_count_str)
                 return count, count
             except (ValueError, TypeError):
-                logger.warning(f"Invalid topic count '{self.topic_count}', using default 5")
+                logger.warning(f"Invalid topic count '{topic_count_str}', using default 5")
                 return 5, 5
     
     def to_env_dict(self) -> Dict[str, str]:

@@ -12,13 +12,14 @@ from orion.automate.run_pipeline import (
     run_pipeline, deduplicate_topics, PipelineLogger, main
 )
 from orion.automate.multisite import (
-    SiteConfig, load_site_config, get_site_list, validate_multisite_setup
+    SiteConfig, load_site_config, get_site_list, validate_multisite_setup,
+    parse_topic_count_range
 )
 from orion.automate.enrich import (
     generate_post, extract_main_topic, extract_categories,
     get_available_prompts, load_prompt_template
 )
-##from orion.automate.multisite import parse_topic_count_range
+
 
 
 class TestPipelineLogger:
@@ -140,7 +141,9 @@ class TestSiteConfig:
         assert env_dict == {
             'WP_BASE_URL': 'https://example.com',
             'WP_USERNAME': 'user',
-            'WP_APP_PASSWORD': 'pass'
+            'WP_APP_PASSWORD': 'pass',
+            'TOPIC_COUNT': '5',
+            'ENRICH_PROMPT_STRATEGY': 'default'
         }
 
 
@@ -269,7 +272,7 @@ class TestRunPipeline:
         # Setup mocks
         mock_site_config = Mock()
         mock_site_config.has_wordpress_config = True
-        mock_site_config.topic_count = 2
+        mock_site_config.topic_count = "2"
         mock_site_config.topic_count_range = (2, 2)
         mock_site_config.enrich_prompt_strategy = 'default'
         mock_load_config.return_value = mock_site_config
@@ -346,7 +349,7 @@ class TestRunPipeline:
         
         mock_site_config = Mock()
         mock_site_config.has_wordpress_config = False
-        mock_site_config.topic_count = 5
+        mock_site_config.topic_count = "5"
         mock_site_config.topic_count_range = (5, 5)
         mock_site_config.enrich_prompt_strategy = 'default'
         mock_load_config.return_value = mock_site_config
@@ -378,7 +381,7 @@ class TestRunPipeline:
         
         mock_site_config = Mock()
         mock_site_config.has_wordpress_config = True
-        mock_site_config.topic_count = 1
+        mock_site_config.topic_count = "1"
         mock_site_config.topic_count_range = (1, 1)
         mock_site_config.enrich_prompt_strategy = 'default'
         mock_load_config.return_value = mock_site_config
@@ -439,7 +442,8 @@ class TestPipelineCLI:
             site_key='test-site',
             topic_count=3,
             publish=True,
-            dry_run_wp=None
+            dry_run_wp=None,
+            enable_jitter=True
         )
     
     @patch('orion.automate.run_pipeline.run_pipeline')
@@ -496,7 +500,7 @@ class TestEnhancedFeatures:
         """Test enhanced SiteConfig fields."""
         config = SiteConfig(
             site_key="test",
-            topic_count_range=(3, 7),
+            topic_count="3-7",
             enrich_prompt_strategy="random"
         )
         assert config.topic_count_range == (3, 7)
@@ -602,7 +606,7 @@ class TestJitterFunctionality:
         # Mock minimal config
         mock_site_config = Mock()
         mock_site_config.has_wordpress_config = False
-        mock_site_config.topic_count = 5
+        mock_site_config.topic_count = "5"
         mock_site_config.topic_count_range = (5, 5)
         mock_site_config.enrich_prompt_strategy = 'default'
         mock_load_config.return_value = mock_site_config
@@ -636,8 +640,7 @@ class TestJitterFunctionality:
         # Mock minimal config
         mock_site_config = Mock()
         mock_site_config.has_wordpress_config = False
-        mock_site_config.topic_count = 5
-        mock_site_config.topic_count_range = (5, 5) 
+        mock_site_config.topic_count = "5" 
         mock_site_config.enrich_prompt_strategy = 'default'
         mock_load_config.return_value = mock_site_config
         
@@ -670,7 +673,7 @@ class TestTopicCountRange:
         config = load_site_config('test-site')
         
         assert config.topic_count_range == (3, 7)
-        assert config.topic_count == 3  # Backward compatibility (min value)
+        assert config.topic_count == '3-7'  # Should preserve the original string format
     
     @patch.dict(os.environ, {'TOPIC_COUNT__test_site': '10-15'})
     def test_site_specific_topic_range(self):
