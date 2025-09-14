@@ -35,9 +35,13 @@ jobs:
 
       - name: 🔷 TypeScript validation
         run: npm run typecheck
+        env:
+          NODE_ENV: production
 
       - name: 🧹 ESLint validation
         run: npm run lint:check
+        env:
+          NODE_ENV: production
 
       - name: 🎨 Prettier validation
         run: npx prettier --check "**/*.{ts,tsx,js,jsx,json,md}"
@@ -51,10 +55,12 @@ jobs:
           npx prisma format --check
 
       - name: 🏗️ Build validation
-        run: npm run build
+        run: npm run build:offline
         env:
           SKIP_PRISMA_GENERATE: true
           NEXT_TELEMETRY_DISABLED: 1
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY || 'test-encryption-key-for-ci-builds-only' }}
+          NODE_ENV: production
 
       - name: 📊 Bundle size analysis
         run: |
@@ -223,7 +229,7 @@ jobs:
 
       - name: 🏗️ Build for performance analysis
         run: |
-          npm run build
+          npm run build:offline
           echo "📊 Analyzing build output..."
           
           if [ -d ".next/static/chunks" ]; then
@@ -240,6 +246,11 @@ jobs:
               echo "✅ No excessively large chunks detected"
             fi
           fi
+        env:
+          SKIP_PRISMA_GENERATE: true
+          NEXT_TELEMETRY_DISABLED: 1
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY || 'test-encryption-key-for-ci-builds-only' }}
+          NODE_ENV: production
 
       - name: 📈 Bundle size tracking
         run: |

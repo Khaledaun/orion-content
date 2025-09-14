@@ -1,16 +1,6 @@
 
 // Define local type to avoid dependency on Prisma generated types
-type TenWebSite = {
-  id: string;
-  siteId: string;
-  tenWebSiteId: string;
-  tenWebUrl: string;
-  status: string;
-  lastSync?: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
+// This interface defines the structure for 10Web site data
 interface TenWebSiteData {
   id: string;
   url: string;
