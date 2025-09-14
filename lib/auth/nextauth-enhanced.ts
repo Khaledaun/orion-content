@@ -10,7 +10,6 @@ import { PasswordManager } from "./password";
 import { TwoFactorAuth } from "./2fa";
 import { TokenManager } from "./token";
 import { env } from "@/lib/env/validation";
-import * as bcryptjs from "bcryptjs";
 
 // Initialize Redis for session management if available
 let redis: Redis | null = null;
