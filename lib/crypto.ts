@@ -163,3 +163,39 @@ export async function decryptData(
     return decrypted;
   }
 }
+
+/**
+ * Simple encrypt function for OAuth tokens - returns base64 string
+ */
+export async function encrypt(data: string): Promise<string> {
+  try {
+    const encryptionKey = process.env.ENCRYPTION_KEY;
+    if (!encryptionKey) {
+      throw new Error('ENCRYPTION_KEY environment variable not set');
+    }
+    
+    const encrypted = await encryptData(data, encryptionKey);
+    return Buffer.from(JSON.stringify(encrypted)).toString('base64');
+  } catch (error) {
+    console.error('Encryption error:', error);
+    throw new Error('Failed to encrypt data');
+  }
+}
+
+/**
+ * Simple decrypt function for OAuth tokens - accepts base64 string
+ */
+export async function decrypt(encryptedString: string): Promise<string> {
+  try {
+    const encryptionKey = process.env.ENCRYPTION_KEY;
+    if (!encryptionKey) {
+      throw new Error('ENCRYPTION_KEY environment variable not set');
+    }
+    
+    const encryptedData = JSON.parse(Buffer.from(encryptedString, 'base64').toString()) as EncryptedData;
+    return await decryptData(encryptedData, encryptionKey);
+  } catch (error) {
+    console.error('Decryption error:', error);
+    throw new Error('Failed to decrypt data');
+  }
+}

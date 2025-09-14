@@ -11,41 +11,52 @@ datasource db {
 
 // Phase 8 Core Models
 model User {
-  id           String          @id @default(cuid())
-  email        String          @unique
-  passwordHash String?
-  name         String?
-  image        String?
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-  accounts     Account[]
-  sessions     Session[]
-  roles        UserRole[]
-  reviews      Review[]
-  onboarding   UserOnboarding?
+  id               String            @id @default(cuid())
+  email            String            @unique
+  passwordHash     String?
+  name             String?
+  image            String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  accounts         Account[]
+  sessions         Session[]
+  roles            UserRole[]
+  reviews          Review[]
+  onboarding       UserOnboarding?
+  // Phase 4-Pro relations
+  subscription     UserSubscription?
+  editorSessions   EditorSession[]
 
   @@map("users")
 }
 
 model Site {
-  id            String         @id @default(cuid())
-  key           String         @unique
-  name          String
-  timezone      String         @default("UTC")
-  publisher     String?
-  locales       Json?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  categories    Category[]
-  topics        Topic[]
-  tenWebSite    TenWebSite?
-  gscConnection GscConnection?
-  ga4Connection Ga4Connection?
-  drafts        Draft[]
-  siteStrategy  SiteStrategy?
-  integrations  Integration[]
-  metrics       SiteMetrics?
-  jobMetrics    JobMetrics[]
+  id                    String                  @id @default(cuid())
+  key                   String                  @unique
+  name                  String
+  timezone              String                  @default("UTC")
+  publisher             String?
+  locales               Json?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  categories            Category[]
+  topics                Topic[]
+  tenWebSite            TenWebSite?
+  gscConnection         GscConnection?
+  ga4Connection         Ga4Connection?
+  drafts                Draft[]
+  siteStrategy          SiteStrategy?
+  integrations          Integration[]
+  metrics               SiteMetrics?
+  jobMetrics            JobMetrics[]
+  // Phase 4-Pro relations
+  ga4Integration        Ga4Integration?
+  gscIntegration        GscIntegration?
+  seoAudits             SeoAudit[]
+  contentStrategy       ContentStrategy?
+  affiliateIntegrations AffiliateIntegration[]
+  backlinkOpportunities BacklinkOpportunity[]
+  progressReports       ProgressReport[]
 
   @@map("sites")
 }
@@ -75,6 +86,8 @@ model Week {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   topics    Topic[]
+  // Phase 4-Pro relations
+  topicPlans TopicPlan[]
 
   @@map("weeks")
 }
@@ -259,19 +272,21 @@ enum DraftStatus {
 }
 
 model Draft {
-  id         String      @id @default(cuid())
-  siteId     String
-  title      String
-  content    String?
-  score      Float?
-  status     DraftStatus @default(PENDING)
-  violations Json?
-  externalId String? // WordPress post ID
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  site       Site        @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  reviews    Review[]
-  qaReport   QAReport?
+  id            String         @id @default(cuid())
+  siteId        String
+  title         String
+  content       String?
+  score         Float?
+  status        DraftStatus    @default(PENDING)
+  violations    Json?
+  externalId    String? // WordPress post ID
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  site          Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  reviews       Review[]
+  qaReport      QAReport?
+  // Phase 4-Pro relations
+  articleEditor ArticleEditor?
 
   @@index([siteId])
   @@index([status])
@@ -526,3 +541,383 @@ model TwoFactorAuth {
   @@index([userId])
   @@map("two_factor_auth")
 }
+
+// Phase 4-Pro: Advanced Features
+
+// AI Prompt Engineer System
+model PromptTemplate {
+  id               String        @id @default(cuid())
+  name             String
+  description      String?
+  category         String // 'content', 'seo', 'social', 'analysis'
+  systemPrompt     String        // Base system prompt
+  userPromptSchema Json // JSON schema for user inputs
+  roles            Json          @default("[]") // Applicable roles/contexts
+  isActive         Boolean       @default(true)
+  isSystemManaged  Boolean       @default(false)
+  version          Int           @default(1)
+  createdBy        String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  promptTests      PromptTest[]
+  
+  @@index([category])
+  @@index([isActive])
+  @@map("prompt_templates")
+}
+
+model PromptTest {
+  id           String         @id @default(cuid())
+  templateId   String
+  name         String
+  inputData    Json          // Test input data
+  expectedType String        // Expected output type/format
+  status       String        @default("pending") // pending, passed, failed
+  results      Json?         // Test results and metrics
+  createdAt    DateTime      @default(now())
+  template     PromptTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  
+  @@index([templateId])
+  @@index([status])
+  @@map("prompt_tests")
+}
+
+// Enhanced OAuth Integrations
+model Ga4Integration {
+  id               String   @id @default(cuid())
+  siteId           String   @unique
+  propertyId       String
+  refreshToken     String
+  accessToken      String?
+  tokenExpiry      DateTime?
+  accountEmail     String
+  viewId           String?
+  isActive         Boolean  @default(true)
+  lastSync         DateTime?
+  syncError        String?
+  permissions      Json     @default("[]")
+  configuration    Json     @default("{}")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  site             Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  
+  @@index([propertyId])
+  @@index([isActive])
+  @@map("ga4_integrations")
+}
+
+model GscIntegration {
+  id               String   @id @default(cuid())
+  siteId           String   @unique
+  siteUrl          String
+  refreshToken     String
+  accessToken      String?
+  tokenExpiry      DateTime?
+  accountEmail     String
+  isActive         Boolean  @default(true)
+  lastSync         DateTime?
+  syncError        String?
+  permissions      Json     @default("[]")
+  configuration    Json     @default("{}")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  site             Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  
+  @@index([siteUrl])
+  @@index([isActive])
+  @@map("gsc_integrations")
+}
+
+// SEO Audit System
+model SeoAudit {
+  id             String        @id @default(cuid())
+  siteId         String
+  type           String        // 'full-site', 'page', 'competitor'
+  targetUrl      String?
+  status         String        @default("pending") // pending, running, completed, failed
+  overallScore   Float?
+  results        Json?         // Detailed audit results
+  recommendations Json?        // Generated recommendations
+  scheduledFor   DateTime?
+  completedAt    DateTime?
+  errorMessage   String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  site           Site          @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  auditReports   SeoAuditReport[]
+  
+  @@index([siteId])
+  @@index([status])
+  @@index([type])
+  @@map("seo_audits")
+}
+
+model SeoAuditReport {
+  id        String   @id @default(cuid())
+  auditId   String
+  category  String   // 'technical', 'content', 'performance', 'accessibility'
+  score     Float
+  details   Json     // Detailed findings
+  createdAt DateTime @default(now())
+  audit     SeoAudit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  
+  @@index([auditId])
+  @@index([category])
+  @@map("seo_audit_reports")
+}
+
+// Feature Flags & Tier Management
+enum SubscriptionTier {
+  STARTER
+  PRO
+  GURU
+}
+
+model FeatureFlag {
+  id           String   @id @default(cuid())
+  key          String   @unique
+  name         String
+  description  String?
+  isEnabled    Boolean  @default(false)
+  requiredTier SubscriptionTier @default(STARTER)
+  configuration Json    @default("{}")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@index([key])
+  @@index([isEnabled])
+  @@map("feature_flags")
+}
+
+model UserSubscription {
+  id         String           @id @default(cuid())
+  userId     String           @unique
+  tier       SubscriptionTier @default(STARTER)
+  features   Json             @default("[]") // Enabled features list
+  limits     Json             @default("{}") // Usage limits
+  expiresAt  DateTime?
+  isActive   Boolean          @default(true)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([tier])
+  @@map("user_subscriptions")
+}
+
+// Content Strategy & Planning
+model ContentStrategy {
+  id            String          @id @default(cuid())
+  siteId        String          @unique
+  focusChart    Json?           // Niche mapping visualization data
+  targetAudience Json?          // Audience demographics and interests
+  contentPillars Json           @default("[]") // Main content themes
+  competitorUrls Json           @default("[]") // Competitor websites
+  keywords       Json           @default("[]") // Primary keywords
+  goals          Json           @default("{}") // Traffic, engagement goals
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  site          Site            @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  topicPlans    TopicPlan[]
+  
+  @@map("content_strategies")
+}
+
+model TopicPlan {
+  id                String           @id @default(cuid())
+  strategyId        String
+  weekId            String
+  generatedTopics   Json             @default("[]") // 30 generated topics
+  approvedTopics    Json             @default("[]") // User-approved subset
+  status            String           @default("draft") // draft, pending, approved
+  aiPromptUsed      String?
+  generatedAt       DateTime         @default(now())
+  approvedAt        DateTime?
+  approvedBy        String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  strategy          ContentStrategy  @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  week              Week             @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  
+  @@index([strategyId])
+  @@index([weekId])
+  @@index([status])
+  @@map("topic_plans")
+}
+
+// Article Review & Editor System
+model ArticleEditor {
+  id               String         @id @default(cuid())
+  draftId          String         @unique
+  content          Json           // Block-based editor content
+  seoData          Json?          // SEO analysis and suggestions
+  brandPreview     Json?          // Brand-styled preview data
+  socialEmbeds     Json           @default("[]") // Embedded social content
+  internalLinks    Json           @default("[]") // Suggested internal links
+  monetization     Json?          // Affiliate links and products
+  publishingChecks Json?          // Quality gate results
+  version          Int            @default(1)
+  lastSavedAt      DateTime       @default(now())
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  draft            Draft          @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  editorSessions   EditorSession[]
+  
+  @@index([draftId])
+  @@map("article_editors")
+}
+
+model EditorSession {
+  id         String        @id @default(cuid())
+  editorId   String
+  userId     String
+  changes    Json          // Collaborative editing changes
+  isActive   Boolean       @default(true)
+  startedAt  DateTime      @default(now())
+  endedAt    DateTime?
+  editor     ArticleEditor @relation(fields: [editorId], references: [id], onDelete: Cascade)
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([editorId])
+  @@index([userId])
+  @@index([isActive])
+  @@map("editor_sessions")
+}
+
+// Social Media Integration
+model SocialEmbed {
+  id          String   @id @default(cuid())
+  platform    String   // 'instagram', 'tiktok', 'youtube', 'twitter'
+  embedUrl    String
+  embedCode   String?
+  thumbnailUrl String?
+  title       String?
+  description String?
+  isActive    Boolean  @default(true)
+  cacheExpiry DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([platform])
+  @@index([isActive])
+  @@map("social_embeds")
+}
+
+// Monetization System
+enum AffiliateNetwork {
+  AMAZON_ASSOCIATES
+  CJ_AFFILIATE
+  SHAREASALE
+  CUSTOM
+}
+
+model AffiliateIntegration {
+  id            String          @id @default(cuid())
+  siteId        String
+  network       AffiliateNetwork
+  accountId     String?
+  apiKey        String?
+  credentials   Json?           // Encrypted credentials
+  isActive      Boolean         @default(true)
+  configuration Json            @default("{}")
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  site          Site            @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  products      AffiliateProduct[]
+  
+  @@index([siteId])
+  @@index([network])
+  @@index([isActive])
+  @@map("affiliate_integrations")
+}
+
+model AffiliateProduct {
+  id             String               @id @default(cuid())
+  integrationId  String
+  productId      String               // External product ID
+  name           String
+  description    String?
+  price          String?
+  imageUrl       String?
+  affiliateUrl   String
+  commissionRate Float?
+  category       String?
+  isActive       Boolean              @default(true)
+  lastUpdated    DateTime             @default(now())
+  createdAt      DateTime             @default(now())
+  integration    AffiliateIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  
+  @@index([integrationId])
+  @@index([productId])
+  @@index([category])
+  @@index([isActive])
+  @@map("affiliate_products")
+}
+
+// Backlink Opportunities System
+model BacklinkOpportunity {
+  id               String   @id @default(cuid())
+  siteId           String
+  targetUrl        String
+  sourceDomain     String
+  sourceUrl        String?
+  contactEmail     String?
+  authorName       String?
+  domainAuthority  Float?
+  relevanceScore   Float?
+  outreachStatus   String   @default("pending") // pending, contacted, responded, accepted, rejected
+  outreachTemplate String?
+  sentAt           DateTime?
+  respondedAt      DateTime?
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  site             Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  
+  @@index([siteId])
+  @@index([outreachStatus])
+  @@index([domainAuthority])
+  @@map("backlink_opportunities")
+}
+
+// Progress Monitoring & Analytics
+model ProgressReport {
+  id            String   @id @default(cuid())
+  siteId        String
+  reportType    String   // 'weekly', 'monthly', 'custom'
+  period        String   // Date range identifier
+  metrics       Json     // Collected metrics data
+  insights      Json?    // AI-generated insights
+  recommendations Json?  // Actionable recommendations
+  emailSent     Boolean  @default(false)
+  emailSentAt   DateTime?
+  createdAt     DateTime @default(now())
+  site          Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  
+  @@index([siteId])
+  @@index([reportType])
+  @@index([period])
+  @@map("progress_reports")
+}
+
+// Onboarding Enhancement
+model OnboardingStep {
+  id           String   @id @default(cuid())
+  key          String   @unique
+  title        String
+  description  String
+  category     String   // 'setup', 'integration', 'content'
+  order        Int
+  isRequired   Boolean  @default(false)
+  requiredTier SubscriptionTier @default(STARTER)
+  configuration Json   @default("{}")
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  
+  @@index([order])
+  @@index([category])
+  @@map("onboarding_steps")
+}
+
+
