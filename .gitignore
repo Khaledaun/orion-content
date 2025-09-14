@@ -52,3 +52,7 @@ test-enterprise-fixes.sh
 
 # deployment reports
 deployment-report-*.json
+
+# Core dump files
+core
+core.*
