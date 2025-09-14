@@ -98,7 +98,7 @@ npm run test-deploy -- --skip-build
 
 1. **Automated Testing**
    - TypeScript compilation check
-   - ESLint code quality validation  
+   - ESLint code quality validation
    - Unit tests execution
    - Integration tests execution
    - Fails deployment if any tests fail
@@ -116,7 +116,7 @@ npm run test-deploy -- --skip-build
 4. **Test Account Seeding**
    - Creates test accounts for different plan types:
      - Starter: `starter@orion-test.local` / `StarterTest2024!`
-     - Pro: `pro@orion-test.local` / `ProTest2024!`  
+     - Pro: `pro@orion-test.local` / `ProTest2024!`
      - Guru: `guru@orion-test.local` / `GuruTest2024!`
 
 5. **Endpoint Validation**
@@ -142,7 +142,7 @@ For GitHub Actions or other CI/CD systems:
   env:
     VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     DATABASE_URL: ${{ secrets.DATABASE_URL }}
-    STAGING: "1"  # or PRODUCTION: "1" for production
+    STAGING: "1" # or PRODUCTION: "1" for production
 ```
 
 #### Manual Usage
@@ -153,19 +153,21 @@ The script is designed to be run both in CI/CD environments and locally by devel
 # Local staging deployment
 VERCEL_TOKEN=your_token npm run test-deploy
 
-# Local production deployment  
+# Local production deployment
 VERCEL_TOKEN=your_token PRODUCTION=1 npm run test-deploy
 ```
 
 #### Environment Variables for Deployment
 
 Required for deployment:
+
 - `VERCEL_TOKEN` - Vercel deployment token
 - `DATABASE_URL` - Production database connection
 - `NEXTAUTH_SECRET` - NextAuth secret for production
 - `NEXTAUTH_URL` - Production URL for NextAuth
 
 Optional:
+
 - `STAGING_URL` - Override default staging URL
 - `PRODUCTION_URL` - Override default production URL
 
@@ -174,34 +176,40 @@ Optional:
 After successful deployment, complete the manual QA checklist:
 
 **Authentication & Security**
+
 - [ ] Test login with valid/invalid credentials
 - [ ] Verify session persistence and logout
 - [ ] Check CSRF protection
 
-**Core Application Features**  
+**Core Application Features**
+
 - [ ] Navigate dashboard and core features
 - [ ] Test site management functionality
 - [ ] Verify responsive design
 - [ ] Check for JavaScript errors
 
 **API Endpoints**
+
 - [ ] Health check returns proper status
 - [ ] Protected endpoints require authentication
 - [ ] Rate limiting functions correctly
 - [ ] Proper error status codes
 
 **Production-Specific** (production deployments only)
+
 - [ ] SSL certificate valid
-- [ ] DNS settings correct  
+- [ ] DNS settings correct
 - [ ] Monitoring systems active
 - [ ] Backup systems operational
 
 **Test Account Validation**
+
 - [ ] Login with Starter account: `starter@orion-test.local`
 - [ ] Login with Pro account: `pro@orion-test.local`
 - [ ] Login with Guru account: `guru@orion-test.local`
 
 **Performance & Cross-Browser**
+
 - [ ] Page load times under 3 seconds
 - [ ] No memory leaks or performance issues
 - [ ] Chrome, Firefox, Safari, Edge compatibility
@@ -209,16 +217,19 @@ After successful deployment, complete the manual QA checklist:
 #### Troubleshooting
 
 **Build Failures**
+
 - Check TypeScript errors: `npm run typecheck`
-- Check linting issues: `npm run lint:check`  
+- Check linting issues: `npm run lint:check`
 - Verify dependencies: `npm install`
 
 **Deployment Failures**
+
 - Verify Vercel token: `vercel whoami`
 - Check environment variables in Vercel dashboard
 - Review deployment logs for specific errors
 
 **Endpoint Validation Failures**
+
 - Check if endpoints are implemented
 - Verify authentication requirements
 - Test endpoints manually with curl or browser

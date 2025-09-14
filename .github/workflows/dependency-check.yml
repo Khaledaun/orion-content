@@ -3,11 +3,11 @@ name: 🔍 Dependency Health Check
 on:
   schedule:
     # Run daily at 2 AM UTC
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * *"
   pull_request:
     paths:
-      - 'package.json'
-      - 'package-lock.json'
+      - "package.json"
+      - "package-lock.json"
   workflow_dispatch:
 
 jobs:
@@ -23,8 +23,8 @@ jobs:
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - name: 🔧 Install dependencies
         run: npm ci --silent
@@ -32,20 +32,20 @@ jobs:
       - name: 🛡️ Security audit
         run: |
           echo "🔍 Running comprehensive security audit..."
-          
+
           # Check if jq is available
           if ! command -v jq >/dev/null 2>&1; then
             echo "❌ jq is not available, installing..."
             sudo apt-get update && sudo apt-get install -y jq
           fi
-          
+
           # Run audit and capture results with proper error handling
           if npm audit --audit-level=low --format=json > full-audit.json 2>/dev/null; then
             audit_success=true
           else
             audit_success=false
           fi
-          
+
           # Check if we have valid JSON output
           if [ -s full-audit.json ] && jq empty full-audit.json 2>/dev/null; then
             echo "📊 Security audit summary:"
@@ -101,16 +101,16 @@ jobs:
       - name: 📈 Dependency analysis
         run: |
           echo "📦 Analyzing dependency health..."
-          
+
           # Count total dependencies
           total_deps=$(jq '.dependencies | length' package.json 2>/dev/null || echo "0")
           total_dev_deps=$(jq '.devDependencies | length' package.json 2>/dev/null || echo "0")
-          
+
           echo "📊 Dependency counts:"
           echo "Production dependencies: $total_deps"
           echo "Development dependencies: $total_dev_deps"
           echo "Total: $((total_deps + total_dev_deps))"
-          
+
           # Check for outdated packages
           echo "🔍 Checking for outdated packages..."
           if npm outdated --format=json > outdated.json 2>/dev/null; then
@@ -118,7 +118,7 @@ jobs:
           else
             outdated_success=false
           fi
-          
+
           if [ -s outdated.json ] && jq empty outdated.json 2>/dev/null && [ "$(cat outdated.json)" != "{}" ]; then
             echo "📦 Outdated packages detected:"
             jq -r 'to_entries[] | "\(.key): \(.value.current) → \(.value.latest)"' outdated.json 2>/dev/null | head -10
@@ -136,10 +136,10 @@ jobs:
       - name: 🔍 License compliance check
         run: |
           echo "📋 Checking license compliance..."
-          
+
           # Install license checker
           npx license-checker --summary --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0;Unlicense' > license-check.txt || true
-          
+
           if [ -s license-check.txt ]; then
             echo "📄 License summary:"
             cat license-check.txt
@@ -153,19 +153,19 @@ jobs:
       - name: 📊 Bundle impact analysis
         run: |
           echo "📏 Analyzing potential bundle impact..."
-          
+
           # Check for heavy dependencies
           heavy_deps=()
-          
+
           # Common heavy packages to watch
           check_packages=("moment" "lodash" "rxjs" "three" "d3" "chart.js")
-          
+
           for package in "${check_packages[@]}"; do
             if jq -e ".dependencies.\"$package\"" package.json >/dev/null 2>&1 || jq -e ".devDependencies.\"$package\"" package.json >/dev/null 2>&1; then
               heavy_deps+=("$package")
             fi
           done
-          
+
           if [ ${#heavy_deps[@]} -gt 0 ]; then
             echo "⚠️ Heavy dependencies detected:"
             printf '%s\n' "${heavy_deps[@]}"
@@ -179,14 +179,14 @@ jobs:
       - name: 🔄 Dependency freshness
         run: |
           echo "📅 Checking dependency freshness..."
-          
+
           # Check package.json last modified time
           last_modified=$(stat -c %Y package.json)
           current_time=$(date +%s)
           days_since_update=$(( (current_time - last_modified) / 86400 ))
-          
+
           echo "📆 Days since package.json last updated: $days_since_update"
-          
+
           if [ $days_since_update -gt 90 ]; then
             echo "⚠️ Dependencies haven't been updated in $days_since_update days"
             echo "" >> $GITHUB_STEP_SUMMARY

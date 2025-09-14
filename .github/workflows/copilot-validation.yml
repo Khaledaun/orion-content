@@ -2,9 +2,9 @@ name: 🤖 Copilot Automated Validation
 
 on:
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -25,8 +25,8 @@ jobs:
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - name: 🔧 Install dependencies
         run: |
@@ -81,10 +81,10 @@ jobs:
       - name: 🔍 Edge Runtime compatibility check
         run: |
           echo "🌐 Checking for Edge Runtime incompatible APIs..."
-          
+
           # Check for Node.js-specific APIs
           incompatible_apis="fs\.|path\.|process\.env\.|os\.|crypto\.createHash"
-          
+
           if grep -r "$incompatible_apis" app/ lib/ --include="*.ts" --include="*.tsx" | grep -v ".d.ts" | head -10; then
             echo "⚠️ Potential Edge Runtime incompatible APIs found above"
             echo "Consider using Web APIs instead of Node.js APIs for Edge Runtime compatibility"
@@ -105,13 +105,13 @@ jobs:
         run: |
           echo "## 🤖 Copilot Validation Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ "${{ job.status }}" == "success" ]; then
             echo "✅ **All validations passed!** Code is ready for review and merge." >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ **Some validations failed.** Please review the errors above." >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Validation Checklist" >> $GITHUB_STEP_SUMMARY
           echo "- [x] TypeScript compilation" >> $GITHUB_STEP_SUMMARY
@@ -127,7 +127,7 @@ jobs:
     name: 🔒 Security Scan
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
@@ -135,8 +135,8 @@ jobs:
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - name: 🔧 Install dependencies
         run: npm ci --silent
@@ -144,20 +144,20 @@ jobs:
       - name: 🛡️ Run security audit
         run: |
           echo "🔍 Running npm security audit..."
-          
+
           # Check if jq is available
           if ! command -v jq >/dev/null 2>&1; then
             echo "❌ jq is not available, installing..."
             sudo apt-get update && sudo apt-get install -y jq
           fi
-          
+
           # Try to run audit with JSON format first
           if npm audit --audit-level=moderate --format=json > audit-results.json 2>/dev/null; then
             audit_success=true
           else
             audit_success=false
           fi
-          
+
           # Check if we have valid JSON
           if [ -s audit-results.json ] && jq empty audit-results.json 2>/dev/null; then
             echo "📊 Security audit results:"
@@ -189,7 +189,7 @@ jobs:
       - name: 🔍 Check for hardcoded secrets
         run: |
           echo "🕵️ Scanning for potential hardcoded secrets..."
-          
+
           # Common secret patterns
           secret_patterns=(
             "password\s*=\s*['\"][^'\"]*['\"]"
@@ -198,14 +198,14 @@ jobs:
             "token\s*[=:]\s*['\"][^'\"]*['\"]"
             "['\"][A-Za-z0-9]{20,}['\"]"
           )
-          
+
           found_secrets=false
           for pattern in "${secret_patterns[@]}"; do
             if grep -r -i "$pattern" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" . | grep -v node_modules | grep -v ".git" | head -5; then
               found_secrets=true
             fi
           done
-          
+
           if [ "$found_secrets" = true ]; then
             echo "⚠️ Potential hardcoded secrets found. Please review the matches above."
             echo "Consider using environment variables for sensitive data."
@@ -225,8 +225,8 @@ jobs:
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - name: 🔧 Install dependencies
         run: npm ci --silent
@@ -235,7 +235,7 @@ jobs:
         run: |
           npm run build:offline
           echo "📊 Analyzing build output..."
-          
+
           if [ -d ".next/static/chunks" ]; then
             echo "📦 Chunk analysis:"
             find .next/static/chunks -name "*.js" -type f -exec du -h {} + | sort -hr | head -10
