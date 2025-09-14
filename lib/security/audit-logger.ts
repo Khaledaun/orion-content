@@ -163,7 +163,7 @@ export class AuditLogger {
         skip: params.offset || 0
       });
 
-      return logs.map(log => ({
+      return logs.map((log: any) => ({
         userId: log.userId || undefined,
         sessionId: (log as any).sessionId || undefined,
         action: log.action,
@@ -216,7 +216,7 @@ export class AuditLogger {
         _count: { category: true }
       });
 
-      const eventsByCategory = categoryStats.reduce((acc, stat) => {
+      const eventsByCategory = categoryStats.reduce((acc: any, stat: any) => {
         acc[(stat as any).category || 'UNKNOWN'] = stat._count.category;
         return acc;
       }, {} as Record<string, number>);
@@ -228,7 +228,7 @@ export class AuditLogger {
         _count: { severity: true }
       });
 
-      const eventsBySeverity = severityStats.reduce((acc, stat) => {
+      const eventsBySeverity = severityStats.reduce((acc: any, stat: any) => {
         acc[(stat as any).severity || 'LOW'] = stat._count.severity;
         return acc;
       }, {} as Record<string, number>);
@@ -242,7 +242,7 @@ export class AuditLogger {
         take: 10
       });
 
-      const topUsers = userStats.map(stat => ({
+      const topUsers = userStats.map((stat: any) => ({
         userId: stat.userId!,
         count: stat._count.userId
       }));
@@ -256,7 +256,7 @@ export class AuditLogger {
         take: 10
       });
 
-      const topActions = actionStats.map(stat => ({
+      const topActions = actionStats.map((stat: any) => ({
         action: stat.action,
         count: stat._count.action
       }));

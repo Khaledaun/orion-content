@@ -148,7 +148,7 @@ export class RoleManager {
       // Log audit event
       await this.logAuditEvent(updatedBy, 'UPDATE_ROLE', 'roles', roleId, {
         updates,
-        previousPermissions: existingRole.permissions.map(p => p.permissionId)
+        previousPermissions: existingRole.permissions.map((p: any) => p.permissionId)
       });
 
     } catch (error) {
@@ -451,7 +451,7 @@ export class RoleManager {
         }
       });
 
-      return userRoles.map(ur => ur.role);
+      return userRoles.map((ur: any) => ur.role);
     } catch (error) {
       console.error('Error fetching user roles:', error);
       return [];

@@ -1,5 +1,5 @@
 {
   "framework": "nextjs",
   "installCommand": "npm install --no-audit --no-fund",
-  "buildCommand": "npx prisma generate --schema=prisma/schema.prisma && npm run build"
+  "buildCommand": "npx prisma generate --schema=prisma/schema.prisma && NEXT_TELEMETRY_DISABLED=1 next build"
 }

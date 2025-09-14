@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
     // If backup code was used, remove it from the list
     if (verification.usedBackupCode) {
       const updatedBackupCodes = twoFactorAuth.backupCodes?.filter(
-        code => !TwoFactorAuth.verifyBackupCode(verification.usedBackupCode!, [code])
+        (code: string) => !TwoFactorAuth.verifyBackupCode(verification.usedBackupCode!, [code])
       ) || [];
 
       await prisma.twoFactorAuth.update({

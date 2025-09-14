@@ -152,6 +152,19 @@ export class EdgeRateLimiter {
       }
     }
   }
+
+  /**
+   * Clear failed attempts for a specific identifier
+   */
+  async clearAttempts(identifier: string): Promise<void> {
+    if (this.redis) {
+      const key = `brute_force:${identifier}`;
+      await this.redis.del(key);
+    } else {
+      const key = `brute_force:${identifier}`;
+      this.memoryStore.delete(key);
+    }
+  }
 }
 
 // Predefined rate limit configurations
@@ -283,7 +296,7 @@ export async function applyRateLimit(
   if (!result.allowed) {
     return {
       allowed: false,
-      response: createRateLimitResponse(result)
+      response: createRateLimitResponse(result, config)
     };
   }
 
@@ -331,12 +344,6 @@ export class BruteForceProtection {
   }
 
   static async clearFailedAttempts(identifier: string): Promise<void> {
-    if (rateLimiter.redis) {
-      const key = `brute_force:${identifier}`;
-      await rateLimiter.redis.del(key);
-    } else {
-      const key = `brute_force:${identifier}`;
-      rateLimiter.memoryStore.delete(key);
-    }
+    await rateLimiter.clearAttempts(identifier);
   }
 }

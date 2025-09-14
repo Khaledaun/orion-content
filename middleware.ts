@@ -125,7 +125,11 @@ async function applyRateLimit(
         userAgent: request.headers.get('user-agent') || 'unknown'
       });
 
-      return createRateLimitResponse(result);
+      const rateLimitResponse = createRateLimitResponse(result, rateLimitConfig);
+      return new NextResponse(rateLimitResponse.body, {
+        status: rateLimitResponse.status,
+        headers: rateLimitResponse.headers
+      });
     }
 
     // Add rate limit headers to successful responses
@@ -153,7 +157,7 @@ async function checkAuthentication(
   
   for (const [route, roles] of Object.entries(PROTECTED_ROUTES)) {
     if (pathname.startsWith(route)) {
-      requiredRoles = roles;
+      requiredRoles = [...roles]; // Convert readonly array to mutable array
       break;
     }
   }
@@ -184,7 +188,7 @@ async function checkAuthentication(
     }
 
     // Check if token is expired (additional check)
-    if (token.exp && Date.now() >= token.exp * 1000) {
+    if (token.exp && Date.now() >= (token.exp as number) * 1000) {
       await logAuthFailure(request, 'TOKEN_EXPIRED', pathname, token.sub as string);
       return redirectToLogin(request);
     }
