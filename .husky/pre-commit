@@ -1,0 +1,42 @@
+
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit validation..."
+
+# Run TypeScript compilation check
+echo "📝 Checking TypeScript compilation..."
+npm run type-check || {
+    echo "❌ TypeScript compilation failed"
+    exit 1
+}
+
+# Run ESLint
+echo "🔧 Running ESLint..."
+npm run lint || {
+    echo "❌ ESLint failed"
+    exit 1
+}
+
+# Run Prettier check
+echo "💅 Checking code formatting..."
+npm run format:check || {
+    echo "❌ Code formatting check failed. Run 'npm run format' to fix."
+    exit 1
+}
+
+# Run tests
+echo "🧪 Running tests..."
+npm test || {
+    echo "❌ Tests failed"
+    exit 1
+}
+
+# Run custom validation script
+echo "🛡️ Running custom validation..."
+./scripts/validate.sh || {
+    echo "❌ Custom validation failed"
+    exit 1
+}
+
+echo "✅ All pre-commit checks passed!"

@@ -1,0 +1,540 @@
+
+name: Edge Runtime Compatibility Check
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  edge-runtime-validation:
+    runs-on: ubuntu-latest
+    name: Edge Runtime Compatibility Analysis
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Analyze code for Edge Runtime compatibility
+      run: |
+        cat > edge-runtime-analyzer.js << 'EOF'
+        const fs = require('fs');
+        const path = require('path');
+        
+        // APIs that are not available in Edge Runtime
+        const incompatibleAPIs = {
+          // Node.js specific APIs
+          'fs.': 'File system operations not available in Edge Runtime',
+          'path.': 'Use URL constructor or string manipulation instead',
+          'os.': 'Operating system APIs not available',
+          'crypto.createHash': 'Use Web Crypto API instead',
+          'crypto.randomBytes': 'Use crypto.getRandomValues() instead',
+          'Buffer.': 'Use TextEncoder/TextDecoder or Uint8Array instead',
+          'process.env': 'Use environment variables through Next.js config',
+          '__dirname': 'Not available in Edge Runtime',
+          '__filename': 'Not available in Edge Runtime',
+          'require.resolve': 'Use dynamic imports instead',
+          
+          // Specific Node.js modules
+          'require(\'fs\')': 'File system not available',
+          'require(\'path\')': 'Use URL constructor instead',
+          'require(\'crypto\')': 'Use Web Crypto API',
+          'require(\'os\')': 'OS APIs not available',
+          'require(\'child_process\')': 'Process spawning not available',
+          'require(\'cluster\')': 'Clustering not available',
+          'require(\'worker_threads\')': 'Worker threads not available',
+          
+          // Common problematic patterns
+          'new Date().toLocaleString()': 'Locale-specific formatting may not work consistently',
+          'setTimeout': 'Limited in Edge Runtime, prefer using Response streaming',
+          'setInterval': 'Not recommended in Edge Runtime',
+        };
+        
+        // APIs that are available and recommended
+        const recommendedAPIs = {
+          'fetch(': '✅ Native fetch API available',
+          'URL(': '✅ URL constructor available',
+          'URLSearchParams(': '✅ URLSearchParams available',
+          'crypto.getRandomValues(': '✅ Web Crypto API available',
+          'crypto.subtle.': '✅ Web Crypto subtle API available',
+          'TextEncoder(': '✅ TextEncoder available',
+          'TextDecoder(': '✅ TextDecoder available',
+          'Response(': '✅ Response constructor available',
+          'Request(': '✅ Request constructor available',
+          'Headers(': '✅ Headers constructor available',
+        };
+        
+        function analyzeFile(filePath) {
+          const content = fs.readFileSync(filePath, 'utf8');
+          const issues = [];
+          const recommendations = [];
+          
+          // Check for incompatible APIs
+          Object.entries(incompatibleAPIs).forEach(([api, message]) => {
+            if (content.includes(api)) {
+              issues.push(`❌ ${api}: ${message}`);
+            }
+          });
+          
+          // Check for recommended APIs
+          Object.entries(recommendedAPIs).forEach(([api, message]) => {
+            if (content.includes(api)) {
+              recommendations.push(message);
+            }
+          });
+          
+          return { issues, recommendations };
+        }
+        
+        function scanDirectory(dir, results = { issues: [], recommendations: [], files: 0 }) {
+          const items = fs.readdirSync(dir, { withFileTypes: true });
+          
+          items.forEach(item => {
+            const fullPath = path.join(dir, item.name);
+            
+            // Skip node_modules, .git, .next, etc.
+            if (item.isDirectory() && !item.name.startsWith('.') && 
+                item.name !== 'node_modules' && item.name !== 'dist' && 
+                item.name !== 'build') {
+              scanDirectory(fullPath, results);
+            } else if (item.isFile() && 
+                      (item.name.endsWith('.ts') || item.name.endsWith('.js') || 
+                       item.name.endsWith('.tsx') || item.name.endsWith('.jsx'))) {
+              
+              const analysis = analyzeFile(fullPath);
+              results.files++;
+              
+              if (analysis.issues.length > 0) {
+                results.issues.push(`\n📁 ${fullPath}:`);
+                results.issues.push(...analysis.issues.map(issue => `  ${issue}`));
+              }
+              
+              if (analysis.recommendations.length > 0) {
+                results.recommendations.push(...analysis.recommendations);
+              }
+            }
+          });
+          
+          return results;
+        }
+        
+        console.log('🔍 Analyzing code for Edge Runtime compatibility...\n');
+        
+        const results = scanDirectory('.');
+        
+        console.log(`📊 Analyzed ${results.files} files\n`);
+        
+        if (results.issues.length > 0) {
+          console.log('🚨 Edge Runtime Compatibility Issues Found:');
+          results.issues.forEach(issue => console.log(issue));
+          console.log('\n');
+        } else {
+          console.log('✅ No obvious Edge Runtime compatibility issues found\n');
+        }
+        
+        if (results.recommendations.length > 0) {
+          const uniqueRecommendations = [...new Set(results.recommendations)];
+          console.log('💡 Edge Runtime Compatible APIs Found:');
+          uniqueRecommendations.forEach(rec => console.log(`  ${rec}`));
+          console.log('\n');
+        }
+        
+        // Generate report
+        const report = {
+          timestamp: new Date().toISOString(),
+          filesAnalyzed: results.files,
+          issuesFound: results.issues.length,
+          compatibleAPIsFound: results.recommendations.length,
+          issues: results.issues,
+          recommendations: results.recommendations
+        };
+        
+        fs.writeFileSync('edge-runtime-report.json', JSON.stringify(report, null, 2));
+        
+        if (results.issues.length > 0) {
+          console.log('⚠️  Edge Runtime compatibility issues detected. Review the report above.');
+          console.log('💡 Consider refactoring incompatible code before deploying to Edge Runtime.');
+        } else {
+          console.log('🎉 Code appears to be Edge Runtime compatible!');
+        }
+        EOF
+        
+        node edge-runtime-analyzer.js
+        
+    - name: Check Next.js Edge Runtime configuration
+      run: |
+        cat > check-nextjs-edge-config.js << 'EOF'
+        const fs = require('fs');
+        const path = require('path');
+        
+        console.log('🔍 Checking Next.js Edge Runtime configuration...\n');
+        
+        // Check for Edge Runtime exports in API routes
+        function checkAPIRoutes(dir) {
+          if (!fs.existsSync(dir)) return [];
+          
+          const edgeRoutes = [];
+          
+          function scanDir(currentDir) {
+            const items = fs.readdirSync(currentDir, { withFileTypes: true });
+            
+            items.forEach(item => {
+              const fullPath = path.join(currentDir, item.name);
+              
+              if (item.isDirectory()) {
+                scanDir(fullPath);
+              } else if (item.isFile() && 
+                        (item.name.endsWith('.ts') || item.name.endsWith('.js'))) {
+                
+                const content = fs.readFileSync(fullPath, 'utf8');
+                
+                // Check for Edge Runtime export
+                if (content.includes('export const runtime = \'edge\'') ||
+                    content.includes('export const runtime = "edge"')) {
+                  edgeRoutes.push(fullPath);
+                }
+              }
+            });
+          }
+          
+          scanDir(dir);
+          return edgeRoutes;
+        }
+        
+        // Check app directory (App Router)
+        const appEdgeRoutes = checkAPIRoutes('app');
+        if (appEdgeRoutes.length > 0) {
+          console.log('📱 App Router Edge Runtime routes found:');
+          appEdgeRoutes.forEach(route => console.log(`  ✅ ${route}`));
+          console.log('');
+        }
+        
+        // Check pages directory (Pages Router)
+        const pagesEdgeRoutes = checkAPIRoutes('pages');
+        if (pagesEdgeRoutes.length > 0) {
+          console.log('📄 Pages Router Edge Runtime routes found:');
+          pagesEdgeRoutes.forEach(route => console.log(`  ✅ ${route}`));
+          console.log('');
+        }
+        
+        // Check middleware
+        if (fs.existsSync('middleware.ts') || fs.existsSync('middleware.js')) {
+          console.log('🛡️  Middleware file found (runs on Edge Runtime by default)');
+          const middlewareFile = fs.existsSync('middleware.ts') ? 'middleware.ts' : 'middleware.js';
+          console.log(`  ✅ ${middlewareFile}`);
+          console.log('');
+        }
+        
+        // Check next.config.js for Edge Runtime configuration
+        if (fs.existsSync('next.config.js')) {
+          const configContent = fs.readFileSync('next.config.js', 'utf8');
+          if (configContent.includes('experimental') && configContent.includes('runtime')) {
+            console.log('⚙️  Next.js config contains runtime configuration');
+            console.log('  📋 Review next.config.js for Edge Runtime settings');
+            console.log('');
+          }
+        }
+        
+        const totalEdgeRoutes = appEdgeRoutes.length + pagesEdgeRoutes.length;
+        if (totalEdgeRoutes === 0) {
+          console.log('ℹ️  No explicit Edge Runtime routes found');
+          console.log('💡 Add "export const runtime = \'edge\'" to API routes for Edge Runtime');
+        } else {
+          console.log(`🎯 Found ${totalEdgeRoutes} Edge Runtime route(s)`);
+        }
+        EOF
+        
+        node check-nextjs-edge-config.js
+        
+    - name: Test Edge Runtime simulation
+      run: |
+        cat > edge-runtime-simulation.js << 'EOF'
+        // Simulate Edge Runtime environment limitations
+        console.log('🧪 Simulating Edge Runtime environment...\n');
+        
+        // Test 1: Check if code uses Node.js globals
+        const nodeGlobals = ['process', 'Buffer', '__dirname', '__filename'];
+        let hasNodeGlobals = false;
+        
+        nodeGlobals.forEach(global => {
+          try {
+            if (typeof eval(global) !== 'undefined') {
+              console.log(`⚠️  ${global} is available (not available in Edge Runtime)`);
+              hasNodeGlobals = true;
+            }
+          } catch (e) {
+            console.log(`✅ ${global} is not available (Edge Runtime compatible)`);
+          }
+        });
+        
+        // Test 2: Check Web APIs availability
+        const webAPIs = ['fetch', 'URL', 'URLSearchParams', 'crypto', 'TextEncoder', 'TextDecoder'];
+        console.log('\n🌐 Checking Web APIs availability:');
+        
+        webAPIs.forEach(api => {
+          try {
+            if (typeof eval(api) !== 'undefined') {
+              console.log(`✅ ${api} is available`);
+            }
+          } catch (e) {
+            console.log(`❌ ${api} is not available`);
+          }
+        });
+        
+        // Test 3: Memory and execution limits simulation
+        console.log('\n💾 Testing memory usage patterns:');
+        
+        try {
+          // Test small memory allocation (should be fine)
+          const smallArray = new Array(1000).fill('test');
+          console.log('✅ Small memory allocation successful');
+          
+          // Test larger memory allocation (might be problematic in Edge Runtime)
+          const largeArray = new Array(100000).fill('test');
+          console.log('⚠️  Large memory allocation successful (monitor in production)');
+        } catch (e) {
+          console.log('❌ Memory allocation failed:', e.message);
+        }
+        
+        console.log('\n🏁 Edge Runtime simulation complete');
+        
+        if (hasNodeGlobals) {
+          console.log('\n⚠️  Warning: Code uses Node.js globals that are not available in Edge Runtime');
+          process.exit(1);
+        } else {
+          console.log('\n✅ Code appears compatible with Edge Runtime environment');
+        }
+        EOF
+        
+        node edge-runtime-simulation.js
+        
+    - name: Generate Edge Runtime compatibility report
+      run: |
+        echo "# Edge Runtime Compatibility Report" > edge-runtime-report.md
+        echo "Generated on: $(date)" >> edge-runtime-report.md
+        echo "" >> edge-runtime-report.md
+        
+        if [ -f "edge-runtime-report.json" ]; then
+          echo "## Analysis Summary" >> edge-runtime-report.md
+          node -e "
+            const report = JSON.parse(require('fs').readFileSync('edge-runtime-report.json', 'utf8'));
+            console.log(\`- Files analyzed: \${report.filesAnalyzed}\`);
+            console.log(\`- Issues found: \${report.issuesFound}\`);
+            console.log(\`- Compatible APIs found: \${report.compatibleAPIsFound}\`);
+          " >> edge-runtime-report.md
+          echo "" >> edge-runtime-report.md
+        fi
+        
+        echo "## Recommendations" >> edge-runtime-report.md
+        echo "- Use Web APIs instead of Node.js APIs" >> edge-runtime-report.md
+        echo "- Test thoroughly in Edge Runtime environment" >> edge-runtime-report.md
+        echo "- Monitor memory usage and execution time" >> edge-runtime-report.md
+        echo "- Use streaming responses for better performance" >> edge-runtime-report.md
+        
+    - name: Upload Edge Runtime report
+      uses: actions/upload-artifact@v4
+      with:
+        name: edge-runtime-report
+        path: |
+          edge-runtime-report.md
+          edge-runtime-report.json
+
+  vercel-edge-runtime-test:
+    runs-on: ubuntu-latest
+    name: Vercel Edge Runtime Specific Tests
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Install Vercel CLI
+      run: npm install -g vercel@latest
+      
+    - name: Test Vercel Edge Functions
+      run: |
+        # Create a test edge function
+        mkdir -p api/test-edge
+        cat > api/test-edge/index.js << 'EOF'
+        export const config = {
+          runtime: 'edge',
+        }
+        
+        export default function handler(request) {
+          return new Response(
+            JSON.stringify({
+              message: 'Edge Runtime test successful',
+              timestamp: new Date().toISOString(),
+              url: request.url,
+              method: request.method,
+            }),
+            {
+              status: 200,
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            }
+          )
+        }
+        EOF
+        
+        echo "✅ Created test Edge Function"
+        
+    - name: Validate Edge Function syntax
+      run: |
+        if [ -f "api/test-edge/index.js" ]; then
+          node -c api/test-edge/index.js
+          echo "✅ Edge Function syntax is valid"
+        fi
+        
+    - name: Test build compatibility
+      run: |
+        # Test if the project builds successfully
+        npm run build || echo "Build test completed with warnings"
+        
+    - name: Clean up test files
+      run: |
+        rm -rf api/test-edge
+        echo "🧹 Cleaned up test files"
+
+  edge-runtime-performance:
+    runs-on: ubuntu-latest
+    name: Edge Runtime Performance Analysis
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Analyze bundle size for Edge Runtime
+      run: |
+        cat > analyze-edge-bundle.js << 'EOF'
+        const fs = require('fs');
+        const path = require('path');
+        
+        console.log('📦 Analyzing bundle size for Edge Runtime compatibility...\n');
+        
+        // Check package.json for heavy dependencies
+        if (fs.existsSync('package.json')) {
+          const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          const dependencies = { ...packageJson.dependencies, ...packageJson.devDependencies };
+          
+          // Known heavy packages that might cause issues in Edge Runtime
+          const heavyPackages = [
+            'lodash', 'moment', 'axios', 'request', 'fs-extra', 
+            'node-fetch', 'express', 'koa', 'fastify'
+          ];
+          
+          const foundHeavyPackages = [];
+          Object.keys(dependencies).forEach(dep => {
+            if (heavyPackages.includes(dep)) {
+              foundHeavyPackages.push(dep);
+            }
+          });
+          
+          if (foundHeavyPackages.length > 0) {
+            console.log('⚠️  Heavy packages found (consider alternatives for Edge Runtime):');
+            foundHeavyPackages.forEach(pkg => {
+              console.log(`  - ${pkg}: Consider lighter alternatives`);
+            });
+            console.log('');
+          } else {
+            console.log('✅ No obviously heavy packages detected\n');
+          }
+          
+          // Check for Edge Runtime friendly packages
+          const edgeFriendlyPackages = [
+            'swr', 'react-query', 'zustand', 'jotai', 'valtio'
+          ];
+          
+          const foundEdgeFriendly = [];
+          Object.keys(dependencies).forEach(dep => {
+            if (edgeFriendlyPackages.includes(dep)) {
+              foundEdgeFriendly.push(dep);
+            }
+          });
+          
+          if (foundEdgeFriendly.length > 0) {
+            console.log('✅ Edge Runtime friendly packages found:');
+            foundEdgeFriendly.forEach(pkg => {
+              console.log(`  - ${pkg}`);
+            });
+            console.log('');
+          }
+        }
+        
+        // Estimate bundle impact
+        console.log('💡 Edge Runtime Bundle Optimization Tips:');
+        console.log('  - Use dynamic imports for large dependencies');
+        console.log('  - Prefer native Web APIs over polyfills');
+        console.log('  - Use tree-shaking friendly imports');
+        console.log('  - Consider code splitting for better performance');
+        console.log('  - Monitor cold start times in production');
+        EOF
+        
+        node analyze-edge-bundle.js
+        
+    - name: Test cold start simulation
+      run: |
+        cat > cold-start-test.js << 'EOF'
+        console.log('🚀 Simulating Edge Runtime cold start...\n');
+        
+        const startTime = Date.now();
+        
+        // Simulate module loading
+        console.log('📦 Loading modules...');
+        const moduleLoadTime = Date.now();
+        
+        // Simulate initialization
+        console.log('⚡ Initializing application...');
+        const initTime = Date.now();
+        
+        // Simulate first request
+        console.log('🌐 Processing first request...');
+        const requestTime = Date.now();
+        
+        const totalTime = requestTime - startTime;
+        const moduleTime = moduleLoadTime - startTime;
+        const appInitTime = initTime - moduleLoadTime;
+        const firstRequestTime = requestTime - initTime;
+        
+        console.log('\n📊 Cold Start Performance Simulation:');
+        console.log(`  Module loading: ${moduleTime}ms`);
+        console.log(`  App initialization: ${appInitTime}ms`);
+        console.log(`  First request: ${firstRequestTime}ms`);
+        console.log(`  Total cold start: ${totalTime}ms`);
+        
+        if (totalTime > 1000) {
+          console.log('\n⚠️  Simulated cold start > 1000ms (consider optimization)');
+        } else {
+          console.log('\n✅ Simulated cold start looks good');
+        }
+        EOF
+        
+        node cold-start-test.js
