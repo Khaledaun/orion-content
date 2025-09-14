@@ -6,12 +6,16 @@ node_modules
 
 .next/
 .venv-phase3/
+.venv/
 .__phase3_tmp/
 orion-phase3-python.zip
 backup-*.tar.gz
 backup-*.tar.gz
 
 # --- local/dev artifacts ---
+__pycache__/
+*.pyc
+*.pyo
 .cookies*.jar
 .dev.log
 *.bak.*
