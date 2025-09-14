@@ -81,7 +81,13 @@ class SiteConfig:
         if "-" in topic_count_str:
             try:
                 min_val, max_val = topic_count_str.split("-", 1)
-                return int(min_val.strip()), int(max_val.strip())
+                min_count = int(min_val.strip())
+                max_count = int(max_val.strip())
+                # Reject invalid ranges where min > max
+                if min_count > max_count:
+                    logger.warning(f"Invalid topic count range '{topic_count_str}' (min > max), using default 5")
+                    return 5, 5
+                return min_count, max_count
             except (ValueError, AttributeError):
                 logger.warning(f"Invalid topic count range '{topic_count_str}', using default 5")
                 return 5, 5

@@ -264,7 +264,7 @@ class TestMultiSitePipelineRunner:
         assert runner.max_workers == 2
         assert runner.results == {}
     
-    @patch('orion.automate.multisite.get_site_list')
+    @patch('orion.automate.run_pipeline_multisite.get_site_list')
     def test_multisite_runner_auto_detect_sites(self, mock_get_sites):
         """Test auto-detection of sites when none specified."""
         mock_get_sites.return_value = ['auto1', 'auto2', 'auto3']
@@ -299,8 +299,8 @@ class TestMultiSitePipelineRunner:
                 os.chdir(original_cwd)
     
     @patch('orion.automate.run_pipeline_multisite.run_single_site_pipeline')
-    @patch('orion.automate.multisite.load_site_config')
-    @patch('orion.automate.multisite.apply_site_config_to_env')
+    @patch('orion.automate.run_pipeline_multisite.load_site_config')
+    @patch('orion.automate.run_pipeline_multisite.apply_site_config_to_env')
     def test_run_site(self, mock_apply_config, mock_load_config, mock_run_pipeline):
         """Test running pipeline for a single site."""
         # Mock site configuration

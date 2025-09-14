@@ -40,12 +40,11 @@ class TestSiteConfigPhase5:
         assert min_count == 5  # Default fallback
         assert max_count == 5
         
-        # Fix: Invalid range "10-5" should be handled but current implementation 
-        # doesn't validate min <= max, so it returns (10, 5)
+        # Fixed: Invalid range "10-5" should return default (5, 5) instead of swapped values
         config = SiteConfig(site_key="test", topic_count="10-5")  # Invalid range
         min_count, max_count = config.get_topic_count_range()
-        # Current implementation returns the parsed values, validation happens elsewhere
-        assert min_count == 10  # What it actually returns
+        # New implementation properly validates min <= max and returns default for invalid ranges
+        assert min_count == 5  # Fixed to return default fallback
         assert max_count == 5
     
     def test_validate_complete_config(self):
