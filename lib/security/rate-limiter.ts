@@ -243,9 +243,9 @@ function hashString(str: string): string {
 }
 
 // Rate limit response helpers
-export function createRateLimitResponse(result: RateLimitResult): Response {
+export function createRateLimitResponse(result: RateLimitResult, config: RateLimitConfig): Response {
   const headers = new Headers({
-    'X-RateLimit-Limit': result.totalHits.toString(),
+    'X-RateLimit-Limit': config.maxRequests.toString(),
     'X-RateLimit-Remaining': result.remaining.toString(),
     'X-RateLimit-Reset': result.resetTime.getTime().toString(),
     'Retry-After': Math.ceil((result.resetTime.getTime() - Date.now()) / 1000).toString()
