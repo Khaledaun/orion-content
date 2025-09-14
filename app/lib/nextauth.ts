@@ -2,6 +2,80 @@ import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 
+// Environment validation helper
+function validateEnvironment() {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  // Validate NEXTAUTH_URL
+  const nextAuthUrl = process.env.NEXTAUTH_URL;
+  if (!nextAuthUrl) {
+    errors.push("NEXTAUTH_URL is required but not set");
+  } else {
+    try {
+      const url = new URL(nextAuthUrl);
+      if (!['http:', 'https:'].includes(url.protocol)) {
+        errors.push("NEXTAUTH_URL must be a valid HTTP or HTTPS URL");
+      }
+      if (url.pathname !== '/') {
+        warnings.push("NEXTAUTH_URL should not include a path component");
+      }
+    } catch (e) {
+      errors.push("NEXTAUTH_URL is not a valid URL format");
+    }
+  }
+
+  // Validate NEXTAUTH_SECRET
+  const nextAuthSecret = process.env.NEXTAUTH_SECRET;
+  if (!nextAuthSecret) {
+    errors.push("NEXTAUTH_SECRET is required but not set");
+  } else if (nextAuthSecret.length < 32) {
+    errors.push("NEXTAUTH_SECRET must be at least 32 characters long");
+  } else if (nextAuthSecret === "demo-secret-please-set-in-production") {
+    warnings.push("Using demo NEXTAUTH_SECRET - please set a secure secret in production");
+  }
+
+  // Validate DATABASE_URL
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    warnings.push("DATABASE_URL not set - auth will fall back to demo mode");
+  } else {
+    try {
+      const url = new URL(databaseUrl);
+      if (!['postgresql:', 'postgres:', 'mysql:', 'sqlite:'].includes(url.protocol)) {
+        warnings.push("DATABASE_URL protocol may not be supported");
+      }
+    } catch (e) {
+      warnings.push("DATABASE_URL is not a valid URL format");
+    }
+  }
+
+  // Check for production-specific requirements
+  if (process.env.NODE_ENV === 'production' || process.env.VERCEL === '1') {
+    if (nextAuthUrl?.includes('localhost')) {
+      errors.push("NEXTAUTH_URL must not use localhost in production");
+    }
+    if (!nextAuthUrl?.startsWith('https://')) {
+      errors.push("NEXTAUTH_URL must use HTTPS in production");
+    }
+  }
+
+  return { errors, warnings };
+}
+
+// Validate environment on module load
+const envValidation = validateEnvironment();
+if (envValidation.errors.length > 0) {
+  console.error("❌ NextAuth Environment Validation Errors:");
+  envValidation.errors.forEach(error => console.error(`  - ${error}`));
+  throw new Error(`NextAuth configuration invalid: ${envValidation.errors.join(', ')}`);
+}
+
+if (envValidation.warnings.length > 0) {
+  console.warn("⚠️ NextAuth Environment Validation Warnings:");
+  envValidation.warnings.forEach(warning => console.warn(`  - ${warning}`));
+}
+
 // Safe prisma import that handles cases where Prisma client is not generated yet
 let prisma: any = null;
 try {
@@ -17,8 +91,7 @@ try {
 import * as bcryptjs from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
-  // Provide fallback secret for demo/testing environments
-  secret: process.env.NEXTAUTH_SECRET || "demo-secret-please-set-in-production",
+  secret: process.env.NEXTAUTH_SECRET!,
   session: { strategy: "jwt" },
 
   providers: [

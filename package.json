@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "NEXT_TELEMETRY_DISABLED=1 next build",
+    "build": "npm run check:env && NEXT_TELEMETRY_DISABLED=1 next build",
     "build:offline": "SKIP_PRISMA_GENERATE=true SKIP_TELEMETRY=true next build",
     "start": "next start",
     "lint": "next lint --fix",
@@ -15,6 +15,9 @@
     "typecheck": "tsc --noEmit",
     "test": "npm run typecheck && npm run lint:check && npm run build",
     "validate:deployment": "node scripts/validate-deployment.js",
+    "check:env": "npx tsx scripts/check-env.ts",
+    "verify:endpoints": "npx tsx scripts/verify-endpoints.ts",
+    "setup:vercel": "npx tsx scripts/setup-vercel-env.ts",
     "proof": "tsx scripts/proof_phase9.ts",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
