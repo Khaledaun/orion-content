@@ -32,6 +32,8 @@ jobs:
         run: |
           npm ci --silent
           npx prisma generate
+        env:
+          DATABASE_URL: "postgresql://user:password@localhost:5432/test_db"
 
       - name: 🔷 TypeScript validation
         run: npm run typecheck
@@ -53,6 +55,8 @@ jobs:
         run: |
           npx prisma validate
           npx prisma format --check
+        env:
+          DATABASE_URL: "postgresql://user:password@localhost:5432/test_db"
 
       - name: 🏗️ Build validation
         run: npm run build:offline
