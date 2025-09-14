@@ -1,24 +1,23 @@
-
 generator client {
-    provider = "prisma-client-js"
-    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
-    engineType = "library"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+  engineType    = "library"
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // Phase 8 Core Models
 model User {
-  id           String     @id @default(cuid())
-  email        String     @unique
+  id           String          @id @default(cuid())
+  email        String          @unique
   passwordHash String?
   name         String?
   image        String?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
   accounts     Account[]
   sessions     Session[]
   roles        UserRole[]
@@ -29,24 +28,24 @@ model User {
 }
 
 model Site {
-  id         String         @id @default(cuid())
-  key        String         @unique
-  name       String
-  timezone   String         @default("UTC")
-  publisher  String?
-  locales    Json?
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
-  categories Category[]
-  topics     Topic[]
-  tenWebSite TenWebSite?
+  id            String         @id @default(cuid())
+  key           String         @unique
+  name          String
+  timezone      String         @default("UTC")
+  publisher     String?
+  locales       Json?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  categories    Category[]
+  topics        Topic[]
+  tenWebSite    TenWebSite?
   gscConnection GscConnection?
   ga4Connection Ga4Connection?
-  drafts     Draft[]
-  siteStrategy SiteStrategy?
-  integrations Integration[]
-  metrics    SiteMetrics?
-  jobMetrics JobMetrics[]
+  drafts        Draft[]
+  siteStrategy  SiteStrategy?
+  integrations  Integration[]
+  metrics       SiteMetrics?
+  jobMetrics    JobMetrics[]
 
   @@map("sites")
 }
@@ -105,7 +104,7 @@ model Topic {
 model Connection {
   id        String   @id @default(cuid())
   kind      String   @unique
-  dataEnc   String   // Encrypted connection data for Phase 2 vault
+  dataEnc   String // Encrypted connection data for Phase 2 vault
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -242,7 +241,7 @@ model ScopedToken {
   id        String    @id @default(cuid())
   token     String    @unique
   siteId    String?
-  scopes    Json      // ['read:drafts', 'write:drafts', etc.]
+  scopes    Json // ['read:drafts', 'write:drafts', etc.]
   expiresAt DateTime?
   createdAt DateTime  @default(now())
 
@@ -267,7 +266,7 @@ model Draft {
   score      Float?
   status     DraftStatus @default(PENDING)
   violations Json?
-  externalId String?     // WordPress post ID
+  externalId String? // WordPress post ID
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
   site       Site        @relation(fields: [siteId], references: [id], onDelete: Cascade)
@@ -333,7 +332,7 @@ model GscConnection {
 model GscSnapshot {
   id         String   @id @default(cuid())
   siteId     String
-  dataType   String   // 'performance', 'sitemaps', etc.
+  dataType   String // 'performance', 'sitemaps', etc.
   data       Json
   capturedAt DateTime @default(now())
 
@@ -360,7 +359,7 @@ model WebhookEndpoint {
   id         String            @id @default(cuid())
   url        String
   secret     String
-  events     Json              // ['draft_created', 'needs_review', 'approved']
+  events     Json // ['draft_created', 'needs_review', 'approved']
   active     Boolean           @default(true)
   createdAt  DateTime          @default(now())
   updatedAt  DateTime          @updatedAt
@@ -413,7 +412,7 @@ model QAReport {
   draftId   String   @unique
   status    QAStatus @default(PENDING)
   score     Float?
-  checks    Json     // Detailed check results
+  checks    Json // Detailed check results
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   draft     Draft    @relation(fields: [draftId], references: [id], onDelete: Cascade)
@@ -434,8 +433,8 @@ model Integration {
   siteId       String
   type         IntegrationType
   name         String
-  config       Json            // Integration-specific configuration
-  credentials  Json?           // Encrypted credentials
+  config       Json // Integration-specific configuration
+  credentials  Json? // Encrypted credentials
   active       Boolean         @default(true)
   lastSync     DateTime?
   syncStatus   String?
@@ -463,16 +462,16 @@ model SiteMetrics {
 }
 
 model JobMetrics {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   siteId      String
   jobType     String
-  successRate Float    @default(0)
-  avgDuration Int?     // in seconds
+  successRate Float     @default(0)
+  avgDuration Int? // in seconds
   lastRun     DateTime?
-  totalRuns   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  site        Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  totalRuns   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  site        Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   @@unique([siteId, jobType])
   @@index([siteId])
@@ -481,15 +480,15 @@ model JobMetrics {
 }
 
 model SystemAlert {
-  id          String   @id @default(cuid())
-  type        String   // 'error', 'warning', 'info'
-  title       String
-  message     String
-  metadata    Json?
-  resolved    Boolean  @default(false)
-  resolvedAt  DateTime?
-  resolvedBy  String?
-  createdAt   DateTime @default(now())
+  id         String    @id @default(cuid())
+  type       String // 'error', 'warning', 'info'
+  title      String
+  message    String
+  metadata   Json?
+  resolved   Boolean   @default(false)
+  resolvedAt DateTime?
+  resolvedBy String?
+  createdAt  DateTime  @default(now())
 
   @@index([type])
   @@index([resolved])
@@ -498,15 +497,15 @@ model SystemAlert {
 }
 
 model AuditLog {
-  id        String   @id @default(cuid())
-  userId    String?
-  action    String
-  resource  String
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  resource   String
   resourceId String?
-  metadata  Json?
-  ipAddress String?
-  userAgent String?
-  createdAt DateTime @default(now())
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
 
   @@index([userId])
   @@index([action])
