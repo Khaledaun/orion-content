@@ -53,13 +53,17 @@ class TestPerplexityClient:
         """Test research validation with high confidence."""
         client = PerplexityClient()
         
+        # Use today's date to avoid "old data" issues
+        import datetime
+        today = datetime.datetime.now().strftime("%Y-%m-%d")
+        
         research_data = {
             "confidence_score": 0.9,
             "sources": [
                 {"relevance": "high", "title": "Test Source 1"},
                 {"relevance": "high", "title": "Test Source 2"}
             ],
-            "research_date": "2024-08-29"
+            "research_date": today
         }
         
         validation = client.validate_research_quality(research_data)
@@ -195,7 +199,7 @@ class TestRulebookUpdater:
             }
         }
         
-        updated = updater._update_seo_rules(current, insights)
+        updated = updater._update_seo_rules(current, insights['seo'])
         
         # Should take the more restrictive values
         seo_section = updated["seo"]
@@ -223,7 +227,7 @@ class TestRulebookUpdater:
             }
         }
         
-        updated = updater._update_seo_rules(current, insights)
+        updated = updater._update_seo_rules(current, insights['seo'])
         
         # Should keep current (more restrictive) values
         seo_section = updated["seo"]
@@ -252,7 +256,7 @@ class TestRulebookUpdater:
             }
         }
         
-        updated = updater._update_eeat_rules(current, insights)
+        updated = updater._update_eeat_rules(current, insights['eeat'])
         
         eeat_section = updated["eeat"]
         assert eeat_section["require_author_bio"] is True  # Should remain True

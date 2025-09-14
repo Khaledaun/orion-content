@@ -1,5 +1,4 @@
 
-
 requests>=2.32
 python-dateutil>=2.9
 pytest>=8.2
@@ -9,4 +8,3 @@ jsonschema>=4.0.0
 
 # Phase 7: Quality Framework Dependencies
 textstat>=0.7.3
-
