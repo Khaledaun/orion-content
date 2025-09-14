@@ -2,9 +2,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { rateLimiter, RATE_LIMIT_CONFIGS, getClientIdentifier, createRateLimitResponse } from '@/lib/security/rate-limiter';
-import { auditLogger } from '@/lib/security/audit-logger';
-import { env } from '@/lib/env/validation';
+import { rateLimiter, RATE_LIMIT_CONFIGS, getClientIdentifier, createRateLimitResponse } from './lib/security/rate-limiter';
+import { auditLogger } from './lib/security/audit-logger';
+import { env } from './lib/env/validation';
 
 // Define protected routes and their required roles
 const PROTECTED_ROUTES = {
