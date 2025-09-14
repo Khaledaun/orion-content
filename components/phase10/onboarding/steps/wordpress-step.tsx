@@ -1,49 +1,58 @@
+"use client";
 
-'use client'
-
-import React, { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, Globe, Key, User, Info } from 'lucide-react'
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Globe, Key, User, Info } from "lucide-react";
 
 interface WordPressStepProps {
-  onComplete: (stepId: string, data?: any) => void
-  loading: boolean
-  status: any
+  onComplete: (stepId: string, data?: any) => void;
+  loading: boolean;
+  status: any;
 }
 
-export function WordPressStep({ onComplete, loading, status }: WordPressStepProps) {
-  const [useDummy, setUseDummy] = useState(true)
+export function WordPressStep({
+  onComplete,
+  loading,
+  status,
+}: WordPressStepProps) {
+  const [useDummy, setUseDummy] = useState(true);
   const [formData, setFormData] = useState({
-    siteUrl: '',
-    username: '',
-    password: '',
-    applicationPassword: ''
-  })
+    siteUrl: "",
+    username: "",
+    password: "",
+    applicationPassword: "",
+  });
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    const data = {
-      credentials: useDummy ? { useDummy: true } : formData
-    }
-    
-    onComplete('wordpress', data)
-  }
+    e.preventDefault();
 
-  const isFormValid = useDummy || (
-    formData.siteUrl && 
-    formData.username && 
-    (formData.password || formData.applicationPassword)
-  )
+    const data = {
+      credentials: useDummy ? { useDummy: true } : formData,
+    };
+
+    onComplete("wordpress", data);
+  };
+
+  const isFormValid =
+    useDummy ||
+    (formData.siteUrl &&
+      formData.username &&
+      (formData.password || formData.applicationPassword));
 
   return (
     <div className="space-y-6">
@@ -51,8 +60,9 @@ export function WordPressStep({ onComplete, loading, status }: WordPressStepProp
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          This is an MVP demo. You can use dummy credentials to simulate the WordPress integration, 
-          or enter real credentials (they will be encrypted but not actually used to connect).
+          This is an MVP demo. You can use dummy credentials to simulate the
+          WordPress integration, or enter real credentials (they will be
+          encrypted but not actually used to connect).
         </AlertDescription>
       </Alert>
 
@@ -91,7 +101,7 @@ export function WordPressStep({ onComplete, loading, status }: WordPressStepProp
                 type="url"
                 placeholder="https://yoursite.com"
                 value={formData.siteUrl}
-                onChange={(e) => handleInputChange('siteUrl', e.target.value)}
+                onChange={(e) => handleInputChange("siteUrl", e.target.value)}
                 required={!useDummy}
               />
             </div>
@@ -106,7 +116,7 @@ export function WordPressStep({ onComplete, loading, status }: WordPressStepProp
                 type="text"
                 placeholder="admin"
                 value={formData.username}
-                onChange={(e) => handleInputChange('username', e.target.value)}
+                onChange={(e) => handleInputChange("username", e.target.value)}
                 required={!useDummy}
               />
             </div>
@@ -119,12 +129,17 @@ export function WordPressStep({ onComplete, loading, status }: WordPressStepProp
                   type="password"
                   placeholder="Your password"
                   value={formData.password}
-                  onChange={(e) => handleInputChange('password', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("password", e.target.value)
+                  }
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="appPassword" className="flex items-center space-x-2">
+                <Label
+                  htmlFor="appPassword"
+                  className="flex items-center space-x-2"
+                >
                   <Key className="h-4 w-4" />
                   <span>Application Password</span>
                 </Label>
@@ -133,15 +148,18 @@ export function WordPressStep({ onComplete, loading, status }: WordPressStepProp
                   type="password"
                   placeholder="xxxx xxxx xxxx xxxx"
                   value={formData.applicationPassword}
-                  onChange={(e) => handleInputChange('applicationPassword', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("applicationPassword", e.target.value)
+                  }
                 />
               </div>
             </div>
 
             <Alert>
               <AlertDescription>
-                We recommend using Application Passwords for better security. 
-                You can generate one in your WordPress admin under Users → Profile → Application Passwords.
+                We recommend using Application Passwords for better security.
+                You can generate one in your WordPress admin under Users →
+                Profile → Application Passwords.
               </AlertDescription>
             </Alert>
           </div>
@@ -158,9 +176,15 @@ export function WordPressStep({ onComplete, loading, status }: WordPressStepProp
             </CardHeader>
             <CardContent>
               <div className="text-sm text-blue-600 space-y-1">
-                <p><strong>Site URL:</strong> https://example-site.com</p>
-                <p><strong>Username:</strong> admin</p>
-                <p><strong>Status:</strong> Ready to connect</p>
+                <p>
+                  <strong>Site URL:</strong> https://example-site.com
+                </p>
+                <p>
+                  <strong>Username:</strong> admin
+                </p>
+                <p>
+                  <strong>Status:</strong> Ready to connect
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -178,11 +202,11 @@ export function WordPressStep({ onComplete, loading, status }: WordPressStepProp
                 Connecting...
               </>
             ) : (
-              'Connect WordPress'
+              "Connect WordPress"
             )}
           </Button>
         </div>
       </form>
     </div>
-  )
+  );
 }

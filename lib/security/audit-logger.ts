@@ -1,4 +1,3 @@
-
 import { prisma } from "@/app/lib/prisma";
 import { env } from "@/lib/env/validation";
 
@@ -12,8 +11,8 @@ export interface AuditEvent {
   ip?: string;
   userAgent?: string;
   timestamp?: Date;
-  severity?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-  category?: 'AUTH' | 'DATA' | 'SYSTEM' | 'SECURITY' | 'USER';
+  severity?: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  category?: "AUTH" | "DATA" | "SYSTEM" | "SECURITY" | "USER";
 }
 
 export interface AuditQuery {
@@ -65,7 +64,7 @@ export class AuditLogger {
       ...event,
       timestamp: event.timestamp || new Date(),
       severity: event.severity || this.determineSeverity(event),
-      category: event.category || this.determineCategory(event)
+      category: event.category || this.determineCategory(event),
     };
 
     // Add to queue for batch processing
@@ -77,7 +76,7 @@ export class AuditLogger {
     }
 
     // Log critical events immediately
-    if (enrichedEvent.severity === 'CRITICAL') {
+    if (enrichedEvent.severity === "CRITICAL") {
       await this.logImmediately(enrichedEvent);
     }
   }
@@ -85,51 +84,53 @@ export class AuditLogger {
   /**
    * Log authentication events
    */
-  async logAuth(event: Omit<AuditEvent, 'category'>): Promise<void> {
+  async logAuth(event: Omit<AuditEvent, "category">): Promise<void> {
     await this.log({
       ...event,
-      category: 'AUTH'
+      category: "AUTH",
     });
   }
 
   /**
    * Log security events
    */
-  async logSecurity(event: Omit<AuditEvent, 'category' | 'severity'>): Promise<void> {
+  async logSecurity(
+    event: Omit<AuditEvent, "category" | "severity">,
+  ): Promise<void> {
     await this.log({
       ...event,
-      category: 'SECURITY',
-      severity: 'HIGH'
+      category: "SECURITY",
+      severity: "HIGH",
     });
   }
 
   /**
    * Log data access events
    */
-  async logDataAccess(event: Omit<AuditEvent, 'category'>): Promise<void> {
+  async logDataAccess(event: Omit<AuditEvent, "category">): Promise<void> {
     await this.log({
       ...event,
-      category: 'DATA'
+      category: "DATA",
     });
   }
 
   /**
    * Log system events
    */
-  async logSystem(event: Omit<AuditEvent, 'category'>): Promise<void> {
+  async logSystem(event: Omit<AuditEvent, "category">): Promise<void> {
     await this.log({
       ...event,
-      category: 'SYSTEM'
+      category: "SYSTEM",
     });
   }
 
   /**
    * Log user action events
    */
-  async logUserAction(event: Omit<AuditEvent, 'category'>): Promise<void> {
+  async logUserAction(event: Omit<AuditEvent, "category">): Promise<void> {
     await this.log({
       ...event,
-      category: 'USER'
+      category: "USER",
     });
   }
 
@@ -145,11 +146,13 @@ export class AuditLogger {
       const where: any = {};
 
       if (params.userId) where.userId = params.userId;
-      if (params.action) where.action = { contains: params.action, mode: 'insensitive' };
-      if (params.resource) where.resource = { contains: params.resource, mode: 'insensitive' };
+      if (params.action)
+        where.action = { contains: params.action, mode: "insensitive" };
+      if (params.resource)
+        where.resource = { contains: params.resource, mode: "insensitive" };
       if (params.severity) where.severity = params.severity;
       if (params.category) where.category = params.category;
-      
+
       if (params.startDate || params.endDate) {
         where.timestamp = {};
         if (params.startDate) where.timestamp.gte = params.startDate;
@@ -158,9 +161,9 @@ export class AuditLogger {
 
       const logs = await prisma.auditLog.findMany({
         where,
-        orderBy: { timestamp: 'desc' },
+        orderBy: { timestamp: "desc" },
         take: params.limit || 100,
-        skip: params.offset || 0
+        skip: params.offset || 0,
       });
 
       return logs.map((log: any) => ({
@@ -173,12 +176,11 @@ export class AuditLogger {
         ip: (log as any).ip || undefined,
         userAgent: (log as any).userAgent || undefined,
         timestamp: log.timestamp,
-        severity: (log as any).severity || 'LOW',
-        category: (log as any).category || 'SYSTEM'
+        severity: (log as any).severity || "LOW",
+        category: (log as any).category || "SYSTEM",
       }));
-
     } catch (error) {
-      console.error('Error querying audit logs:', error);
+      console.error("Error querying audit logs:", error);
       return [];
     }
   }
@@ -194,7 +196,7 @@ export class AuditLogger {
         eventsBySeverity: {},
         topUsers: [],
         topActions: [],
-        recentEvents: []
+        recentEvents: [],
       };
     }
 
@@ -211,54 +213,60 @@ export class AuditLogger {
 
       // Events by category
       const categoryStats = await prisma.auditLog.groupBy({
-        by: ['category'],
+        by: ["category"],
         where,
-        _count: { category: true }
+        _count: { category: true },
       });
 
-      const eventsByCategory = categoryStats.reduce((acc: any, stat: any) => {
-        acc[(stat as any).category || 'UNKNOWN'] = stat._count.category;
-        return acc;
-      }, {} as Record<string, number>);
+      const eventsByCategory = categoryStats.reduce(
+        (acc: any, stat: any) => {
+          acc[(stat as any).category || "UNKNOWN"] = stat._count.category;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
 
       // Events by severity
       const severityStats = await prisma.auditLog.groupBy({
-        by: ['severity'],
+        by: ["severity"],
         where,
-        _count: { severity: true }
+        _count: { severity: true },
       });
 
-      const eventsBySeverity = severityStats.reduce((acc: any, stat: any) => {
-        acc[(stat as any).severity || 'LOW'] = stat._count.severity;
-        return acc;
-      }, {} as Record<string, number>);
+      const eventsBySeverity = severityStats.reduce(
+        (acc: any, stat: any) => {
+          acc[(stat as any).severity || "LOW"] = stat._count.severity;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
 
       // Top users
       const userStats = await prisma.auditLog.groupBy({
-        by: ['userId'],
+        by: ["userId"],
         where: { ...where, userId: { not: null } },
         _count: { userId: true },
-        orderBy: { _count: { userId: 'desc' } },
-        take: 10
+        orderBy: { _count: { userId: "desc" } },
+        take: 10,
       });
 
       const topUsers = userStats.map((stat: any) => ({
         userId: stat.userId!,
-        count: stat._count.userId
+        count: stat._count.userId,
       }));
 
       // Top actions
       const actionStats = await prisma.auditLog.groupBy({
-        by: ['action'],
+        by: ["action"],
         where,
         _count: { action: true },
-        orderBy: { _count: { action: 'desc' } },
-        take: 10
+        orderBy: { _count: { action: "desc" } },
+        take: 10,
       });
 
       const topActions = actionStats.map((stat: any) => ({
         action: stat.action,
-        count: stat._count.action
+        count: stat._count.action,
       }));
 
       // Recent events
@@ -270,18 +278,17 @@ export class AuditLogger {
         eventsBySeverity,
         topUsers,
         topActions,
-        recentEvents
+        recentEvents,
       };
-
     } catch (error) {
-      console.error('Error getting audit stats:', error);
+      console.error("Error getting audit stats:", error);
       return {
         totalEvents: 0,
         eventsByCategory: {},
         eventsBySeverity: {},
         topUsers: [],
         topActions: [],
-        recentEvents: []
+        recentEvents: [],
       };
     }
   }
@@ -301,13 +308,13 @@ export class AuditLogger {
       const result = await prisma.auditLog.deleteMany({
         where: {
           timestamp: { lt: cutoffDate },
-          severity: { not: 'CRITICAL' } // Keep critical events longer
-        }
+          severity: { not: "CRITICAL" }, // Keep critical events longer
+        },
       });
 
       return result.count;
     } catch (error) {
-      console.error('Error cleaning up audit logs:', error);
+      console.error("Error cleaning up audit logs:", error);
       return 0;
     }
   }
@@ -326,7 +333,7 @@ export class AuditLogger {
       const eventsToProcess = this.eventQueue.splice(0, this.BATCH_SIZE);
       await this.batchInsert(eventsToProcess);
     } catch (error) {
-      console.error('Error processing audit queue:', error);
+      console.error("Error processing audit queue:", error);
     } finally {
       this.isProcessing = false;
     }
@@ -341,7 +348,7 @@ export class AuditLogger {
     }
 
     try {
-      const data = events.map(event => ({
+      const data = events.map((event) => ({
         userId: event.userId || null,
         sessionId: (event as any).sessionId || null,
         action: event.action,
@@ -351,20 +358,23 @@ export class AuditLogger {
         ip: event.ip || null,
         userAgent: event.userAgent || null,
         timestamp: event.timestamp || new Date(),
-        severity: event.severity || 'LOW',
-        category: event.category || 'SYSTEM'
+        severity: event.severity || "LOW",
+        category: event.category || "SYSTEM",
       }));
 
       await prisma.auditLog.createMany({ data });
     } catch (error) {
-      console.error('Error batch inserting audit events:', error);
-      
+      console.error("Error batch inserting audit events:", error);
+
       // Fallback: try inserting one by one
       for (const event of events) {
         try {
           await this.logImmediately(event);
         } catch (individualError) {
-          console.error('Error inserting individual audit event:', individualError);
+          console.error(
+            "Error inserting individual audit event:",
+            individualError,
+          );
         }
       }
     }
@@ -375,7 +385,7 @@ export class AuditLogger {
    */
   private async logImmediately(event: AuditEvent): Promise<void> {
     if (!prisma) {
-      console.log('Audit Event (No DB):', JSON.stringify(event, null, 2));
+      console.log("Audit Event (No DB):", JSON.stringify(event, null, 2));
       return;
     }
 
@@ -391,12 +401,12 @@ export class AuditLogger {
           ip: event.ip || null,
           userAgent: event.userAgent || null,
           timestamp: event.timestamp || new Date(),
-          severity: event.severity || 'LOW',
-          category: event.category || 'SYSTEM'
-        }
+          severity: event.severity || "LOW",
+          category: event.category || "SYSTEM",
+        },
       });
     } catch (error) {
-      console.error('Error logging audit event immediately:', error);
+      console.error("Error logging audit event immediately:", error);
     }
   }
 
@@ -412,57 +422,97 @@ export class AuditLogger {
   /**
    * Determine event severity
    */
-  private determineSeverity(event: AuditEvent): 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' {
+  private determineSeverity(
+    event: AuditEvent,
+  ): "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" {
     const criticalActions = [
-      'DELETE_USER', 'DELETE_ROLE', 'SYSTEM_SHUTDOWN', 'SECURITY_BREACH',
-      'UNAUTHORIZED_ACCESS', 'DATA_BREACH', 'PRIVILEGE_ESCALATION'
+      "DELETE_USER",
+      "DELETE_ROLE",
+      "SYSTEM_SHUTDOWN",
+      "SECURITY_BREACH",
+      "UNAUTHORIZED_ACCESS",
+      "DATA_BREACH",
+      "PRIVILEGE_ESCALATION",
     ];
 
     const highActions = [
-      'CREATE_USER', 'UPDATE_USER', 'ASSIGN_ROLE', 'REMOVE_ROLE',
-      'FAILED_LOGIN', 'PASSWORD_RESET', 'ACCOUNT_LOCKED'
+      "CREATE_USER",
+      "UPDATE_USER",
+      "ASSIGN_ROLE",
+      "REMOVE_ROLE",
+      "FAILED_LOGIN",
+      "PASSWORD_RESET",
+      "ACCOUNT_LOCKED",
     ];
 
     const mediumActions = [
-      'LOGIN', 'LOGOUT', 'UPDATE_PROFILE', 'CHANGE_PASSWORD',
-      'ENABLE_2FA', 'DISABLE_2FA'
+      "LOGIN",
+      "LOGOUT",
+      "UPDATE_PROFILE",
+      "CHANGE_PASSWORD",
+      "ENABLE_2FA",
+      "DISABLE_2FA",
     ];
 
-    if (criticalActions.includes(event.action)) return 'CRITICAL';
-    if (highActions.includes(event.action)) return 'HIGH';
-    if (mediumActions.includes(event.action)) return 'MEDIUM';
-    
-    return 'LOW';
+    if (criticalActions.includes(event.action)) return "CRITICAL";
+    if (highActions.includes(event.action)) return "HIGH";
+    if (mediumActions.includes(event.action)) return "MEDIUM";
+
+    return "LOW";
   }
 
   /**
    * Determine event category
    */
-  private determineCategory(event: AuditEvent): 'AUTH' | 'DATA' | 'SYSTEM' | 'SECURITY' | 'USER' {
+  private determineCategory(
+    event: AuditEvent,
+  ): "AUTH" | "DATA" | "SYSTEM" | "SECURITY" | "USER" {
     const authActions = [
-      'LOGIN', 'LOGOUT', 'REGISTER', 'PASSWORD_RESET', 'VERIFY_EMAIL',
-      'ENABLE_2FA', 'DISABLE_2FA', 'VERIFY_2FA'
+      "LOGIN",
+      "LOGOUT",
+      "REGISTER",
+      "PASSWORD_RESET",
+      "VERIFY_EMAIL",
+      "ENABLE_2FA",
+      "DISABLE_2FA",
+      "VERIFY_2FA",
     ];
 
     const securityActions = [
-      'FAILED_LOGIN', 'ACCOUNT_LOCKED', 'UNAUTHORIZED_ACCESS',
-      'SECURITY_BREACH', 'PRIVILEGE_ESCALATION', 'SUSPICIOUS_ACTIVITY'
+      "FAILED_LOGIN",
+      "ACCOUNT_LOCKED",
+      "UNAUTHORIZED_ACCESS",
+      "SECURITY_BREACH",
+      "PRIVILEGE_ESCALATION",
+      "SUSPICIOUS_ACTIVITY",
     ];
 
     const dataActions = [
-      'CREATE', 'READ', 'UPDATE', 'DELETE', 'EXPORT', 'IMPORT'
+      "CREATE",
+      "READ",
+      "UPDATE",
+      "DELETE",
+      "EXPORT",
+      "IMPORT",
     ];
 
     const userActions = [
-      'CREATE_USER', 'UPDATE_USER', 'DELETE_USER', 'UPDATE_PROFILE'
+      "CREATE_USER",
+      "UPDATE_USER",
+      "DELETE_USER",
+      "UPDATE_PROFILE",
     ];
 
-    if (authActions.some(action => event.action.includes(action))) return 'AUTH';
-    if (securityActions.some(action => event.action.includes(action))) return 'SECURITY';
-    if (dataActions.some(action => event.action.includes(action))) return 'DATA';
-    if (userActions.some(action => event.action.includes(action))) return 'USER';
+    if (authActions.some((action) => event.action.includes(action)))
+      return "AUTH";
+    if (securityActions.some((action) => event.action.includes(action)))
+      return "SECURITY";
+    if (dataActions.some((action) => event.action.includes(action)))
+      return "DATA";
+    if (userActions.some((action) => event.action.includes(action)))
+      return "USER";
 
-    return 'SYSTEM';
+    return "SYSTEM";
   }
 
   /**
@@ -481,17 +531,18 @@ export async function logAuthEvent(
   action: string,
   userId?: string,
   details?: Record<string, any>,
-  request?: Request
+  request?: Request,
 ): Promise<void> {
   await auditLogger.logAuth({
     userId,
     action,
-    resource: 'auth',
+    resource: "auth",
     details,
-    ip: request?.headers.get('x-forwarded-for')?.split(',')[0] || 
-        request?.headers.get('x-real-ip') || 
-        'unknown',
-    userAgent: request?.headers.get('user-agent') || 'unknown'
+    ip:
+      request?.headers.get("x-forwarded-for")?.split(",")[0] ||
+      request?.headers.get("x-real-ip") ||
+      "unknown",
+    userAgent: request?.headers.get("user-agent") || "unknown",
   });
 }
 
@@ -499,17 +550,18 @@ export async function logSecurityEvent(
   action: string,
   details: Record<string, any>,
   request?: Request,
-  userId?: string
+  userId?: string,
 ): Promise<void> {
   await auditLogger.logSecurity({
     userId,
     action,
-    resource: 'security',
+    resource: "security",
     details,
-    ip: request?.headers.get('x-forwarded-for')?.split(',')[0] || 
-        request?.headers.get('x-real-ip') || 
-        'unknown',
-    userAgent: request?.headers.get('user-agent') || 'unknown'
+    ip:
+      request?.headers.get("x-forwarded-for")?.split(",")[0] ||
+      request?.headers.get("x-real-ip") ||
+      "unknown",
+    userAgent: request?.headers.get("user-agent") || "unknown",
   });
 }
 
@@ -518,13 +570,13 @@ export async function logDataEvent(
   resource: string,
   resourceId: string,
   userId: string,
-  details?: Record<string, any>
+  details?: Record<string, any>,
 ): Promise<void> {
   await auditLogger.logDataAccess({
     userId,
     action,
     resource,
     resourceId,
-    details
+    details,
   });
 }

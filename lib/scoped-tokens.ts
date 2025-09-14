@@ -1,6 +1,5 @@
-
-import crypto from 'crypto';
-import { prisma } from '@/lib/prisma';
+import crypto from "crypto";
+import { prisma } from "@/lib/prisma";
 
 // Define local type to avoid dependency on Prisma generated types
 type ScopedToken = {
@@ -20,14 +19,15 @@ export interface TokenPayload {
 }
 
 export class ScopedTokenService {
-  private static readonly SECRET_KEY = process.env.TOKEN_SECRET || 'default-secret';
+  private static readonly SECRET_KEY =
+    process.env.TOKEN_SECRET || "default-secret";
 
   static async createToken(
     siteId?: string,
-    scopes: string[] = ['read:drafts'],
-    expiryDays = 90
+    scopes: string[] = ["read:drafts"],
+    expiryDays = 90,
   ): Promise<{ token: string; tokenRecord: ScopedToken }> {
-    const tokenValue = crypto.randomBytes(32).toString('hex');
+    const tokenValue = crypto.randomBytes(32).toString("hex");
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + expiryDays);
 
@@ -68,22 +68,30 @@ export class ScopedTokenService {
       return {
         tokenId: tokenRecord.id,
         siteId: tokenRecord.siteId || undefined,
-        scopes: Array.isArray(tokenRecord.scopes) ? tokenRecord.scopes as string[] : [],
+        scopes: Array.isArray(tokenRecord.scopes)
+          ? (tokenRecord.scopes as string[])
+          : [],
         expiresAt: tokenRecord.expiresAt || undefined,
       };
     } catch (error) {
-      console.error('Token validation error:', error);
+      console.error("Token validation error:", error);
       return null;
     }
   }
 
-  static async hasScope(token: string, requiredScope: string): Promise<boolean> {
+  static async hasScope(
+    token: string,
+    requiredScope: string,
+  ): Promise<boolean> {
     const payload = await this.validateToken(token);
     if (!payload) {
       return false;
     }
 
-    return payload.scopes.includes(requiredScope) || payload.scopes.includes('admin:all');
+    return (
+      payload.scopes.includes(requiredScope) ||
+      payload.scopes.includes("admin:all")
+    );
   }
 
   static async revokeToken(token: string): Promise<void> {
@@ -96,7 +104,7 @@ export class ScopedTokenService {
     return await prisma.scopedToken.findMany({
       where: siteId ? { siteId } : {},
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
   }
@@ -115,14 +123,14 @@ export class ScopedTokenService {
 
   static getAvailableScopes(): string[] {
     return [
-      'read:drafts',
-      'write:drafts',
-      'read:reviews',
-      'write:reviews',
-      'read:sites',
-      'write:sites',
-      'read:analytics',
-      'admin:all',
+      "read:drafts",
+      "write:drafts",
+      "read:reviews",
+      "write:reviews",
+      "read:sites",
+      "write:sites",
+      "read:analytics",
+      "admin:all",
     ];
   }
 }

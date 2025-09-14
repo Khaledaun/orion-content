@@ -1,5 +1,4 @@
-
-import { google } from 'googleapis';
+import { google } from "googleapis";
 
 // Define local types to avoid dependency on Prisma generated types
 type GscConnection = {
@@ -49,7 +48,7 @@ export class GscClient {
     const oauth2Client = new google.auth.OAuth2(
       credentials.client_id,
       credentials.client_secret,
-      'urn:ietf:wg:oauth:2.0:oob'
+      "urn:ietf:wg:oauth:2.0:oob",
     );
 
     oauth2Client.setCredentials({
@@ -57,32 +56,40 @@ export class GscClient {
     });
 
     this.searchconsole = google.searchconsole({
-      version: 'v1',
+      version: "v1",
       auth: oauth2Client,
     });
   }
 
   static fromEnvironment(): GscClient {
     const credentials = {
-      client_id: process.env.GSC_CLIENT_ID || '',
-      client_secret: process.env.GSC_CLIENT_SECRET || '',
-      refresh_token: process.env.GSC_REFRESH_TOKEN || '',
+      client_id: process.env.GSC_CLIENT_ID || "",
+      client_secret: process.env.GSC_CLIENT_SECRET || "",
+      refresh_token: process.env.GSC_REFRESH_TOKEN || "",
     };
 
-    if (!credentials.client_id || !credentials.client_secret || !credentials.refresh_token) {
-      throw new Error('GSC credentials not found in environment');
+    if (
+      !credentials.client_id ||
+      !credentials.client_secret ||
+      !credentials.refresh_token
+    ) {
+      throw new Error("GSC credentials not found in environment");
     }
 
     return new GscClient(credentials);
   }
 
-  async listSites(): Promise<Array<{ siteUrl: string; permissionLevel: string }>> {
+  async listSites(): Promise<
+    Array<{ siteUrl: string; permissionLevel: string }>
+  > {
     try {
       const response = await this.searchconsole.sites.list();
-      return response.data.siteEntry?.map((site: any) => ({
-        siteUrl: site.siteUrl,
-        permissionLevel: site.permissionLevel,
-      })) || [];
+      return (
+        response.data.siteEntry?.map((site: any) => ({
+          siteUrl: site.siteUrl,
+          permissionLevel: site.permissionLevel,
+        })) || []
+      );
     } catch (error) {
       throw new Error(`GSC API error: ${error}`);
     }
@@ -105,13 +112,15 @@ export class GscClient {
         siteUrl,
       });
 
-      return response.data.sitemap?.map((sitemap: any) => ({
-        sitemap: sitemap.feedpath,
-        status: sitemap.status,
-        lastSubmitted: sitemap.lastSubmitted,
-        warnings: sitemap.warnings?.map((w: any) => w.message),
-        errors: sitemap.errors?.map((e: any) => e.message),
-      })) || [];
+      return (
+        response.data.sitemap?.map((sitemap: any) => ({
+          sitemap: sitemap.feedpath,
+          status: sitemap.status,
+          lastSubmitted: sitemap.lastSubmitted,
+          warnings: sitemap.warnings?.map((w: any) => w.message),
+          errors: sitemap.errors?.map((e: any) => e.message),
+        })) || []
+      );
     } catch (error) {
       throw new Error(`Failed to get sitemaps: ${error}`);
     }
@@ -121,7 +130,7 @@ export class GscClient {
     siteUrl: string,
     startDate: string,
     endDate: string,
-    dimensions: string[] = ['page']
+    dimensions: string[] = ["page"],
   ): Promise<GscPerformanceData> {
     try {
       const response = await this.searchconsole.searchanalytics.query({
@@ -135,13 +144,14 @@ export class GscClient {
       });
 
       return {
-        rows: response.data.rows?.map((row: any) => ({
-          keys: row.keys,
-          clicks: row.clicks,
-          impressions: row.impressions,
-          ctr: row.ctr,
-          position: row.position,
-        })) || [],
+        rows:
+          response.data.rows?.map((row: any) => ({
+            keys: row.keys,
+            clicks: row.clicks,
+            impressions: row.impressions,
+            ctr: row.ctr,
+            position: row.position,
+          })) || [],
       };
     } catch (error) {
       throw new Error(`Failed to get performance data: ${error}`);

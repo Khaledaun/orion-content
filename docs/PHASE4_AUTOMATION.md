@@ -1,4 +1,3 @@
-
 # Phase 4: Automated Publishing & Multi-Site Orchestration
 
 This documentation covers the automated content publishing pipeline that generates topics and creates WordPress drafts across multiple sites on a scheduled basis.
@@ -8,7 +7,7 @@ This documentation covers the automated content publishing pipeline that generat
 Phase 4 introduces a complete automation system that:
 
 - ✅ **Generates topics automatically** using existing Phase 3 logic
-- ✅ **Creates WordPress drafts** with enriched content 
+- ✅ **Creates WordPress drafts** with enriched content
 - ✅ **Supports multiple sites** with individual configurations
 - ✅ **Runs on GitHub Actions** with cron scheduling
 - ✅ **Provides comprehensive logging** and monitoring
@@ -68,6 +67,7 @@ ORION_SITES=my-site,ai-news,crypto-digest
 ```
 
 **Per-site WordPress credentials** (optional):
+
 ```
 WP_BASE_URL__my_site=https://mysite.com
 WP_USERNAME__my_site=mysite_user
@@ -79,6 +79,7 @@ WP_APP_PASSWORD__ai_news=ai_app_password
 ```
 
 **Default WordPress credentials** (fallback):
+
 ```
 WP_BASE_URL=https://default-site.com
 WP_USERNAME=default_user
@@ -98,21 +99,21 @@ The pipeline runs automatically via GitHub Actions:
 
 ### Required GitHub Secrets
 
-| Secret | Description | Example |
-|--------|-------------|---------|
-| `CONSOLE_BASE_URL` | Your Orion app URL | `https://your-app.vercel.app` |
-| `CONSOLE_API_TOKEN` | Bearer token from Orion | `your_console_token` |
+| Secret              | Description             | Example                       |
+| ------------------- | ----------------------- | ----------------------------- |
+| `CONSOLE_BASE_URL`  | Your Orion app URL      | `https://your-app.vercel.app` |
+| `CONSOLE_API_TOKEN` | Bearer token from Orion | `your_console_token`          |
 
 ### Optional GitHub Secrets
 
-| Secret | Description | Default | Example |
-|--------|-------------|---------|---------|
-| `ORION_SITES` | Comma-separated site keys | `my-site` | `my-site,ai-news,crypto-digest` |
-| `TOPIC_COUNT` | Topics per site per run (supports ranges) | `5` | `5` or `3-7` |
-| `ENRICH_PROMPT_STRATEGY` | Content generation strategy | `default` | `random`, `listicle_prompt.txt` |
-| `WP_BASE_URL` | Default WordPress URL | None (dry-run) | `https://wordpress.com` |
-| `WP_USERNAME` | Default WordPress user | None (dry-run) | `wp_user` |
-| `WP_APP_PASSWORD` | Default WordPress app password | None (dry-run) | `wp_app_password` |
+| Secret                   | Description                               | Default        | Example                         |
+| ------------------------ | ----------------------------------------- | -------------- | ------------------------------- |
+| `ORION_SITES`            | Comma-separated site keys                 | `my-site`      | `my-site,ai-news,crypto-digest` |
+| `TOPIC_COUNT`            | Topics per site per run (supports ranges) | `5`            | `5` or `3-7`                    |
+| `ENRICH_PROMPT_STRATEGY` | Content generation strategy               | `default`      | `random`, `listicle_prompt.txt` |
+| `WP_BASE_URL`            | Default WordPress URL                     | None (dry-run) | `https://wordpress.com`         |
+| `WP_USERNAME`            | Default WordPress user                    | None (dry-run) | `wp_user`                       |
+| `WP_APP_PASSWORD`        | Default WordPress app password            | None (dry-run) | `wp_app_password`               |
 
 ### Site-Specific Secrets (Optional)
 
@@ -203,17 +204,20 @@ Logs are stored in `python/automation-logs/<site>/<YYYY-MM-DD>.jsonl` and upload
 ## Idempotency and Safety
 
 ### Topic Deduplication
+
 - Topics are deduplicated by title within each batch
 - Safe to re-run pipeline multiple times per day
 - Uses existing Phase 3 bulk topic creation (handles duplicates gracefully)
 
 ### WordPress Publishing Safety
+
 - Only creates drafts (never publishes automatically)
 - Continues processing other topics if one fails
 - Dry-run mode when WordPress credentials are missing
 - Error handling prevents pipeline from stopping on individual failures
 
 ### API Safety
+
 - Uses existing Orion API endpoints with proper error handling
 - Structured logging for observability
 - Optional JobRun tracking integration
@@ -227,6 +231,7 @@ Phase 4 has been enhanced with three key intelligence features:
 Prevents repetitive content by using different prompt templates:
 
 **Available Strategies:**
+
 - `default` - Original template-based generation
 - `random` - Randomly selects from available prompts
 - `listicle_prompt.txt` - List-based content format
@@ -236,6 +241,7 @@ Prevents repetitive content by using different prompt templates:
 - `case_study_prompt.txt` - Narrative case study format
 
 **Configuration:**
+
 ```bash
 # Global strategy for all sites
 ENRICH_PROMPT_STRATEGY=random
@@ -250,6 +256,7 @@ ENRICH_PROMPT_STRATEGY__ai_news=analysis_prompt.txt
 Makes automation appear more natural to search engines:
 
 **Topic Count Ranges:**
+
 ```bash
 # Fixed count (original behavior)
 TOPIC_COUNT=5
@@ -259,6 +266,7 @@ TOPIC_COUNT=3-7
 ```
 
 **Timing Jitter:**
+
 - Random 0-180 second delay at pipeline start
 - Makes scheduled runs appear more human-like
 - Can be disabled for testing with `--no-jitter` flag
@@ -273,14 +281,19 @@ Enhanced logging with metadata tracking:
   "ok": true,
   "drafts_created": 5,
   "total_input_tokens": 0,
-  "total_output_tokens": 0,  
-  "estimated_cost": 0.0,
-  "prompts_used": ["listicle_prompt.txt", "analysis_prompt.txt", "template-based"],
+  "total_output_tokens": 0,
+  "estimated_cost": 0,
+  "prompts_used": [
+    "listicle_prompt.txt",
+    "analysis_prompt.txt",
+    "template-based"
+  ],
   "prompt_strategy": "random"
 }
 ```
 
 **Metadata Fields:**
+
 - `prompt_used` - Which prompt template was used
 - `llm_model` - Model identifier (future LLM integration)
 - `input_tokens` - Input token count (0 for templates)
@@ -290,6 +303,7 @@ Enhanced logging with metadata tracking:
 ## Content Enhancement
 
 ### Current Implementation
+
 The enrichment system generates structured blog posts with:
 
 - **Multiple Content Formats** - 5 different prompt templates for variety
@@ -298,6 +312,7 @@ The enrichment system generates structured blog posts with:
 - **Backward Compatibility** - Existing functionality preserved
 
 ### Future LLM Integration
+
 The system is designed for easy enhancement:
 
 ```python
@@ -320,14 +335,17 @@ result = generate_seo_optimized_content(topic, keywords=["AI", "automation"])
 ### Common Issues
 
 **Pipeline fails with "Site not found"**
+
 - Verify site exists in Orion and has categories
 - Check `--site-key` matches exactly
 
 **WordPress publishing in dry-run when credentials are set**
+
 - Verify environment variable names (underscores vs hyphens)
 - Check credentials are valid with WordPress API test
 
 **Topics not being created**
+
 - Check site has categories configured
 - Verify week creation is working
 - Look for API authentication issues
@@ -378,7 +396,7 @@ Edit `.github/workflows/publish-cron.yml`:
 ```yaml
 on:
   schedule:
-    # Run twice daily (6 AM and 4 PM UTC)  
+    # Run twice daily (6 AM and 4 PM UTC)
     - cron: "5 6,16 * * *"
     # Run every 4 hours
     # - cron: "0 */4 * * *"
@@ -417,6 +435,7 @@ make test-automation
 The automation system integrates seamlessly with existing Orion APIs:
 
 ### Orion API Endpoints Used
+
 - `GET /api/health` - Health checking
 - `GET /api/sites` - Site and category data
 - `GET/POST /api/weeks` - Week management
@@ -424,6 +443,7 @@ The automation system integrates seamlessly with existing Orion APIs:
 - `POST /api/jobrun` - Optional job tracking
 
 ### WordPress API Endpoints Used
+
 - `POST /wp-json/wp/v2/posts` - Draft creation
 - `GET /wp-json/wp/v2/posts` - Recent posts (validation)
 

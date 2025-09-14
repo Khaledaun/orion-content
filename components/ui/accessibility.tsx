@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React from 'react';
+import React from "react";
 
 interface VisuallyHiddenProps {
   children: React.ReactNode;
@@ -11,20 +11,20 @@ interface VisuallyHiddenProps {
  * Visually hidden component for screen reader only content
  * Follows WCAG guidelines for accessible hidden content
  */
-export function VisuallyHidden({ children, asChild = false }: VisuallyHiddenProps) {
-  const className = "sr-only absolute left-[-10000px] top-auto width-[1px] height-[1px] overflow-hidden";
-  
+export function VisuallyHidden({
+  children,
+  asChild = false,
+}: VisuallyHiddenProps) {
+  const className =
+    "sr-only absolute left-[-10000px] top-auto width-[1px] height-[1px] overflow-hidden";
+
   if (asChild && React.isValidElement(children)) {
     return React.cloneElement(children, {
-      className: `${children.props.className || ''} ${className}`.trim(),
+      className: `${children.props.className || ""} ${className}`.trim(),
     });
   }
 
-  return (
-    <span className={className}>
-      {children}
-    </span>
-  );
+  return <span className={className}>{children}</span>;
 }
 
 interface SkipLinkProps {
@@ -36,7 +36,7 @@ interface SkipLinkProps {
 /**
  * Skip link component for keyboard navigation accessibility
  */
-export function SkipLink({ href, children, className = '' }: SkipLinkProps) {
+export function SkipLink({ href, children, className = "" }: SkipLinkProps) {
   return (
     <a
       href={href}
@@ -55,21 +55,21 @@ export function SkipLink({ href, children, className = '' }: SkipLinkProps) {
 
 interface LiveRegionProps {
   children: React.ReactNode;
-  level?: 'polite' | 'assertive' | 'off';
+  level?: "polite" | "assertive" | "off";
   atomic?: boolean;
-  relevant?: 'additions' | 'removals' | 'text' | 'all';
+  relevant?: "additions" | "removals" | "text" | "all";
   className?: string;
 }
 
 /**
  * Live region for announcing dynamic content changes to screen readers
  */
-export function LiveRegion({ 
-  children, 
-  level = 'polite',
+export function LiveRegion({
+  children,
+  level = "polite",
   atomic = false,
-  relevant = 'text',
-  className = '' 
+  relevant = "text",
+  className = "",
 }: LiveRegionProps) {
   return (
     <div
@@ -92,7 +92,11 @@ interface FocusTrapProps {
 /**
  * Simple focus trap for modal dialogs and overlays
  */
-export function FocusTrap({ children, active = true, className = '' }: FocusTrapProps) {
+export function FocusTrap({
+  children,
+  active = true,
+  className = "",
+}: FocusTrapProps) {
   const trapRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -100,13 +104,15 @@ export function FocusTrap({ children, active = true, className = '' }: FocusTrap
 
     const element = trapRef.current;
     const focusableElements = element.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     );
     const firstElement = focusableElements[0] as HTMLElement;
-    const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+    const lastElement = focusableElements[
+      focusableElements.length - 1
+    ] as HTMLElement;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return;
+      if (e.key !== "Tab") return;
 
       if (e.shiftKey) {
         if (document.activeElement === firstElement) {
@@ -121,11 +127,11 @@ export function FocusTrap({ children, active = true, className = '' }: FocusTrap
       }
     };
 
-    element.addEventListener('keydown', handleKeyDown);
+    element.addEventListener("keydown", handleKeyDown);
     firstElement?.focus();
 
     return () => {
-      element.removeEventListener('keydown', handleKeyDown);
+      element.removeEventListener("keydown", handleKeyDown);
     };
   }, [active]);
 
@@ -141,23 +147,23 @@ export function FocusTrap({ children, active = true, className = '' }: FocusTrap
  */
 export function useFocusManagement() {
   const focusMainContent = React.useCallback(() => {
-    const mainElement = document.querySelector('main');
+    const mainElement = document.querySelector("main");
     if (mainElement) {
       mainElement.focus();
-      mainElement.scrollIntoView({ behavior: 'smooth' });
+      mainElement.scrollIntoView({ behavior: "smooth" });
     }
   }, []);
 
   const announcePage = React.useCallback((title: string) => {
     // Create temporary announcement element
-    const announcement = document.createElement('div');
-    announcement.setAttribute('aria-live', 'assertive');
-    announcement.setAttribute('aria-atomic', 'true');
-    announcement.className = 'sr-only';
+    const announcement = document.createElement("div");
+    announcement.setAttribute("aria-live", "assertive");
+    announcement.setAttribute("aria-atomic", "true");
+    announcement.className = "sr-only";
     announcement.textContent = `Navigated to ${title}`;
-    
+
     document.body.appendChild(announcement);
-    
+
     // Remove after announcement
     setTimeout(() => {
       document.body.removeChild(announcement);

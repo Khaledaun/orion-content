@@ -1,9 +1,15 @@
 // components/SetupGate.tsx - Setup and empty state handler
 
-import Link from 'next/link';
-import { Button } from './ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Settings, User, Database } from 'lucide-react';
+import Link from "next/link";
+import { Button } from "./ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import { Settings, User, Database } from "lucide-react";
 
 interface SetupGateProps {
   hasAuth?: boolean;
@@ -11,7 +17,11 @@ interface SetupGateProps {
   demoMode?: boolean;
 }
 
-export default function SetupGate({ hasAuth = false, hasSites = false, demoMode = false }: SetupGateProps) {
+export default function SetupGate({
+  hasAuth = false,
+  hasSites = false,
+  demoMode = false,
+}: SetupGateProps) {
   // If user is authenticated and has sites, don't show setup gate
   if (hasAuth && hasSites) {
     return null;
@@ -33,7 +43,7 @@ export default function SetupGate({ hasAuth = false, hasSites = false, demoMode 
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-gray-600">
-              This is a demonstration of the Orion Content Management System. 
+              This is a demonstration of the Orion Content Management System.
               Database connectivity is limited in this environment.
             </p>
             <div className="grid gap-2">
@@ -72,12 +82,11 @@ export default function SetupGate({ hasAuth = false, hasSites = false, demoMode 
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-gray-600">
-              You need to be authenticated to access the content management system.
+              You need to be authenticated to access the content management
+              system.
             </p>
             <Link href="/login">
-              <Button className="w-full">
-                Sign In
-              </Button>
+              <Button className="w-full">Sign In</Button>
             </Link>
           </CardContent>
         </Card>
@@ -100,8 +109,9 @@ export default function SetupGate({ hasAuth = false, hasSites = false, demoMode 
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-gray-600">
-            Your account is set up, but you haven&apos;t created any content sites yet. 
-            Start by setting up your first site or completing the initial configuration.
+            Your account is set up, but you haven&apos;t created any content
+            sites yet. Start by setting up your first site or completing the
+            initial configuration.
           </p>
           <div className="grid gap-2">
             <Link href="/setup">

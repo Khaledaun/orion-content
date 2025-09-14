@@ -8,7 +8,7 @@
 interface EndpointTest {
   name: string;
   url: string;
-  method: 'GET' | 'POST';
+  method: "GET" | "POST";
   expectedStatus: number[];
   validator?: (response: Response, body: any) => boolean;
   description: string;
@@ -19,68 +19,73 @@ class EndpointVerifier {
   private timeout: number = 30000; // 30 seconds
 
   constructor(baseUrl?: string) {
-    this.baseUrl = baseUrl || process.env.NEXTAUTH_URL || 'http://localhost:3000';
-    if (this.baseUrl.endsWith('/')) {
+    this.baseUrl =
+      baseUrl || process.env.NEXTAUTH_URL || "http://localhost:3000";
+    if (this.baseUrl.endsWith("/")) {
       this.baseUrl = this.baseUrl.slice(0, -1);
     }
   }
 
   private tests: EndpointTest[] = [
     {
-      name: 'NextAuth Providers',
-      url: '/api/auth/providers',
-      method: 'GET',
+      name: "NextAuth Providers",
+      url: "/api/auth/providers",
+      method: "GET",
       expectedStatus: [200],
       validator: (response, body) => {
-        return body && typeof body === 'object' && Object.keys(body).length > 0;
+        return body && typeof body === "object" && Object.keys(body).length > 0;
       },
-      description: 'NextAuth providers configuration endpoint'
+      description: "NextAuth providers configuration endpoint",
     },
     {
-      name: 'NextAuth Session',
-      url: '/api/auth/session',
-      method: 'GET',
+      name: "NextAuth Session",
+      url: "/api/auth/session",
+      method: "GET",
       expectedStatus: [200],
       validator: (response, body) => {
         // Should return empty object when not authenticated, or session object when authenticated
-        return body !== null && typeof body === 'object';
+        return body !== null && typeof body === "object";
       },
-      description: 'NextAuth session endpoint (should return {} when not logged in)'
+      description:
+        "NextAuth session endpoint (should return {} when not logged in)",
     },
     {
-      name: 'NextAuth CSRF',
-      url: '/api/auth/csrf',
-      method: 'GET',
+      name: "NextAuth CSRF",
+      url: "/api/auth/csrf",
+      method: "GET",
       expectedStatus: [200],
       validator: (response, body) => {
-        return body && body.csrfToken && typeof body.csrfToken === 'string';
+        return body && body.csrfToken && typeof body.csrfToken === "string";
       },
-      description: 'NextAuth CSRF token endpoint'
+      description: "NextAuth CSRF token endpoint",
     },
     {
-      name: 'Health Check',
-      url: '/api/health',
-      method: 'GET',
+      name: "Health Check",
+      url: "/api/health",
+      method: "GET",
       expectedStatus: [200, 404, 503], // 503 is OK if services are not fully configured, 404 is OK if endpoint doesn't exist
-      description: 'Application health check endpoint (optional)'
+      description: "Application health check endpoint (optional)",
     },
     {
-      name: 'API Status',
-      url: '/api/ops/status',
-      method: 'GET',
+      name: "API Status",
+      url: "/api/ops/status",
+      method: "GET",
       expectedStatus: [200, 401, 404], // 401 is OK if endpoint is protected, 404 is OK if endpoint doesn't exist
-      description: 'Operational status endpoint (optional, may be protected)'
-    }
+      description: "Operational status endpoint (optional, may be protected)",
+    },
   ];
 
-  private async fetchWithTimeout(url: string, options: RequestInit): Promise<Response> {
+  private async fetchWithTimeout(
+    url: string,
+    options: RequestInit,
+  ): Promise<Response> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
     try {
       const response = await fetch(url, {
         ...options,
-        signal: controller.signal
+        signal: controller.signal,
       });
       clearTimeout(timeoutId);
       return response;
@@ -102,13 +107,13 @@ class EndpointVerifier {
 
     try {
       console.log(`  Testing ${test.name}...`);
-      
+
       const response = await this.fetchWithTimeout(url, {
         method: test.method,
         headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'OrionCMS-EndpointVerifier/1.0'
-        }
+          Accept: "application/json",
+          "User-Agent": "OrionCMS-EndpointVerifier/1.0",
+        },
       });
 
       const responseTime = Date.now() - startTime;
@@ -131,17 +136,19 @@ class EndpointVerifier {
         status: response.status,
         body,
         responseTime,
-        error: !statusOk ? `Expected status ${test.expectedStatus.join(' or ')}, got ${response.status}` :
-               !validatorOk ? 'Response validation failed' : undefined
+        error: !statusOk
+          ? `Expected status ${test.expectedStatus.join(" or ")}, got ${response.status}`
+          : !validatorOk
+            ? "Response validation failed"
+            : undefined,
       };
-
     } catch (error) {
       const responseTime = Date.now() - startTime;
       return {
         success: false,
         status: 0,
         responseTime,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }
@@ -163,12 +170,18 @@ class EndpointVerifier {
       results.push({ test, result });
 
       if (result.success) {
-        console.log(`  ✅ ${test.name}: ${result.status} (${result.responseTime}ms)`);
+        console.log(
+          `  ✅ ${test.name}: ${result.status} (${result.responseTime}ms)`,
+        );
         if (result.body && Object.keys(result.body).length > 0) {
-          console.log(`     Response: ${JSON.stringify(result.body).slice(0, 100)}${JSON.stringify(result.body).length > 100 ? '...' : ''}`);
+          console.log(
+            `     Response: ${JSON.stringify(result.body).slice(0, 100)}${JSON.stringify(result.body).length > 100 ? "..." : ""}`,
+          );
         }
       } else {
-        console.log(`  ❌ ${test.name}: ${result.error} (${result.responseTime}ms)`);
+        console.log(
+          `  ❌ ${test.name}: ${result.error} (${result.responseTime}ms)`,
+        );
         allSuccess = false;
       }
     }
@@ -177,33 +190,37 @@ class EndpointVerifier {
   }
 
   public printSummary(results: any): void {
-    console.log('\n📋 Endpoint Verification Summary:\n');
+    console.log("\n📋 Endpoint Verification Summary:\n");
 
     const successful = results.results.filter((r: any) => r.result.success);
     const failed = results.results.filter((r: any) => !r.result.success);
 
-    console.log(`✅ Successful: ${successful.length}/${results.results.length}`);
+    console.log(
+      `✅ Successful: ${successful.length}/${results.results.length}`,
+    );
     if (failed.length > 0) {
       console.log(`❌ Failed: ${failed.length}/${results.results.length}`);
-      console.log('\nFailed endpoints:');
+      console.log("\nFailed endpoints:");
       failed.forEach((f: any) => {
         console.log(`  - ${f.test.name}: ${f.result.error}`);
       });
     }
 
     if (results.success) {
-      console.log('\n🎉 All critical endpoints are working correctly!');
+      console.log("\n🎉 All critical endpoints are working correctly!");
     } else {
-      console.log('\n⚠️ Some endpoints failed. Check the configuration and try again.');
+      console.log(
+        "\n⚠️ Some endpoints failed. Check the configuration and try again.",
+      );
     }
   }
 
   public generateCurlCommands(): string[] {
-    console.log('\n📋 Curl commands for manual testing:\n');
-    
+    console.log("\n📋 Curl commands for manual testing:\n");
+
     const commands = this.tests
-      .filter(test => test.method === 'GET')
-      .map(test => {
+      .filter((test) => test.method === "GET")
+      .map((test) => {
         const url = `${this.baseUrl}${test.url}`;
         const command = `curl -s -w "\\nStatus: %{http_code}\\nTime: %{time_total}s\\n" "${url}"`;
         console.log(`# ${test.description}`);
@@ -219,12 +236,12 @@ class EndpointVerifier {
 // CLI usage
 if (require.main === module) {
   const args = process.argv.slice(2);
-  
-  // Filter out options to find the base URL
-  const urlArg = args.find(arg => !arg.startsWith('--'));
-  const baseUrl = urlArg || process.env.NEXTAUTH_URL || 'http://localhost:3000';
 
-  if (args.includes('--help') || args.includes('-h')) {
+  // Filter out options to find the base URL
+  const urlArg = args.find((arg) => !arg.startsWith("--"));
+  const baseUrl = urlArg || process.env.NEXTAUTH_URL || "http://localhost:3000";
+
+  if (args.includes("--help") || args.includes("-h")) {
     console.log(`
 Usage: npx tsx scripts/verify-endpoints.ts [BASE_URL] [OPTIONS]
 
@@ -245,22 +262,23 @@ Examples:
 
   const verifier = new EndpointVerifier(baseUrl);
 
-  if (args.includes('--curl-only')) {
+  if (args.includes("--curl-only")) {
     verifier.generateCurlCommands();
     process.exit(0);
   }
 
-  verifier.verifyEndpoints()
-    .then(results => {
+  verifier
+    .verifyEndpoints()
+    .then((results) => {
       verifier.printSummary(results);
       verifier.generateCurlCommands();
-      
+
       if (!results.success) {
         process.exit(1);
       }
     })
-    .catch(error => {
-      console.error('❌ Verification failed:', error);
+    .catch((error) => {
+      console.error("❌ Verification failed:", error);
       process.exit(1);
     });
 }

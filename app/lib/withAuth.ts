@@ -1,5 +1,9 @@
 import { NextRequest } from "next/server";
-import { requireRole, createUnauthorizedResponse, createForbiddenResponse } from "@/app/lib/rbac";
+import {
+  requireRole,
+  createUnauthorizedResponse,
+  createForbiddenResponse,
+} from "@/app/lib/rbac";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/nextauth";
 
@@ -7,7 +11,7 @@ type Options = { role?: "ADMIN" | "EDITOR" | "VIEWER"; siteId?: string };
 
 export function withAuth<TParams = {}>(
   handler: (req: NextRequest, params: TParams) => Promise<Response>,
-  options?: Options
+  options?: Options,
 ) {
   return async (req: NextRequest, params: TParams) => {
     try {
@@ -22,7 +26,9 @@ export function withAuth<TParams = {}>(
     } catch (err: any) {
       const msg = String(err?.message || "");
       if (/unauthorized/i.test(msg)) return createUnauthorizedResponse();
-      return createForbiddenResponse(options?.role ? `Requires ${options.role}` : "Forbidden");
+      return createForbiddenResponse(
+        options?.role ? `Requires ${options.role}` : "Forbidden",
+      );
     }
   };
 }

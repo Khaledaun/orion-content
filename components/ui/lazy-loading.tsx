@@ -1,42 +1,41 @@
+"use client";
 
-'use client'
-
-import { Suspense, lazy, ComponentType } from 'react'
-import { LoadingSpinner } from './loading-spinner'
+import { Suspense, lazy, ComponentType } from "react";
+import { LoadingSpinner } from "./loading-spinner";
 
 interface LazyComponentProps {
-  fallback?: React.ReactNode
+  fallback?: React.ReactNode;
 }
 
 export function createLazyComponent<T extends ComponentType<any>>(
   importFunc: () => Promise<{ default: T }>,
-  fallback?: React.ReactNode
+  fallback?: React.ReactNode,
 ) {
-  const LazyComponent = lazy(importFunc)
+  const LazyComponent = lazy(importFunc);
 
   return function LazyWrapper(props: React.ComponentProps<T>) {
     return (
       <Suspense fallback={fallback || <LoadingSpinner />}>
         <LazyComponent {...props} />
       </Suspense>
-    )
-  }
+    );
+  };
 }
 
 // Pre-built lazy components for common use cases
 export const LazyAnalyticsDashboard = createLazyComponent(
-  () => import('@/app/analytics/page'),
+  () => import("@/app/analytics/page"),
   <div className="flex items-center justify-center h-64">
     <LoadingSpinner size="lg" />
-  </div>
-)
+  </div>,
+);
 
 export const LazyChart = createLazyComponent(
-  () => import('react-chartjs-2').then(mod => ({ default: mod.Line })),
+  () => import("react-chartjs-2").then((mod) => ({ default: mod.Line })),
   <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
     <LoadingSpinner />
-  </div>
-)
+  </div>,
+);
 
 // Intersection Observer based lazy loading for images and content
 export function LazyImage({
@@ -46,7 +45,7 @@ export function LazyImage({
   placeholder,
   ...props
 }: React.ImgHTMLAttributes<HTMLImageElement> & {
-  placeholder?: string
+  placeholder?: string;
 }) {
   return (
     <img
@@ -59,32 +58,30 @@ export function LazyImage({
       style={{
         ...props.style,
         backgroundImage: placeholder ? `url(${placeholder})` : undefined,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
+        backgroundSize: "cover",
+        backgroundPosition: "center",
       }}
     />
-  )
+  );
 }
 
 // Lazy loading wrapper for heavy components
 export function LazySection({
   children,
   threshold = 0.1,
-  rootMargin = '50px'
+  rootMargin = "50px",
 }: {
-  children: React.ReactNode
-  threshold?: number
-  rootMargin?: string
+  children: React.ReactNode;
+  threshold?: number;
+  rootMargin?: string;
 }) {
   return (
     <div
       style={{
-        minHeight: '100px' // Prevent layout shift
+        minHeight: "100px", // Prevent layout shift
       }}
     >
-      <Suspense fallback={<LoadingSpinner />}>
-        {children}
-      </Suspense>
+      <Suspense fallback={<LoadingSpinner />}>{children}</Suspense>
     </div>
-  )
+  );
 }

@@ -98,9 +98,7 @@
         "Modern Next.js framework for performance optimization",
         "Observability: 2/2 modules"
       ],
-      "recommendations": [
-        "Implement caching strategies for better performance"
-      ]
+      "recommendations": ["Implement caching strategies for better performance"]
     },
     {
       "category": "Production Readiness",

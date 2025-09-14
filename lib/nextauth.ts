@@ -30,7 +30,8 @@ export const authOptions: NextAuthOptions = {
       // Ensure we always have user.id on session
       if (session?.user) {
         // when database sessions:
-        (session.user as any).id = user?.id ?? (token as any)?.sub ?? (session.user as any).id;
+        (session.user as any).id =
+          user?.id ?? (token as any)?.sub ?? (session.user as any).id;
       }
       return session;
     },

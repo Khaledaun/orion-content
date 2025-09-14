@@ -1,6 +1,9 @@
-
 import { Redis } from "@upstash/redis";
-import { TokenManager, TokenPayload, RefreshTokenPayload } from "@/lib/auth/token";
+import {
+  TokenManager,
+  TokenPayload,
+  RefreshTokenPayload,
+} from "@/lib/auth/token";
 import { auditLogger } from "./audit-logger";
 import { env } from "@/lib/env/validation";
 import crypto from "crypto";
@@ -25,7 +28,7 @@ export interface SessionOptions {
   rolling?: boolean; // extend session on activity
   secure?: boolean;
   httpOnly?: boolean;
-  sameSite?: 'strict' | 'lax' | 'none';
+  sameSite?: "strict" | "lax" | "none";
 }
 
 export interface ActiveSession {
@@ -75,7 +78,7 @@ export class SessionManager {
     email: string,
     roles: string[],
     options: SessionOptions = {},
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): Promise<{ sessionId: string; accessToken: string; refreshToken: string }> {
     const sessionId = TokenManager.generateSessionId();
     const now = new Date();
@@ -92,20 +95,22 @@ export class SessionManager {
       expiresAt,
       ip: metadata?.ip,
       userAgent: metadata?.userAgent,
-      deviceId: metadata?.deviceId || this.generateDeviceId(metadata?.userAgent, metadata?.ip),
+      deviceId:
+        metadata?.deviceId ||
+        this.generateDeviceId(metadata?.userAgent, metadata?.ip),
       isActive: true,
-      metadata
+      metadata,
     };
 
     // Store session
     await this.storeSession(sessionId, sessionData);
 
     // Generate tokens
-    const tokenPayload: Omit<TokenPayload, 'iat' | 'exp'> = {
+    const tokenPayload: Omit<TokenPayload, "iat" | "exp"> = {
       userId,
       email,
       roles,
-      sessionId
+      sessionId,
     };
 
     const tokens = TokenManager.generateTokenPair(tokenPayload);
@@ -113,21 +118,21 @@ export class SessionManager {
     // Log session creation
     await auditLogger.logAuth({
       userId,
-      action: 'SESSION_CREATED',
-      resource: 'session',
+      action: "SESSION_CREATED",
+      resource: "session",
       resourceId: sessionId,
       details: {
         deviceId: sessionData.deviceId,
-        expiresAt: expiresAt.toISOString()
+        expiresAt: expiresAt.toISOString(),
       },
       ip: metadata?.ip,
-      userAgent: metadata?.userAgent
+      userAgent: metadata?.userAgent,
     });
 
     return {
       sessionId,
       accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken
+      refreshToken: tokens.refreshToken,
     };
   }
 
@@ -150,7 +155,7 @@ export class SessionManager {
         return this.memoryStore.get(sessionId) || null;
       }
     } catch (error) {
-      console.error('Error getting session:', error);
+      console.error("Error getting session:", error);
     }
     return null;
   }
@@ -158,7 +163,10 @@ export class SessionManager {
   /**
    * Update session activity
    */
-  async touchSession(sessionId: string, rolling: boolean = true): Promise<boolean> {
+  async touchSession(
+    sessionId: string,
+    rolling: boolean = true,
+  ): Promise<boolean> {
     const session = await this.getSession(sessionId);
     if (!session || !session.isActive) {
       return false;
@@ -210,24 +218,27 @@ export class SessionManager {
     await this.touchSession(payload.sessionId);
 
     // Generate new tokens
-    const tokenPayload: Omit<TokenPayload, 'iat' | 'exp'> = {
+    const tokenPayload: Omit<TokenPayload, "iat" | "exp"> = {
       userId: session.userId,
       email: session.email,
       roles: session.roles,
-      sessionId: session.sessionId
+      sessionId: session.sessionId,
     };
 
-    const tokens = TokenManager.generateTokenPair(tokenPayload, payload.tokenVersion + 1);
+    const tokens = TokenManager.generateTokenPair(
+      tokenPayload,
+      payload.tokenVersion + 1,
+    );
 
     // Log token refresh
     await auditLogger.logAuth({
       userId: session.userId,
-      action: 'TOKEN_REFRESHED',
-      resource: 'session',
+      action: "TOKEN_REFRESHED",
+      resource: "session",
       resourceId: session.sessionId,
       details: {
-        tokenVersion: payload.tokenVersion + 1
-      }
+        tokenVersion: payload.tokenVersion + 1,
+      },
     });
 
     return tokens;
@@ -238,7 +249,7 @@ export class SessionManager {
    */
   async destroySession(sessionId: string): Promise<boolean> {
     const session = await this.getSession(sessionId);
-    
+
     try {
       if (this.redis) {
         await this.redis.del(`session:${sessionId}`);
@@ -250,18 +261,18 @@ export class SessionManager {
       if (session) {
         await auditLogger.logAuth({
           userId: session.userId,
-          action: 'SESSION_DESTROYED',
-          resource: 'session',
+          action: "SESSION_DESTROYED",
+          resource: "session",
           resourceId: sessionId,
           details: {
-            reason: 'manual_logout'
-          }
+            reason: "manual_logout",
+          },
         });
       }
 
       return true;
     } catch (error) {
-      console.error('Error destroying session:', error);
+      console.error("Error destroying session:", error);
       return false;
     }
   }
@@ -269,7 +280,10 @@ export class SessionManager {
   /**
    * Destroy all sessions for a user
    */
-  async destroyAllUserSessions(userId: string, exceptSessionId?: string): Promise<number> {
+  async destroyAllUserSessions(
+    userId: string,
+    exceptSessionId?: string,
+  ): Promise<number> {
     const sessions = await this.getUserSessions(userId);
     let destroyedCount = 0;
 
@@ -283,12 +297,12 @@ export class SessionManager {
     // Log bulk session destruction
     await auditLogger.logAuth({
       userId,
-      action: 'ALL_SESSIONS_DESTROYED',
-      resource: 'session',
+      action: "ALL_SESSIONS_DESTROYED",
+      resource: "session",
       details: {
         destroyedCount,
-        exceptSessionId
-      }
+        exceptSessionId,
+      },
     });
 
     return destroyedCount;
@@ -303,8 +317,8 @@ export class SessionManager {
     try {
       if (this.redis) {
         // Get all session keys
-        const keys = await this.redis.keys('session:*');
-        
+        const keys = await this.redis.keys("session:*");
+
         for (const key of keys) {
           const data = await this.redis.get(key);
           if (data) {
@@ -317,7 +331,7 @@ export class SessionManager {
                 lastAccessedAt: new Date(sessionData.lastAccessedAt),
                 ip: sessionData.ip,
                 userAgent: sessionData.userAgent,
-                deviceId: sessionData.deviceId
+                deviceId: sessionData.deviceId,
               });
             }
           }
@@ -332,16 +346,18 @@ export class SessionManager {
               lastAccessedAt: sessionData.lastAccessedAt,
               ip: sessionData.ip,
               userAgent: sessionData.userAgent,
-              deviceId: sessionData.deviceId
+              deviceId: sessionData.deviceId,
             });
           }
         }
       }
     } catch (error) {
-      console.error('Error getting user sessions:', error);
+      console.error("Error getting user sessions:", error);
     }
 
-    return sessions.sort((a, b) => b.lastAccessedAt.getTime() - a.lastAccessedAt.getTime());
+    return sessions.sort(
+      (a, b) => b.lastAccessedAt.getTime() - a.lastAccessedAt.getTime(),
+    );
   }
 
   /**
@@ -353,8 +369,8 @@ export class SessionManager {
 
     try {
       if (this.redis) {
-        const keys = await this.redis.keys('session:*');
-        
+        const keys = await this.redis.keys("session:*");
+
         for (const key of keys) {
           const data = await this.redis.get(key);
           if (data) {
@@ -374,14 +390,14 @@ export class SessionManager {
         }
       }
     } catch (error) {
-      console.error('Error cleaning up expired sessions:', error);
+      console.error("Error cleaning up expired sessions:", error);
     }
 
     if (cleanedCount > 0) {
       await auditLogger.logSystem({
-        action: 'SESSIONS_CLEANED',
-        resource: 'session',
-        details: { cleanedCount }
+        action: "SESSIONS_CLEANED",
+        resource: "session",
+        details: { cleanedCount },
       });
     }
 
@@ -401,28 +417,28 @@ export class SessionManager {
       totalSessions: 0,
       activeSessions: 0,
       expiredSessions: 0,
-      sessionsByUser: {} as Record<string, number>
+      sessionsByUser: {} as Record<string, number>,
     };
 
     const now = new Date();
 
     try {
       if (this.redis) {
-        const keys = await this.redis.keys('session:*');
+        const keys = await this.redis.keys("session:*");
         stats.totalSessions = keys.length;
 
         for (const key of keys) {
           const data = await this.redis.get(key);
           if (data) {
             const sessionData = JSON.parse(data as string);
-            
+
             if (new Date(sessionData.expiresAt) > now && sessionData.isActive) {
               stats.activeSessions++;
             } else {
               stats.expiredSessions++;
             }
 
-            stats.sessionsByUser[sessionData.userId] = 
+            stats.sessionsByUser[sessionData.userId] =
               (stats.sessionsByUser[sessionData.userId] || 0) + 1;
           }
         }
@@ -436,12 +452,12 @@ export class SessionManager {
             stats.expiredSessions++;
           }
 
-          stats.sessionsByUser[sessionData.userId] = 
+          stats.sessionsByUser[sessionData.userId] =
             (stats.sessionsByUser[sessionData.userId] || 0) + 1;
         }
       }
     } catch (error) {
-      console.error('Error getting session stats:', error);
+      console.error("Error getting session stats:", error);
     }
 
     return stats;
@@ -450,16 +466,25 @@ export class SessionManager {
   /**
    * Store session data
    */
-  private async storeSession(sessionId: string, sessionData: SessionData): Promise<void> {
+  private async storeSession(
+    sessionId: string,
+    sessionData: SessionData,
+  ): Promise<void> {
     try {
       if (this.redis) {
-        const ttl = Math.ceil((sessionData.expiresAt.getTime() - Date.now()) / 1000);
-        await this.redis.setex(`session:${sessionId}`, ttl, JSON.stringify(sessionData));
+        const ttl = Math.ceil(
+          (sessionData.expiresAt.getTime() - Date.now()) / 1000,
+        );
+        await this.redis.setex(
+          `session:${sessionId}`,
+          ttl,
+          JSON.stringify(sessionData),
+        );
       } else {
         this.memoryStore.set(sessionId, sessionData);
       }
     } catch (error) {
-      console.error('Error storing session:', error);
+      console.error("Error storing session:", error);
       throw error;
     }
   }
@@ -468,8 +493,12 @@ export class SessionManager {
    * Generate device ID
    */
   private generateDeviceId(userAgent?: string, ip?: string): string {
-    const data = `${userAgent || 'unknown'}:${ip || 'unknown'}`;
-    return crypto.createHash('sha256').update(data).digest('hex').substring(0, 16);
+    const data = `${userAgent || "unknown"}:${ip || "unknown"}`;
+    return crypto
+      .createHash("sha256")
+      .update(data)
+      .digest("hex")
+      .substring(0, 16);
   }
 
   /**
@@ -491,19 +520,24 @@ export async function createUserSession(
   email: string,
   roles: string[],
   request?: Request,
-  options?: SessionOptions
+  options?: SessionOptions,
 ): Promise<{ sessionId: string; accessToken: string; refreshToken: string }> {
-  const metadata = request ? {
-    ip: request.headers.get('x-forwarded-for')?.split(',')[0] || 
-        request.headers.get('x-real-ip') || 
-        'unknown',
-    userAgent: request.headers.get('user-agent') || 'unknown'
-  } : undefined;
+  const metadata = request
+    ? {
+        ip:
+          request.headers.get("x-forwarded-for")?.split(",")[0] ||
+          request.headers.get("x-real-ip") ||
+          "unknown",
+        userAgent: request.headers.get("user-agent") || "unknown",
+      }
+    : undefined;
 
   return sessionManager.createSession(userId, email, roles, options, metadata);
 }
 
-export async function validateSession(sessionId: string): Promise<SessionData | null> {
+export async function validateSession(
+  sessionId: string,
+): Promise<SessionData | null> {
   const session = await sessionManager.getSession(sessionId);
   if (!session) return null;
 
@@ -516,6 +550,9 @@ export async function logoutUser(sessionId: string): Promise<boolean> {
   return sessionManager.destroySession(sessionId);
 }
 
-export async function logoutAllDevices(userId: string, currentSessionId?: string): Promise<number> {
+export async function logoutAllDevices(
+  userId: string,
+  currentSessionId?: string,
+): Promise<number> {
   return sessionManager.destroyAllUserSessions(userId, currentSessionId);
 }

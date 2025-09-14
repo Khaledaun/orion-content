@@ -1,10 +1,9 @@
+"use client";
 
-'use client';
-
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -12,72 +11,76 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-} from '@/components/ui/navigation-menu';
-import { 
-  FileText, 
-  CheckSquare, 
-  Settings, 
-  BarChart3, 
-  Globe, 
+} from "@/components/ui/navigation-menu";
+import {
+  FileText,
+  CheckSquare,
+  Settings,
+  BarChart3,
+  Globe,
   Shield,
   AlertTriangle,
   BookOpen,
   User,
   LogOut,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface NavigationProps {
-  userRole?: 'ADMIN' | 'EDITOR' | 'VIEWER';
+  userRole?: "ADMIN" | "EDITOR" | "VIEWER";
   pendingReviews?: number;
 }
 
-export function Navigation({ userRole = 'VIEWER', pendingReviews = 0 }: NavigationProps) {
+export function Navigation({
+  userRole = "VIEWER",
+  pendingReviews = 0,
+}: NavigationProps) {
   const pathname = usePathname();
 
-  const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/');
+  const isActive = (path: string) =>
+    pathname === path || pathname.startsWith(path + "/");
 
   const menuItems = [
     {
-      title: 'Dashboard',
-      href: '/dashboard',
+      title: "Dashboard",
+      href: "/dashboard",
       icon: BarChart3,
-      description: 'Overview and analytics',
-      roles: ['ADMIN', 'EDITOR', 'VIEWER'],
+      description: "Overview and analytics",
+      roles: ["ADMIN", "EDITOR", "VIEWER"],
     },
     {
-      title: 'Sites',
-      href: '/sites',
+      title: "Sites",
+      href: "/sites",
       icon: Globe,
-      description: 'Manage content sites',
-      roles: ['ADMIN', 'EDITOR', 'VIEWER'],
+      description: "Manage content sites",
+      roles: ["ADMIN", "EDITOR", "VIEWER"],
     },
     {
-      title: 'Review',
-      href: '/review',
+      title: "Review",
+      href: "/review",
       icon: CheckSquare,
-      description: 'Content review queue',
-      roles: ['ADMIN', 'EDITOR', 'VIEWER'],
+      description: "Content review queue",
+      roles: ["ADMIN", "EDITOR", "VIEWER"],
       badge: pendingReviews > 0 ? pendingReviews : undefined,
     },
     {
-      title: 'Operations',
-      href: '/ops',
+      title: "Operations",
+      href: "/ops",
       icon: Shield,
-      description: 'System monitoring and controls',
-      roles: ['ADMIN'],
+      description: "System monitoring and controls",
+      roles: ["ADMIN"],
     },
     {
-      title: 'Documentation',
-      href: '/docs',
+      title: "Documentation",
+      href: "/docs",
       icon: BookOpen,
-      description: 'API docs and guides',
-      roles: ['ADMIN', 'EDITOR', 'VIEWER'],
+      description: "API docs and guides",
+      roles: ["ADMIN", "EDITOR", "VIEWER"],
     },
   ];
 
-  const filteredMenuItems = menuItems.filter(item => 
-    item.roles.includes(userRole)
+  const filteredMenuItems = menuItems.filter((item) =>
+    item.roles.includes(userRole),
   );
 
   return (
@@ -107,15 +110,13 @@ export function Navigation({ userRole = 'VIEWER', pendingReviews = 0 }: Navigati
                           "group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-orion-background-light focus:bg-orion-background-light focus:outline-none disabled:pointer-events-none disabled:opacity-50",
                           isActive(item.href)
                             ? "bg-orion-navy text-white hover:bg-orion-navy-light"
-                            : "text-orion-navy-light hover:text-orion-navy"
+                            : "text-orion-navy-light hover:text-orion-navy",
                         )}
                       >
                         <item.icon className="mr-2 h-4 w-4" />
                         {item.title}
                         {item.badge && (
-                          <Badge 
-                            className="ml-2 bg-orion-crimson text-white text-xs px-1.5 py-0.5 min-w-[20px] h-5"
-                          >
+                          <Badge className="ml-2 bg-orion-crimson text-white text-xs px-1.5 py-0.5 min-w-[20px] h-5">
                             {item.badge}
                           </Badge>
                         )}
@@ -130,22 +131,23 @@ export function Navigation({ userRole = 'VIEWER', pendingReviews = 0 }: Navigati
           {/* Right side - User menu */}
           <div className="flex items-center space-x-4">
             {/* Role badge */}
-            <Badge 
-              variant="outline" 
+            <Badge
+              variant="outline"
               className={cn(
                 "text-xs",
-                userRole === 'ADMIN' && "border-orion-blue text-orion-blue",
-                userRole === 'EDITOR' && "border-orion-emerald text-orion-emerald",
-                userRole === 'VIEWER' && "border-gray-400 text-gray-600"
+                userRole === "ADMIN" && "border-orion-blue text-orion-blue",
+                userRole === "EDITOR" &&
+                  "border-orion-emerald text-orion-emerald",
+                userRole === "VIEWER" && "border-gray-400 text-gray-600",
               )}
             >
               {userRole}
             </Badge>
 
             {/* System alerts (for admins) */}
-            {userRole === 'ADMIN' && (
-              <Button 
-                variant="ghost" 
+            {userRole === "ADMIN" && (
+              <Button
+                variant="ghost"
                 size="sm"
                 className="text-orion-amber hover:text-orion-amber-dark hover:bg-orion-background-light"
               >
@@ -168,7 +170,7 @@ export function Navigation({ userRole = 'VIEWER', pendingReviews = 0 }: Navigati
                           Profile
                         </NavigationMenuLink>
                       </Link>
-                      {userRole === 'ADMIN' && (
+                      {userRole === "ADMIN" && (
                         <Link href="/settings" legacyBehavior passHref>
                           <NavigationMenuLink className="block px-3 py-2 text-sm text-orion-navy hover:bg-orion-background-light rounded">
                             <Settings className="inline mr-2 h-4 w-4" />

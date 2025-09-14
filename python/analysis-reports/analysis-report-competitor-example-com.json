@@ -8,17 +8,10 @@
         "posts_per_month": 12,
         "average_word_count": 1200
       },
-      "content_types": [
-        "how_to_guides",
-        "industry_news",
-        "case_studies"
-      ],
+      "content_types": ["how_to_guides", "industry_news", "case_studies"],
       "publishing_frequency": {
         "pattern": "consistent",
-        "peak_days": [
-          "Tuesday",
-          "Thursday"
-        ]
+        "peak_days": ["Tuesday", "Thursday"]
       },
       "content_quality_indicators": {
         "avg_engagement": "high",

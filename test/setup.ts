@@ -1,14 +1,16 @@
-
 /**
  * Jest Test Setup
  * Phase 1: Content Management System
  */
 
-import '@testing-library/jest-dom';
+import "@testing-library/jest-dom";
 
 // Set test environment variables
-process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://test:test@localhost:5432/orion_test';
-process.env.ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'dGVzdC1lbmNyeXB0aW9uLWtleS0zMi1ieXRlcw==';
+process.env.DATABASE_URL =
+  process.env.DATABASE_URL ||
+  "postgresql://test:test@localhost:5432/orion_test";
+process.env.ENCRYPTION_KEY =
+  process.env.ENCRYPTION_KEY || "dGVzdC1lbmNyeXB0aW9uLWtleS0zMi1ieXRlcw==";
 
 // Extend Jest matchers
 declare global {

@@ -1,25 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
-  return NextResponse.json({ 
-    message: 'Strategy API works!',
+  return NextResponse.json({
+    message: "Strategy API works!",
     siteId: params.id,
     timestamp: new Date().toISOString(),
-    method: 'GET'
-  })
+    method: "GET",
+  });
 }
 
 export async function POST(
-  request: NextRequest, 
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: { id: string } },
 ) {
-  return NextResponse.json({ 
-    message: 'Strategy POST works!',
+  return NextResponse.json({
+    message: "Strategy POST works!",
     siteId: params.id,
     timestamp: new Date().toISOString(),
-    method: 'POST'
-  })
+    method: "POST",
+  });
 }

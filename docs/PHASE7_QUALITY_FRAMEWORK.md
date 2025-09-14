@@ -1,4 +1,3 @@
-
 # Phase 7: Quality Assurance Framework + Golden Standard Rule Book
 
 > **DeepAgent Implementation**: Complete Multi-Stage Content Pipeline with Quality Gating  
@@ -118,7 +117,7 @@ make check-phase7-env
       "priority": 0.6
     },
     {
-      "name": "ProductReview", 
+      "name": "ProductReview",
       "prompt_file": "prompts/review.md",
       "priority": 0.4
     }
@@ -138,9 +137,9 @@ make check-phase7-env
     "tone_constraints": ["helpful", "expert", "evidence-based"]
   },
   "seo": {
-    "title_length": {"min": 45, "max": 65},
-    "meta_description": {"min": 150, "max": 160},
-    "h1_rules": {"must_include_primary_keyword": true},
+    "title_length": { "min": 45, "max": 65 },
+    "meta_description": { "min": 150, "max": 160 },
+    "h1_rules": { "must_include_primary_keyword": true },
     "internal_links_min": 3,
     "outbound_links_min": 2,
     "image_alt_required": true,
@@ -166,8 +165,8 @@ make check-phase7-env
   },
   "score_weights": {
     "eeat": 0.35,
-    "seo": 0.30,
-    "aio": 0.20,
+    "seo": 0.3,
+    "aio": 0.2,
     "ai_search_visibility": 0.15
   },
   "enforcement": {
@@ -205,7 +204,7 @@ make rulebook-bump FILE=updated_rulebook.json NOTES="SEO updates based on resear
 ```bash
 # Test individual stages
 make generate-outline TOPIC_ID=cldtopic123
-make write-sections TOPIC_ID=cldtopic123  
+make write-sections TOPIC_ID=cldtopic123
 make enrich-eeat TOPIC_ID=cldtopic123
 
 # Test quality checker
@@ -231,10 +230,12 @@ make rulebook-update-dryrun
 ### Site Strategy API
 
 **GET** `/api/sites/[id]/strategy`
+
 - Returns: SiteStrategy JSON or `{}`
 - Auth: Bearer token required
 
 **POST** `/api/sites/[id]/strategy`
+
 - Body: SiteStrategy JSON
 - Validation: Zod schema
 - Returns: Updated SiteStrategy
@@ -242,10 +243,12 @@ make rulebook-update-dryrun
 ### Global Rulebook API
 
 **GET** `/api/rulebook`
+
 - Returns: Latest GlobalRulebook
 - Auth: Bearer token required
 
-**POST** `/api/rulebook`  
+**POST** `/api/rulebook`
+
 - Body: `{rules, sources, notes}`
 - Creates new version + archives old
 - Returns: New GlobalRulebook
@@ -270,8 +273,8 @@ make rulebook-update-dryrun
 ```json
 {
   "default_min_quality_score": 80,
-  "block_publish_if_below": false,    // If true, blocks low-quality
-  "tag_if_below": "review-needed"     // Tag added to WordPress
+  "block_publish_if_below": false, // If true, blocks low-quality
+  "tag_if_below": "review-needed" // Tag added to WordPress
 }
 ```
 
@@ -284,7 +287,7 @@ make rulebook-update-dryrun
   "title": "Party Invitation Template",
   "angle": "Fun, creative invitation ideas",
   "flags": {
-    "ignore_rulebook": true    // Skip quality enforcement
+    "ignore_rulebook": true // Skip quality enforcement
   }
 }
 ```
@@ -303,7 +306,7 @@ Site strategy can override specific GSRB rules:
 ```json
 {
   "quality_overrides": {
-    "min_quality_score": 90,        // Higher than global 80
+    "min_quality_score": 90, // Higher than global 80
     "require_additional_citations": true
   }
 }
@@ -408,7 +411,7 @@ make pipeline-run SITE_ID=test-site TOPIC_ID=test-topic PUBLISH=0
   "issues": [
     {
       "category": "readability",
-      "severity": "medium", 
+      "severity": "medium",
       "message": "Content may be too complex (Grade Level: 12.3)",
       "suggestion": "Consider simplifying sentences"
     }
@@ -444,6 +447,7 @@ make pipeline-run SITE_ID=test-site TOPIC_ID=test-topic PUBLISH=0
 ### Common Issues
 
 **Quality Score Always Low**
+
 ```bash
 # Check rulebook settings
 make rulebook-get | jq '.enforcement'
@@ -453,6 +457,7 @@ make check-quality FILE=sample.md
 ```
 
 **Pipeline Fails at Outline Stage**
+
 ```bash
 # Test API connectivity
 make test-api
@@ -462,6 +467,7 @@ make strategy-get SITE_ID=your_site_id
 ```
 
 **WordPress Publishing Blocked**
+
 ```bash
 # Check enforcement settings
 echo $RULEBOOK_ENFORCEMENT_ENABLED
@@ -488,35 +494,41 @@ make rulebook-bump FILE=docs/default_rulebook.json NOTES="Reset to defaults"
 ## ✅ Acceptance Checklist
 
 ### Data & API
+
 - [x] Prisma models migrated (`SiteStrategy`, `GlobalRulebook`, `RulebookVersion`)
 - [x] API endpoints functional with Zod validation
 - [x] GSRB returns expected JSON structure
 - [x] Site strategy CRUD operations work
 
 ### Pipeline
+
 - [x] 3-stage pipeline: outline → sections → E-E-A-T
 - [x] All stages logged with metrics (model, tokens, cost)
 - [x] Pipeline respects `ignore_rulebook` flag
 
-### Quality & Enforcement  
+### Quality & Enforcement
+
 - [x] Quality checker returns score + breakdown + issues
 - [x] Scoring uses GSRB weights correctly
 - [x] Below-threshold content gets review tag
 - [x] WordPress integration with quality metadata
 
 ### Research & Updates
+
 - [x] Bi-monthly CI workflow configured
 - [x] Research artifacts generated and uploaded
 - [x] Version bumping with rollback capability
 - [x] Conservative update rules enforced
 
 ### Configuration & Testing
+
 - [x] All environment variables configurable
 - [x] Override mechanisms functional
 - [x] Comprehensive test suite (unit + integration)
 - [x] Backward compatibility maintained
 
 ### Documentation
+
 - [x] Complete usage guide with examples
 - [x] JSON schema specifications
 - [x] Troubleshooting guide
@@ -525,13 +537,15 @@ make rulebook-bump FILE=docs/default_rulebook.json NOTES="Reset to defaults"
 ## 🔮 Future Enhancements
 
 ### Phase 7.1 Considerations
+
 - **Real Perplexity Integration** - Replace stub with actual API
 - **Advanced Originality** - Integrate Copyscape or similar
-- **Quality Score Trends** - Track improvement over time  
+- **Quality Score Trends** - Track improvement over time
 - **Custom Quality Models** - Site-specific scoring algorithms
 - **Content Performance Correlation** - Link quality scores to traffic/engagement
 
 ### Integration Points Ready
+
 - Originality checking (Copyscape placeholder)
 - Advanced fact-checking APIs
 - Custom LLM fine-tuning for quality assessment

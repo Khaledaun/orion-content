@@ -6,7 +6,7 @@ export type Options = { [key: string]: any };
 
 export function withAuth(
   handler: (...args: any[]) => Promise<Response> | Response,
-  opts: any = {}
+  opts: any = {},
 ) {
   return async function (req: NextRequest, params?: any): Promise<Response> {
     const session = await auth();
@@ -15,10 +15,13 @@ export function withAuth(
     }
     const user = session.user;
     const o = opts || {};
-    const roles =
-      Array.isArray(o.roles) ? o.roles :
-      o.roles ? [String(o.roles)] :
-      o.role  ? [String(o.role)]  : [];
+    const roles = Array.isArray(o.roles)
+      ? o.roles
+      : o.roles
+        ? [String(o.roles)]
+        : o.role
+          ? [String(o.role)]
+          : [];
 
     // If handler expects (req, user, roles, params), pass 4 args; else (req, params)
     return handler.length >= 3

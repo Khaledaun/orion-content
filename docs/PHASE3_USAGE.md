@@ -1,4 +1,3 @@
-
 # Orion Content - Phase 3 Usage Guide
 
 Quick reference for using the Python pipeline tools with examples.
@@ -46,6 +45,7 @@ ORION_CONSOLE_TOKEN=abc123... python -m orion.gather_trends \
 ```
 
 Output:
+
 ```
 2024-01-15 10:30:00 - orion.api_client - INFO - Checking API health...
 2024-01-15 10:30:00 - orion.api_client - INFO - Finding site: my-site
@@ -56,17 +56,18 @@ Output:
 2024-01-15 10:30:01 - orion.api_client - INFO - Successfully created 30 topics
 SUMMARY:
   Week ID: cltx9...
-  ISO Week: 2024-W03  
+  ISO Week: 2024-W03
   Topics Created: 30
   First 5 topics:
     1. Tech Trend #07 — Neural Networks
     2. AI Update: Large Language Models
-    3. Latest in Business: Digital Transformation  
+    3. Latest in Business: Digital Transformation
     4. Edge Computing — A Technology Deep Dive
     5. Breaking: Quantum Algorithms in AI
 ```
 
 Dry run (generate but don't post):
+
 ```bash
 python -m orion.gather_trends --site-key my-site --count 10 --dry-run
 ```
@@ -82,10 +83,11 @@ python -m orion.publish.publisher_wp \
 ```
 
 **Dry-run output (no WordPress config):**
+
 ```json
 {
   "id": "dry-run",
-  "link": "https://example.com/dry-run-post", 
+  "link": "https://example.com/dry-run-post",
   "status": "draft",
   "title": {
     "rendered": "AI Revolution in 2024"
@@ -94,6 +96,7 @@ python -m orion.publish.publisher_wp \
 ```
 
 **Real WordPress output:**
+
 ```json
 {
   "id": 123,
@@ -108,6 +111,7 @@ python -m orion.publish.publisher_wp \
 ```
 
 Publish with categories:
+
 ```bash
 python -m orion.publish.publisher_wp \
   --title "Breaking Tech News" \
@@ -125,8 +129,9 @@ python -m orion.audit.audit_wp --limit 5
 ```
 
 Output:
+
 ```
-ID         Title                                              Status     Date                
+ID         Title                                              Status     Date
 ------------------------------------------------------------------------------------------
 123        AI Revolution in 2024                             draft      2024-01-15T10:30:00
 122        Breaking Tech News                                 publish    2024-01-15T09:15:00
@@ -136,6 +141,7 @@ ID         Title                                              Status     Date
 ```
 
 List all recent posts:
+
 ```bash
 python -m orion.audit.audit_wp --limit 10 --status any
 ```
@@ -167,6 +173,7 @@ print('Sites:', [s['key'] for s in client.get_sites()])
 ### 3. Create a Site (if needed)
 
 Via Orion web UI or API:
+
 ```bash
 curl -X POST http://localhost:3000/api/sites \
   -H "Authorization: Bearer YOUR_TOKEN" \
@@ -230,6 +237,7 @@ done
 ### Common Issues
 
 1. **"API Error: 401 Unauthorized"**
+
    ```bash
    # Check token is set
    echo $ORION_CONSOLE_TOKEN
@@ -239,8 +247,9 @@ done
    ```
 
 2. **"Site not found: my-site"**
+
    ```bash
-   # List available sites  
+   # List available sites
    python -c "from orion.api_client import client; print([s['key'] for s in client.get_sites()])"
    ```
 
@@ -270,6 +279,7 @@ logging.getLogger('orion').setLevel(logging.DEBUG)
 ```
 
 Or set environment variable:
+
 ```bash
 export ORION_LOG_LEVEL=DEBUG
 ```
@@ -300,7 +310,7 @@ curl -u "username:app-password" \
 ## Performance Notes
 
 - **Topic Generation**: ~1-2 seconds for 30 topics
-- **WordPress API**: ~500ms per post creation  
+- **WordPress API**: ~500ms per post creation
 - **Batch Operations**: Topics are created in single API call
 - **Rate Limits**: None currently enforced, but use reasonable request patterns
 - **Timeouts**: 30 second default, configurable in `config.py`

@@ -1,16 +1,16 @@
 export const dynamic = "force-dynamic";
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
-import { getSession } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
-import { withDB } from '@/lib/with-db';
-import SetupGate from '@/components/SetupGate';
-import { DashboardClient } from '@/components/dashboard/dashboard-client';
+import { getSession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { withDB } from "@/lib/with-db";
+import SetupGate from "@/components/SetupGate";
+import { DashboardClient } from "@/components/dashboard/dashboard-client";
 
 export default async function DashboardPage() {
   // Get session without throwing errors
   const session = await getSession();
-  
+
   // If not authenticated, show setup gate
   if (!session?.user) {
     return <SetupGate hasAuth={false} hasSites={false} demoMode={!prisma} />;
@@ -20,25 +20,27 @@ export default async function DashboardPage() {
   const siteCount = await withDB(
     () => prisma?.site.count() || Promise.resolve(0),
     0,
-    'dashboard.siteCount'
+    "dashboard.siteCount",
   );
 
   const weekCount = await withDB(
-    () => prisma?.week.count({ where: { status: 'pending' } }) || Promise.resolve(0),
+    () =>
+      prisma?.week.count({ where: { status: "pending" } }) ||
+      Promise.resolve(0),
     0,
-    'dashboard.weekCount'
+    "dashboard.weekCount",
   );
 
   const topicCount = await withDB(
     () => prisma?.topic.count() || Promise.resolve(0),
     0,
-    'dashboard.topicCount'
+    "dashboard.topicCount",
   );
 
   const jobRunCount = await withDB(
     () => prisma?.jobRun.count() || Promise.resolve(0),
     0,
-    'dashboard.jobRunCount'
+    "dashboard.jobRunCount",
   );
 
   // If no sites exist, show setup gate
@@ -51,16 +53,11 @@ export default async function DashboardPage() {
     siteCount,
     weekCount,
     topicCount,
-    jobRunCount
+    jobRunCount,
   };
 
   // Extract user name from session
-  const userName = session.user?.name || session.user?.email || 'Admin';
+  const userName = session.user?.name || session.user?.email || "Admin";
 
-  return (
-    <DashboardClient 
-      initialData={dashboardData} 
-      userName={userName}
-    />
-  );
+  return <DashboardClient initialData={dashboardData} userName={userName} />;
 }

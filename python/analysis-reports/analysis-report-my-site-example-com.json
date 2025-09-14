@@ -36,11 +36,7 @@
         "footer_links": 12,
         "breadcrumbs": true
       },
-      "content_types": [
-        "blog_posts",
-        "product_pages",
-        "landing_pages"
-      ],
+      "content_types": ["blog_posts", "product_pages", "landing_pages"],
       "user_journey_mapping": {
         "entry_points": 5,
         "conversion_paths": 3
@@ -90,9 +86,7 @@
       "performance_score": 10.0
     }
   },
-  "recommendations": [
-    "Consider expanding content length for better SEO value"
-  ],
+  "recommendations": ["Consider expanding content length for better SEO value"],
   "summary": "Comprehensive site analysis completed with actionable SEO and content optimization recommendations.",
   "metadata": {
     "model": "orion-analyzer-v1.0",

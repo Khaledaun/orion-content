@@ -1,4 +1,3 @@
-
 # Orion Content Management System
 
 A Next.js 14 content management console for editorial workflows.
@@ -23,18 +22,21 @@ A Next.js 14 content management console for editorial workflows.
 ## Quick Start
 
 1. **Install dependencies:**
+
    ```bash
    cd app
    yarn install
    ```
 
 2. **Set environment variables:**
+
    ```bash
    cp .env.example .env
    # Edit .env with your values
    ```
 
 3. **Set up database:**
+
    ```bash
    yarn prisma generate
    yarn prisma db push
@@ -42,6 +44,7 @@ A Next.js 14 content management console for editorial workflows.
    ```
 
 4. **Start development server:**
+
    ```bash
    yarn dev
    ```

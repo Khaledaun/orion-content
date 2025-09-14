@@ -1,6 +1,5 @@
-
-import crypto from 'crypto';
-import { prisma } from '@/lib/prisma';
+import crypto from "crypto";
+import { prisma } from "@/lib/prisma";
 
 // Define local type to avoid dependency on Prisma generated types
 type WebhookEndpoint = {
@@ -22,8 +21,8 @@ export interface WebhookPayload {
 
 export class WebhookService {
   static async deliverWebhook(
-    event: 'draft_created' | 'needs_review' | 'approved',
-    data: any
+    event: "draft_created" | "needs_review" | "approved",
+    data: any,
   ): Promise<void> {
     const endpoints = await prisma.webhookEndpoint.findMany({
       where: {
@@ -32,28 +31,35 @@ export class WebhookService {
     });
 
     const filteredEndpoints = endpoints.filter((endpoint: any) => {
-      const events = Array.isArray(endpoint.events) ? endpoint.events as string[] : [];
+      const events = Array.isArray(endpoint.events)
+        ? (endpoint.events as string[])
+        : [];
       return events.includes(event);
     });
 
     await Promise.allSettled(
-      filteredEndpoints.map((endpoint: any) => this.sendWebhook(endpoint, event, data))
+      filteredEndpoints.map((endpoint: any) =>
+        this.sendWebhook(endpoint, event, data),
+      ),
     );
   }
 
   private static async sendWebhook(
     endpoint: WebhookEndpoint,
     event: string,
-    data: any
+    data: any,
   ): Promise<void> {
-    const payload: Omit<WebhookPayload, 'orion_signature'> = {
+    const payload: Omit<WebhookPayload, "orion_signature"> = {
       event,
       data,
       timestamp: new Date().toISOString(),
     };
 
-    const signature = this.generateSignature(JSON.stringify(payload), endpoint.secret);
-    
+    const signature = this.generateSignature(
+      JSON.stringify(payload),
+      endpoint.secret,
+    );
+
     const fullPayload: WebhookPayload = {
       ...payload,
       orion_signature: signature,
@@ -61,11 +67,11 @@ export class WebhookService {
 
     try {
       const response = await fetch(endpoint.url, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'Orion-Webhook/1.0',
-          'X-Orion-Signature-256': signature,
+          "Content-Type": "application/json",
+          "User-Agent": "Orion-Webhook/1.0",
+          "X-Orion-Signature-256": signature,
         },
         body: JSON.stringify(fullPayload),
         // Add timeout
@@ -73,7 +79,9 @@ export class WebhookService {
       });
 
       if (!response.ok) {
-        console.error(`Webhook delivery failed to ${endpoint.url}: ${response.status} ${response.statusText}`);
+        console.error(
+          `Webhook delivery failed to ${endpoint.url}: ${response.status} ${response.statusText}`,
+        );
       }
     } catch (error) {
       console.error(`Webhook delivery error to ${endpoint.url}:`, error);
@@ -81,27 +89,28 @@ export class WebhookService {
   }
 
   static generateSignature(payload: string, secret: string): string {
-    return crypto
-      .createHmac('sha256', secret)
-      .update(payload)
-      .digest('hex');
+    return crypto.createHmac("sha256", secret).update(payload).digest("hex");
   }
 
-  static verifySignature(payload: string, signature: string, secret: string): boolean {
+  static verifySignature(
+    payload: string,
+    signature: string,
+    secret: string,
+  ): boolean {
     const expectedSignature = this.generateSignature(payload, secret);
     return crypto.timingSafeEqual(
       Buffer.from(signature),
-      Buffer.from(expectedSignature)
+      Buffer.from(expectedSignature),
     );
   }
 
   static async createEndpoint(
     url: string,
     events: string[],
-    secret?: string
+    secret?: string,
   ): Promise<WebhookEndpoint> {
-    const generatedSecret = secret || crypto.randomBytes(32).toString('hex');
-    
+    const generatedSecret = secret || crypto.randomBytes(32).toString("hex");
+
     return await prisma.webhookEndpoint.create({
       data: {
         url,
@@ -118,7 +127,7 @@ export class WebhookService {
       url?: string;
       events?: string[];
       active?: boolean;
-    }
+    },
   ): Promise<WebhookEndpoint> {
     return await prisma.webhookEndpoint.update({
       where: { id },
@@ -135,7 +144,7 @@ export class WebhookService {
   static async listEndpoints(): Promise<WebhookEndpoint[]> {
     return await prisma.webhookEndpoint.findMany({
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
   }

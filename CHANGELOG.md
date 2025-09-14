@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - **Global Language Support**: Comprehensive internationalization system with English, Arabic, and Hebrew support
 - **Language Switcher**: Accessible global language selector with native language names
 - **Dictionary-driven UI**: Complete translation system with 200+ translated strings across all UI components
@@ -43,24 +44,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Screen reader compatibility with proper ARIA implementation
 
 ### Enhanced
+
 - **Setup Page**: Added i18n support, language switcher, and improved accessibility
 - **Credentials Page**: Enhanced with state management, testing capabilities, and better UX
 - **Onboarding Wizard**: Improved with better progress tracking, accessibility, and error handling
 - **Provider System**: Integrated language provider and toast notifications globally
 
 ### Fixed
+
 - **Type Safety**: Resolved TypeScript errors and ensured all code is type-safe
 - **Accessibility**: Fixed keyboard navigation issues and improved screen reader support
 - **Form Validation**: Enhanced error messages and validation feedback
 - **Loading States**: Consistent loading, error, and empty states across all components
 
 ### Technical Improvements
+
 - **Component Architecture**: Modular, reusable accessibility and state management components
 - **Performance**: Optimized component rendering and state management
 - **Code Quality**: Enhanced TypeScript strict mode compliance
 - **Testing Infrastructure**: Foundation for accessibility testing and validation
 
 ### Documentation
+
 - **Accessibility Checklist**: Comprehensive WCAG 2.1 AA compliance documentation
 - **Design System**: Updated with new component guidelines and accessibility standards
 - **Implementation Guide**: Detailed documentation for i18n and accessibility features
@@ -68,6 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Previous Versions]
 
 ### [1.0.0] - Previous Release
+
 - Initial Orion CMS release
 - Basic content management functionality
 - WordPress integration
@@ -80,14 +86,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Development Guidelines
 
 ### Language Support
+
 When adding new UI text:
+
 1. Add entries to all language dictionaries (`lib/i18n/dictionaries.ts`)
 2. Use the `useDictionary()` hook in client components
 3. Test with all supported languages (English, Arabic, Hebrew)
 4. Verify RTL layout support for Arabic and Hebrew
 
 ### Accessibility Requirements
+
 All new components must:
+
 1. Meet WCAG 2.1 AA standards
 2. Include proper ARIA labels and roles
 3. Support keyboard navigation
@@ -96,7 +106,9 @@ All new components must:
 6. Pass automated accessibility testing
 
 ### Testing Checklist
+
 Before submitting changes:
+
 - [ ] TypeScript compilation passes (`npm run typecheck`)
 - [ ] Linting passes (`npm run lint:check`)
 - [ ] Manual keyboard navigation testing
@@ -106,7 +118,9 @@ Before submitting changes:
 - [ ] Color contrast verification
 
 ### Component Standards
+
 New UI components should:
+
 - Support the language context system
 - Include proper TypeScript interfaces
 - Implement consistent loading/error states

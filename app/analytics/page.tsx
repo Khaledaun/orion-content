@@ -1,106 +1,118 @@
+"use client";
 
-'use client'
-
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { LoadingSpinner, LoadingCard } from '@/components/ui/loading-spinner'
-import { EnhancedErrorBoundary } from '@/components/ui/enhanced-error-boundary'
-import { ResponsiveContainer, ResponsiveGrid } from '@/components/ui/responsive-container'
-import { Button } from '@/components/ui/button'
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Users, 
-  Globe, 
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LoadingSpinner, LoadingCard } from "@/components/ui/loading-spinner";
+import { EnhancedErrorBoundary } from "@/components/ui/enhanced-error-boundary";
+import {
+  ResponsiveContainer,
+  ResponsiveGrid,
+} from "@/components/ui/responsive-container";
+import { Button } from "@/components/ui/button";
+import {
+  BarChart3,
+  TrendingUp,
+  Users,
+  Globe,
   RefreshCw,
   Calendar,
   Target,
-  Activity
-} from 'lucide-react'
+  Activity,
+} from "lucide-react";
 
 interface AnalyticsData {
   overview: {
-    totalSites: number
-    totalViews: number
-    totalUsers: number
-    conversionRate: number
-  }
+    totalSites: number;
+    totalViews: number;
+    totalUsers: number;
+    conversionRate: number;
+  };
   traffic: {
-    date: string
-    views: number
-    users: number
-  }[]
+    date: string;
+    views: number;
+    users: number;
+  }[];
   topPages: {
-    path: string
-    views: number
-    bounceRate: number
-  }[]
+    path: string;
+    views: number;
+    bounceRate: number;
+  }[];
   performance: {
-    avgLoadTime: number
+    avgLoadTime: number;
     coreWebVitals: {
-      lcp: number
-      fid: number
-      cls: number
-    }
-  }
+      lcp: number;
+      fid: number;
+      cls: number;
+    };
+  };
 }
 
 export default function AnalyticsPage() {
-  const [data, setData] = useState<AnalyticsData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [data, setData] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const fetchAnalytics = async () => {
     try {
-      setLoading(true)
-      setError(null)
-      
+      setLoading(true);
+      setError(null);
+
       // Simulate API call - replace with actual analytics API
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       const mockData: AnalyticsData = {
         overview: {
           totalSites: 12,
           totalViews: 45678,
           totalUsers: 12345,
-          conversionRate: 3.2
+          conversionRate: 3.2,
         },
         traffic: Array.from({ length: 30 }, (_, i) => ({
-          date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split("T")[0],
           views: Math.floor(Math.random() * 1000) + 500,
-          users: Math.floor(Math.random() * 500) + 200
+          users: Math.floor(Math.random() * 500) + 200,
         })),
         topPages: [
-          { path: '/home', views: 12345, bounceRate: 0.32 },
-          { path: '/products', views: 8901, bounceRate: 0.28 },
-          { path: '/about', views: 5678, bounceRate: 0.45 },
-          { path: '/contact', views: 3456, bounceRate: 0.52 },
-          { path: '/blog', views: 2345, bounceRate: 0.38 }
+          { path: "/home", views: 12345, bounceRate: 0.32 },
+          { path: "/products", views: 8901, bounceRate: 0.28 },
+          { path: "/about", views: 5678, bounceRate: 0.45 },
+          { path: "/contact", views: 3456, bounceRate: 0.52 },
+          { path: "/blog", views: 2345, bounceRate: 0.38 },
         ],
         performance: {
           avgLoadTime: 1.2,
           coreWebVitals: {
             lcp: 2.1,
             fid: 0.08,
-            cls: 0.05
-          }
-        }
-      }
-      
-      setData(mockData)
-      setLastUpdated(new Date())
+            cls: 0.05,
+          },
+        },
+      };
+
+      setData(mockData);
+      setLastUpdated(new Date());
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch analytics')
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch analytics",
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchAnalytics()
-  }, [])
+    fetchAnalytics();
+  }, []);
 
   if (loading && !data) {
     return (
@@ -117,7 +129,7 @@ export default function AnalyticsPage() {
           <LoadingCard />
         </div>
       </ResponsiveContainer>
-    )
+    );
   }
 
   if (error) {
@@ -130,7 +142,7 @@ export default function AnalyticsPage() {
           </div>
         </EnhancedErrorBoundary>
       </ResponsiveContainer>
-    )
+    );
   }
 
   return (
@@ -150,8 +162,8 @@ export default function AnalyticsPage() {
                 Last updated: {lastUpdated.toLocaleTimeString()}
               </p>
             )}
-            <Button 
-              onClick={fetchAnalytics} 
+            <Button
+              onClick={fetchAnalytics}
               disabled={loading}
               variant="outline"
               size="sm"
@@ -174,7 +186,9 @@ export default function AnalyticsPage() {
               <Globe className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{data?.overview.totalSites}</div>
+              <div className="text-2xl font-bold">
+                {data?.overview.totalSites}
+              </div>
               <p className="text-xs text-muted-foreground">
                 +2 from last month
               </p>
@@ -187,7 +201,9 @@ export default function AnalyticsPage() {
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{data?.overview.totalViews.toLocaleString()}</div>
+              <div className="text-2xl font-bold">
+                {data?.overview.totalViews.toLocaleString()}
+              </div>
               <p className="text-xs text-muted-foreground">
                 +12.5% from last month
               </p>
@@ -200,7 +216,9 @@ export default function AnalyticsPage() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{data?.overview.totalUsers.toLocaleString()}</div>
+              <div className="text-2xl font-bold">
+                {data?.overview.totalUsers.toLocaleString()}
+              </div>
               <p className="text-xs text-muted-foreground">
                 +8.2% from last month
               </p>
@@ -209,11 +227,15 @@ export default function AnalyticsPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Conversion Rate
+              </CardTitle>
               <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{data?.overview.conversionRate}%</div>
+              <div className="text-2xl font-bold">
+                {data?.overview.conversionRate}%
+              </div>
               <p className="text-xs text-muted-foreground">
                 +0.3% from last month
               </p>
@@ -242,7 +264,9 @@ export default function AnalyticsPage() {
                   <div className="text-center">
                     <TrendingUp className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                     <p>Traffic chart would be rendered here</p>
-                    <p className="text-sm">Integration with Chart.js or Recharts</p>
+                    <p className="text-sm">
+                      Integration with Chart.js or Recharts
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -260,18 +284,25 @@ export default function AnalyticsPage() {
               <CardContent>
                 <div className="space-y-4">
                   {data?.topPages.map((page, index) => (
-                    <div key={page.path} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div
+                      key={page.path}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
                       <div className="flex items-center gap-4">
                         <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-medium text-blue-600">
                           {index + 1}
                         </div>
                         <div>
                           <p className="font-medium">{page.path}</p>
-                          <p className="text-sm text-gray-500">{page.views.toLocaleString()} views</p>
+                          <p className="text-sm text-gray-500">
+                            {page.views.toLocaleString()} views
+                          </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-medium">{(page.bounceRate * 100).toFixed(1)}%</p>
+                        <p className="text-sm font-medium">
+                          {(page.bounceRate * 100).toFixed(1)}%
+                        </p>
                         <p className="text-xs text-gray-500">Bounce Rate</p>
                       </div>
                     </div>
@@ -305,16 +336,26 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">LCP (Largest Contentful Paint)</span>
-                    <span className="font-medium">{data?.performance.coreWebVitals.lcp}s</span>
+                    <span className="text-sm">
+                      LCP (Largest Contentful Paint)
+                    </span>
+                    <span className="font-medium">
+                      {data?.performance.coreWebVitals.lcp}s
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm">FID (First Input Delay)</span>
-                    <span className="font-medium">{data?.performance.coreWebVitals.fid}s</span>
+                    <span className="font-medium">
+                      {data?.performance.coreWebVitals.fid}s
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">CLS (Cumulative Layout Shift)</span>
-                    <span className="font-medium">{data?.performance.coreWebVitals.cls}</span>
+                    <span className="text-sm">
+                      CLS (Cumulative Layout Shift)
+                    </span>
+                    <span className="font-medium">
+                      {data?.performance.coreWebVitals.cls}
+                    </span>
                   </div>
                 </CardContent>
               </Card>
@@ -323,5 +364,5 @@ export default function AnalyticsPage() {
         </Tabs>
       </div>
     </ResponsiveContainer>
-  )
+  );
 }

@@ -1,52 +1,52 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { toast } from 'sonner'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 export default function LoginForm() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
-  const { data: session, status } = useSession()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const { data: session, status } = useSession();
 
   // Redirect to dashboard if already logged in
   useEffect(() => {
-    if (status === 'authenticated' && session?.user) {
-      router.push('/dashboard')
+    if (status === "authenticated" && session?.user) {
+      router.push("/dashboard");
     }
-  }, [status, session, router])
+  }, [status, session, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     try {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-      })
+      });
 
-      const data = await res.json()
+      const data = await res.json();
 
       if (res.ok) {
-        toast.success('Login successful')
-        router.push('/dashboard')
+        toast.success("Login successful");
+        router.push("/dashboard");
       } else {
-        toast.error(data.error || 'Login failed')
+        toast.error(data.error || "Login failed");
       }
     } catch (error) {
-      toast.error('Login failed')
+      toast.error("Login failed");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -77,13 +77,9 @@ export default function LoginForm() {
         </div>
       </div>
 
-      <Button
-        type="submit"
-        disabled={isLoading}
-        className="w-full"
-      >
-        {isLoading ? 'Signing in...' : 'Sign in'}
+      <Button type="submit" disabled={isLoading} className="w-full">
+        {isLoading ? "Signing in..." : "Sign in"}
       </Button>
     </form>
-  )
+  );
 }

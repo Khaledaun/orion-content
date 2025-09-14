@@ -1,9 +1,9 @@
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 function redact(v?: string | null) {
   if (!v) return null;
   const s = String(v);
-  return s.replace(/:\/\/([^:@/]+):([^@/]+)@/, '://***:***@');
+  return s.replace(/:\/\/([^:@/]+):([^@/]+)@/, "://***:***@");
 }
 
 export async function GET() {
@@ -17,6 +17,6 @@ export async function GET() {
     },
   };
   return new Response(JSON.stringify(data, null, 2), {
-    headers: { 'content-type': 'application/json' },
+    headers: { "content-type": "application/json" },
   });
 }

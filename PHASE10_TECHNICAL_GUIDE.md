@@ -38,11 +38,13 @@ Infrastructure
 The Role-Based Access Control system provides granular permissions management:
 
 **Roles:**
+
 - **ADMIN**: Full system access including integrations, settings, and operations
 - **EDITOR**: Content creation, review, and publishing capabilities
 - **VIEWER**: Read-only access to content and reports
 
 **Implementation Features:**
+
 - Database-backed role assignments
 - Site-specific permissions
 - Bearer token authentication
@@ -54,24 +56,28 @@ The Role-Based Access Control system provides granular permissions management:
 Complete workflow from ideation to publication:
 
 #### Topic Management (`/api/sites/:id/topics`)
+
 - Keyword-driven topic creation
 - Category and week associations
 - Editorial calendar integration
 - SEO opportunity identification
 
 #### Draft Management (`/api/sites/:id/drafts`)
+
 - Content generation with AI assistance
 - Metadata management (title, slug, meta description)
 - Status tracking through workflow stages
 - Version control and revision history
 
 #### Quality Assurance (`/api/drafts/:id/qa`)
+
 - Automated content validation
 - SEO compliance checking
 - Readability analysis
 - Brand guideline enforcement
 
 #### Publishing System (`/api/drafts/:id/publish`)
+
 - Multi-platform distribution
 - WordPress integration (stubbed in MVP)
 - Social media scheduling
@@ -82,6 +88,7 @@ Complete workflow from ideation to publication:
 Comprehensive content validation system ensuring quality and SEO compliance:
 
 **Validation Rules:**
+
 1. **Heading Hierarchy** - Single H1, proper H2/H3 nesting
 2. **Keyword Optimization** - Target keyword placement and density
 3. **Meta Tag Validation** - Title ≤60 chars, description ≤160 chars
@@ -93,6 +100,7 @@ Comprehensive content validation system ensuring quality and SEO compliance:
 Secure credential storage and third-party service integration:
 
 **Supported Integrations:**
+
 - WordPress (content publishing)
 - Google Search Console (performance monitoring)
 - Google Analytics 4 (traffic analysis)
@@ -100,6 +108,7 @@ Secure credential storage and third-party service integration:
 - Perplexity (research and fact-checking)
 
 **Security Features:**
+
 - AES-256-GCM encryption for all credentials
 - Dummy credential system for MVP demos
 - Connection testing capabilities
@@ -108,6 +117,7 @@ Secure credential storage and third-party service integration:
 ## API Endpoints Reference
 
 ### Content Management
+
 ```
 POST   /api/sites/:id/topics       # Create new content topic
 GET    /api/sites/:id/topics       # List topics with filters
@@ -119,6 +129,7 @@ POST   /api/drafts/:id/publish     # Publish to platforms
 ```
 
 ### Integration Management
+
 ```
 GET    /api/integrations           # List all integrations
 POST   /api/integrations           # Save integration credentials
@@ -127,6 +138,7 @@ POST   /api/integrations/:type/test # Test connection
 ```
 
 ### Operations & Monitoring
+
 ```
 GET    /api/ops/metrics            # Enhanced system metrics
 GET    /api/ops/status             # System health check
@@ -182,14 +194,18 @@ CREATE TABLE QAReport (
 ## Security Implementation
 
 ### Encryption System
+
 All sensitive data encrypted using AES-256-GCM:
+
 - Key derivation with PBKDF2
 - Random initialization vectors
 - Authenticated encryption
 - Environment-based master keys
 
 ### Redaction System
+
 Comprehensive data sanitization:
+
 - API key pattern matching
 - Email address masking
 - Token and password redaction
@@ -198,12 +214,14 @@ Comprehensive data sanitization:
 ## Deployment Instructions
 
 ### Environment Setup
+
 1. Configure required environment variables
 2. Set up PostgreSQL database
 3. Configure Redis (optional)
 4. Generate encryption keys
 
 ### Application Deployment
+
 ```bash
 # Install dependencies
 npm install
@@ -222,6 +240,7 @@ npm run start
 ```
 
 ### Verification
+
 ```bash
 # Health check
 curl http://localhost:3000/api/health
@@ -233,6 +252,7 @@ curl -H "Authorization: Bearer your-token" http://localhost:3000/api/ops/metrics
 ## Success Metrics
 
 ### Phase 10 Completion Criteria: ✅ ALL MET
+
 - ✅ Enhanced RBAC with admin/editor roles
 - ✅ 4-step onboarding wizard with progress tracking
 - ✅ Complete content pipeline (Topic → Draft → QA → Approve → Publish)

@@ -7,6 +7,7 @@ After merging this PR, complete the following steps to fully activate Copilot in
 ### ✅ Immediate Actions (Required)
 
 1. **Run Setup Script**
+
    ```bash
    npm run setup:copilot
    ```
@@ -70,17 +71,18 @@ After merging this PR, complete the following steps to fully activate Copilot in
 ### 🧪 Verification Steps
 
 10. **Test the Integration**
+
     ```bash
     # Create a test branch
     git checkout -b test/copilot-integration
-    
+
     # Make a small change
     echo "// Test change" >> README.md
-    
+
     # Commit (pre-commit hooks should run)
     git add .
     git commit -m "Test copilot integration"
-    
+
     # Push and create PR
     git push origin test/copilot-integration
     ```
@@ -98,6 +100,7 @@ After merging this PR, complete the following steps to fully activate Copilot in
 ## 🎯 Success Criteria
 
 ✅ **Setup Complete When:**
+
 - [ ] All GitHub Actions workflows run successfully
 - [ ] Pre-commit hooks execute on local commits
 - [ ] Branch protection rules prevent direct pushes to main
@@ -108,16 +111,19 @@ After merging this PR, complete the following steps to fully activate Copilot in
 ## 🆘 Troubleshooting
 
 ### GitHub Actions Not Running
+
 - Check repository settings → Actions → General
 - Ensure actions are enabled for this repository
 - Verify workflow files are in `.github/workflows/`
 
 ### Copilot Not Responding
+
 - Verify GitHub App installation and permissions
 - Check that Copilot has access to this repository
 - Ensure proper tagging (`@copilot`) in PR descriptions
 
 ### Pre-commit Hooks Not Working
+
 ```bash
 # Reinstall hooks
 npm run prepare
@@ -127,6 +133,7 @@ npx husky install
 ```
 
 ### Build or Validation Failures
+
 ```bash
 # Run diagnostics
 npm run validate

@@ -14,10 +14,10 @@ function validateEnvironment() {
   } else {
     try {
       const url = new URL(nextAuthUrl);
-      if (!['http:', 'https:'].includes(url.protocol)) {
+      if (!["http:", "https:"].includes(url.protocol)) {
         errors.push("NEXTAUTH_URL must be a valid HTTP or HTTPS URL");
       }
-      if (url.pathname !== '/') {
+      if (url.pathname !== "/") {
         warnings.push("NEXTAUTH_URL should not include a path component");
       }
     } catch (e) {
@@ -32,7 +32,9 @@ function validateEnvironment() {
   } else if (nextAuthSecret.length < 32) {
     errors.push("NEXTAUTH_SECRET must be at least 32 characters long");
   } else if (nextAuthSecret === "demo-secret-please-set-in-production") {
-    warnings.push("Using demo NEXTAUTH_SECRET - please set a secure secret in production");
+    warnings.push(
+      "Using demo NEXTAUTH_SECRET - please set a secure secret in production",
+    );
   }
 
   // Validate DATABASE_URL
@@ -42,7 +44,11 @@ function validateEnvironment() {
   } else {
     try {
       const url = new URL(databaseUrl);
-      if (!['postgresql:', 'postgres:', 'mysql:', 'sqlite:'].includes(url.protocol)) {
+      if (
+        !["postgresql:", "postgres:", "mysql:", "sqlite:"].includes(
+          url.protocol,
+        )
+      ) {
         warnings.push("DATABASE_URL protocol may not be supported");
       }
     } catch (e) {
@@ -51,11 +57,11 @@ function validateEnvironment() {
   }
 
   // Check for production-specific requirements
-  if (process.env.NODE_ENV === 'production' || process.env.VERCEL === '1') {
-    if (nextAuthUrl?.includes('localhost')) {
+  if (process.env.NODE_ENV === "production" || process.env.VERCEL === "1") {
+    if (nextAuthUrl?.includes("localhost")) {
       errors.push("NEXTAUTH_URL must not use localhost in production");
     }
-    if (!nextAuthUrl?.startsWith('https://')) {
+    if (!nextAuthUrl?.startsWith("https://")) {
       errors.push("NEXTAUTH_URL must use HTTPS in production");
     }
   }
@@ -67,23 +73,30 @@ function validateEnvironment() {
 const envValidation = validateEnvironment();
 
 // Check if we're in a build environment
-const isBuildTime = process.env.NODE_ENV === undefined || process.env.CI === 'true' || process.env.VERCEL === '1';
+const isBuildTime =
+  process.env.NODE_ENV === undefined ||
+  process.env.CI === "true" ||
+  process.env.VERCEL === "1";
 
 if (envValidation.errors.length > 0) {
   console.error("❌ NextAuth Environment Validation Errors:");
-  envValidation.errors.forEach(error => console.error(`  - ${error}`));
-  
+  envValidation.errors.forEach((error) => console.error(`  - ${error}`));
+
   // Only throw error if not in build environment
   if (!isBuildTime) {
-    throw new Error(`NextAuth configuration invalid: ${envValidation.errors.join(', ')}`);
+    throw new Error(
+      `NextAuth configuration invalid: ${envValidation.errors.join(", ")}`,
+    );
   } else {
-    console.warn("⚠️ Build environment detected - continuing despite NextAuth validation errors");
+    console.warn(
+      "⚠️ Build environment detected - continuing despite NextAuth validation errors",
+    );
   }
 }
 
 if (envValidation.warnings.length > 0) {
   console.warn("⚠️ NextAuth Environment Validation Warnings:");
-  envValidation.warnings.forEach(warning => console.warn(`  - ${warning}`));
+  envValidation.warnings.forEach((warning) => console.warn(`  - ${warning}`));
 }
 
 // Safe prisma import that handles cases where Prisma client is not generated yet
@@ -95,13 +108,17 @@ try {
     console.warn("Prisma client is null, falling back to demo auth only");
   }
 } catch (error) {
-  console.warn("Prisma client not available, falling back to demo auth only:", error instanceof Error ? error.message : String(error));
+  console.warn(
+    "Prisma client not available, falling back to demo auth only:",
+    error instanceof Error ? error.message : String(error),
+  );
 }
 
 import * as bcryptjs from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET || 'build-time-secret-not-for-production-use',
+  secret:
+    process.env.NEXTAUTH_SECRET || "build-time-secret-not-for-production-use",
   session: { strategy: "jwt" },
 
   providers: [
@@ -109,7 +126,7 @@ export const authOptions: NextAuthOptions = {
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         const email = credentials?.email?.toString().trim().toLowerCase();
@@ -135,7 +152,7 @@ export const authOptions: NextAuthOptions = {
             return {
               id: user.id,
               email: (user as any).email ?? email,
-              name:  (user as any).name  ?? null
+              name: (user as any).name ?? null,
             };
           } catch (error) {
             console.error("Database auth error:", error);
@@ -148,20 +165,22 @@ export const authOptions: NextAuthOptions = {
           return {
             id: "demo-user",
             email: email,
-            name: "Demo User"
+            name: "Demo User",
           };
         }
-        
+
         return null;
-      }
+      },
     }),
 
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
-      ? [GoogleProvider({
-          clientId: process.env.GOOGLE_CLIENT_ID!,
-          clientSecret: process.env.GOOGLE_CLIENT_SECRET!
-        })]
-      : [])
+      ? [
+          GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+          }),
+        ]
+      : []),
   ],
 
   callbacks: {
@@ -174,6 +193,6 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).id = token.sub as string;
       }
       return session;
-    }
-  }
+    },
+  },
 };

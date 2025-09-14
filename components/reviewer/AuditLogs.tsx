@@ -1,17 +1,26 @@
+"use client";
 
-'use client';
-
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight, User, Calendar, MessageSquare } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  ChevronDown,
+  ChevronRight,
+  User,
+  Calendar,
+  MessageSquare,
+} from "lucide-react";
+import { toast } from "sonner";
 
 interface AuditEntry {
   id: string;
-  action: 'APPROVE' | 'REJECT' | 'BYPASS';
+  action: "APPROVE" | "REJECT" | "BYPASS";
   reason?: string;
   createdAt: string;
   draft: {
@@ -21,7 +30,7 @@ interface AuditEntry {
 }
 
 interface AuditLogsProps {
-  userRole: 'ADMIN' | 'EDITOR' | 'VIEWER';
+  userRole: "ADMIN" | "EDITOR" | "VIEWER";
 }
 
 export function AuditLogs({ userRole }: AuditLogsProps) {
@@ -30,7 +39,7 @@ export function AuditLogs({ userRole }: AuditLogsProps) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    if (userRole === 'ADMIN') {
+    if (userRole === "ADMIN") {
       fetchAuditLogs();
     } else {
       setLoading(false);
@@ -42,40 +51,40 @@ export function AuditLogs({ userRole }: AuditLogsProps) {
       // This would be a real endpoint in production
       const mockLogs: AuditEntry[] = [
         {
-          id: '1',
-          action: 'APPROVE',
-          reason: 'Content meets quality standards after review',
+          id: "1",
+          action: "APPROVE",
+          reason: "Content meets quality standards after review",
           createdAt: new Date().toISOString(),
           draft: {
-            title: 'How to Optimize Your WordPress Site for SEO',
+            title: "How to Optimize Your WordPress Site for SEO",
             score: 0.85,
           },
         },
         {
-          id: '2', 
-          action: 'REJECT',
-          reason: 'Multiple grammar issues detected',
+          id: "2",
+          action: "REJECT",
+          reason: "Multiple grammar issues detected",
           createdAt: new Date(Date.now() - 3600000).toISOString(),
           draft: {
-            title: 'Building Your First React Application',
+            title: "Building Your First React Application",
             score: 0.62,
           },
         },
         {
-          id: '3',
-          action: 'BYPASS',
-          reason: 'Emergency publication for time-sensitive news',
+          id: "3",
+          action: "BYPASS",
+          reason: "Emergency publication for time-sensitive news",
           createdAt: new Date(Date.now() - 7200000).toISOString(),
           draft: {
-            title: 'Breaking: New WordPress 6.4 Released',
+            title: "Breaking: New WordPress 6.4 Released",
             score: 0.68,
           },
         },
       ];
       setLogs(mockLogs);
     } catch (error) {
-      console.error('Audit logs fetch error:', error);
-      toast.error('Failed to load audit logs');
+      console.error("Audit logs fetch error:", error);
+      toast.error("Failed to load audit logs");
     } finally {
       setLoading(false);
     }
@@ -91,26 +100,30 @@ export function AuditLogs({ userRole }: AuditLogsProps) {
     setExpandedItems(newExpanded);
   };
 
-  const getActionBadge = (action: 'APPROVE' | 'REJECT' | 'BYPASS') => {
+  const getActionBadge = (action: "APPROVE" | "REJECT" | "BYPASS") => {
     switch (action) {
-      case 'APPROVE':
+      case "APPROVE":
         return <Badge className="bg-orion-emerald text-white">Approved</Badge>;
-      case 'REJECT':
+      case "REJECT":
         return <Badge className="bg-orion-crimson text-white">Rejected</Badge>;
-      case 'BYPASS':
+      case "BYPASS":
         return <Badge className="bg-orion-blue text-white">Bypassed</Badge>;
       default:
         return <Badge variant="secondary">{action}</Badge>;
     }
   };
 
-  if (userRole !== 'ADMIN') {
+  if (userRole !== "ADMIN") {
     return (
       <Card>
         <CardContent className="text-center py-12">
           <User className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-semibold text-orion-navy mb-2">Admin Only</h3>
-          <p className="text-gray-600">Audit logs are only accessible to administrators.</p>
+          <h3 className="text-lg font-semibold text-orion-navy mb-2">
+            Admin Only
+          </h3>
+          <p className="text-gray-600">
+            Audit logs are only accessible to administrators.
+          </p>
         </CardContent>
       </Card>
     );
@@ -119,7 +132,7 @@ export function AuditLogs({ userRole }: AuditLogsProps) {
   if (loading) {
     return (
       <div className="space-y-4">
-        {[1, 2, 3].map(i => (
+        {[1, 2, 3].map((i) => (
           <Card key={i} className="animate-pulse">
             <CardContent className="p-6">
               <div className="h-4 bg-gray-200 rounded mb-2"></div>
@@ -136,7 +149,9 @@ export function AuditLogs({ userRole }: AuditLogsProps) {
       <Card>
         <CardContent className="text-center py-12">
           <MessageSquare className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-semibold text-orion-navy mb-2">No Activity</h3>
+          <h3 className="text-lg font-semibold text-orion-navy mb-2">
+            No Activity
+          </h3>
           <p className="text-gray-600">No review activity to display yet.</p>
         </CardContent>
       </Card>
@@ -184,11 +199,13 @@ export function AuditLogs({ userRole }: AuditLogsProps) {
                 </div>
               </CardHeader>
             </CollapsibleTrigger>
-            
+
             <CollapsibleContent>
               <CardContent className="pt-0 border-t border-gray-100">
                 <div className="bg-orion-background-light p-4 rounded-lg mt-4">
-                  <h4 className="text-sm font-semibold text-orion-navy mb-2">Review Details</h4>
+                  <h4 className="text-sm font-semibold text-orion-navy mb-2">
+                    Review Details
+                  </h4>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-gray-600">Action:</span>
@@ -196,7 +213,9 @@ export function AuditLogs({ userRole }: AuditLogsProps) {
                     </div>
                     <div>
                       <span className="text-gray-600">Timestamp:</span>
-                      <span className="ml-2">{new Date(entry.createdAt).toLocaleString()}</span>
+                      <span className="ml-2">
+                        {new Date(entry.createdAt).toLocaleString()}
+                      </span>
                     </div>
                   </div>
                   {entry.reason && (

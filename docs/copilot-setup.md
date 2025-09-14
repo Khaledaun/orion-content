@@ -33,6 +33,7 @@ npm run prepare
   - Enable "Code scanning alerts" and "Pull requests" permissions
 
 - [ ] **Set up Branch Protection Rules**
+
   ```
   Branch: main
   ✅ Require pull request reviews before merging
@@ -73,6 +74,7 @@ npm run prepare
 ### For Developers
 
 1. **Clone and Setup**
+
    ```bash
    git clone <repository-url>
    cd orion-content
@@ -81,10 +83,11 @@ npm run prepare
    ```
 
 2. **Development**
+
    ```bash
    # Start development server
    npm run dev
-   
+
    # Run validation before committing
    ./scripts/validate.sh
    ```
@@ -102,6 +105,7 @@ npm run prepare
 ### For Copilot
 
 The Copilot agent will automatically:
+
 - Review code for security vulnerabilities
 - Check performance implications
 - Validate TypeScript types and Edge Runtime compatibility
@@ -183,6 +187,7 @@ npm run build          # Production build test
 ### Common Issues
 
 1. **Husky hooks not working**
+
    ```bash
    # Reinstall husky
    npm run prepare
@@ -191,6 +196,7 @@ npm run build          # Production build test
    ```
 
 2. **TypeScript errors**
+
    ```bash
    # Check configuration
    npm run typecheck
@@ -199,6 +205,7 @@ npm run build          # Production build test
    ```
 
 3. **Build failures**
+
    ```bash
    # Clear cache and rebuild
    rm -rf .next

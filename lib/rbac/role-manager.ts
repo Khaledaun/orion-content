@@ -1,4 +1,3 @@
-
 import { prisma } from "@/app/lib/prisma";
 import { abacEngine } from "./abac";
 
@@ -46,9 +45,12 @@ export class RoleManager {
   /**
    * Create a new role
    */
-  async createRole(roleData: RoleDefinition, createdBy: string): Promise<string> {
+  async createRole(
+    roleData: RoleDefinition,
+    createdBy: string,
+  ): Promise<string> {
     if (!prisma) {
-      throw new Error('Database not available');
+      throw new Error("Database not available");
     }
 
     try {
@@ -58,19 +60,19 @@ export class RoleManager {
           description: roleData.description,
           isSystem: roleData.isSystem || false,
           createdBy,
-          inheritsFrom: roleData.inheritsFrom || []
-        }
+          inheritsFrom: roleData.inheritsFrom || [],
+        },
       });
 
       // Assign permissions to role
       if (roleData.permissions.length > 0) {
-        const rolePermissions = roleData.permissions.map(permissionId => ({
+        const rolePermissions = roleData.permissions.map((permissionId) => ({
           roleId: role.id,
-          permissionId
+          permissionId,
         }));
 
         await prisma.rolePermission.createMany({
-          data: rolePermissions
+          data: rolePermissions,
         });
       }
 
@@ -78,38 +80,42 @@ export class RoleManager {
       abacEngine.clearCache();
 
       // Log audit event
-      await this.logAuditEvent(createdBy, 'CREATE_ROLE', 'roles', role.id, {
+      await this.logAuditEvent(createdBy, "CREATE_ROLE", "roles", role.id, {
         roleName: role.name,
-        permissions: roleData.permissions
+        permissions: roleData.permissions,
       });
 
       return role.id;
     } catch (error) {
-      console.error('Error creating role:', error);
-      throw new Error('Failed to create role');
+      console.error("Error creating role:", error);
+      throw new Error("Failed to create role");
     }
   }
 
   /**
    * Update an existing role
    */
-  async updateRole(roleId: string, updates: Partial<RoleDefinition>, updatedBy: string): Promise<void> {
+  async updateRole(
+    roleId: string,
+    updates: Partial<RoleDefinition>,
+    updatedBy: string,
+  ): Promise<void> {
     if (!prisma) {
-      throw new Error('Database not available');
+      throw new Error("Database not available");
     }
 
     try {
       const existingRole = await prisma.role.findUnique({
         where: { id: roleId },
-        include: { permissions: true }
+        include: { permissions: true },
       });
 
       if (!existingRole) {
-        throw new Error('Role not found');
+        throw new Error("Role not found");
       }
 
       if (existingRole.isSystem) {
-        throw new Error('Cannot modify system roles');
+        throw new Error("Cannot modify system roles");
       }
 
       // Update role basic info
@@ -118,26 +124,27 @@ export class RoleManager {
         data: {
           name: updates.name?.toUpperCase() || existingRole.name,
           description: updates.description ?? existingRole.description,
-          inheritsFrom: updates.inheritsFrom ?? (existingRole as any).inheritsFrom
-        }
+          inheritsFrom:
+            updates.inheritsFrom ?? (existingRole as any).inheritsFrom,
+        },
       });
 
       // Update permissions if provided
       if (updates.permissions) {
         // Remove existing permissions
         await prisma.rolePermission.deleteMany({
-          where: { roleId }
+          where: { roleId },
         });
 
         // Add new permissions
         if (updates.permissions.length > 0) {
-          const rolePermissions = updates.permissions.map(permissionId => ({
+          const rolePermissions = updates.permissions.map((permissionId) => ({
             roleId,
-            permissionId
+            permissionId,
           }));
 
           await prisma.rolePermission.createMany({
-            data: rolePermissions
+            data: rolePermissions,
           });
         }
       }
@@ -146,13 +153,14 @@ export class RoleManager {
       abacEngine.clearCache();
 
       // Log audit event
-      await this.logAuditEvent(updatedBy, 'UPDATE_ROLE', 'roles', roleId, {
+      await this.logAuditEvent(updatedBy, "UPDATE_ROLE", "roles", roleId, {
         updates,
-        previousPermissions: existingRole.permissions.map((p: any) => p.permissionId)
+        previousPermissions: existingRole.permissions.map(
+          (p: any) => p.permissionId,
+        ),
       });
-
     } catch (error) {
-      console.error('Error updating role:', error);
+      console.error("Error updating role:", error);
       throw error;
     }
   }
@@ -162,25 +170,25 @@ export class RoleManager {
    */
   async deleteRole(roleId: string, deletedBy: string): Promise<void> {
     if (!prisma) {
-      throw new Error('Database not available');
+      throw new Error("Database not available");
     }
 
     try {
       const role = await prisma.role.findUnique({
-        where: { id: roleId }
+        where: { id: roleId },
       });
 
       if (!role) {
-        throw new Error('Role not found');
+        throw new Error("Role not found");
       }
 
       if (role.isSystem) {
-        throw new Error('Cannot delete system roles');
+        throw new Error("Cannot delete system roles");
       }
 
       // Check if role is assigned to any users
       const userCount = await prisma.userRole.count({
-        where: { roleId }
+        where: { roleId },
       });
 
       if (userCount > 0) {
@@ -189,24 +197,23 @@ export class RoleManager {
 
       // Delete role permissions
       await prisma.rolePermission.deleteMany({
-        where: { roleId }
+        where: { roleId },
       });
 
       // Delete role
       await prisma.role.delete({
-        where: { id: roleId }
+        where: { id: roleId },
       });
 
       // Clear cache
       abacEngine.clearCache();
 
       // Log audit event
-      await this.logAuditEvent(deletedBy, 'DELETE_ROLE', 'roles', roleId, {
-        roleName: role.name
+      await this.logAuditEvent(deletedBy, "DELETE_ROLE", "roles", roleId, {
+        roleName: role.name,
       });
-
     } catch (error) {
-      console.error('Error deleting role:', error);
+      console.error("Error deleting role:", error);
       throw error;
     }
   }
@@ -225,22 +232,19 @@ export class RoleManager {
         include: {
           permissions: {
             include: {
-              permission: true
-            }
+              permission: true,
+            },
           },
           _count: {
             select: {
-              users: true
-            }
-          }
+              users: true,
+            },
+          },
         },
-        orderBy: [
-          { isSystem: 'desc' },
-          { name: 'asc' }
-        ]
+        orderBy: [{ isSystem: "desc" }, { name: "asc" }],
       });
     } catch (error) {
-      console.error('Error fetching roles:', error);
+      console.error("Error fetching roles:", error);
       return this.getDemoRoles();
     }
   }
@@ -259,8 +263,8 @@ export class RoleManager {
         include: {
           permissions: {
             include: {
-              permission: true
-            }
+              permission: true,
+            },
           },
           users: {
             include: {
@@ -268,15 +272,15 @@ export class RoleManager {
                 select: {
                   id: true,
                   email: true,
-                  name: true
-                }
-              }
-            }
-          }
-        }
+                  name: true,
+                },
+              },
+            },
+          },
+        },
       });
     } catch (error) {
-      console.error('Error fetching role:', error);
+      console.error("Error fetching role:", error);
       return null;
     }
   }
@@ -285,32 +289,32 @@ export class RoleManager {
    * Assign role to user
    */
   async assignRoleToUser(
-    userId: string, 
-    roleId: string, 
+    userId: string,
+    roleId: string,
     assignedBy: string,
-    expiresAt?: Date
+    expiresAt?: Date,
   ): Promise<void> {
     if (!prisma) {
-      throw new Error('Database not available');
+      throw new Error("Database not available");
     }
 
     try {
       // Check if role exists
       const role = await prisma.role.findUnique({
-        where: { id: roleId }
+        where: { id: roleId },
       });
 
       if (!role) {
-        throw new Error('Role not found');
+        throw new Error("Role not found");
       }
 
       // Check if user exists
       const user = await prisma.user.findUnique({
-        where: { id: userId }
+        where: { id: userId },
       });
 
       if (!user) {
-        throw new Error('User not found');
+        throw new Error("User not found");
       }
 
       // Check if assignment already exists
@@ -318,9 +322,9 @@ export class RoleManager {
         where: {
           userId_roleId: {
             userId,
-            roleId
-          }
-        }
+            roleId,
+          },
+        },
       });
 
       if (existingAssignment) {
@@ -329,15 +333,15 @@ export class RoleManager {
           where: {
             userId_roleId: {
               userId,
-              roleId
-            }
+              roleId,
+            },
           },
           data: {
             assignedBy,
             assignedAt: new Date(),
             expiresAt,
-            isActive: true
-          }
+            isActive: true,
+          },
         });
       } else {
         // Create new assignment
@@ -348,8 +352,8 @@ export class RoleManager {
             assignedBy,
             assignedAt: new Date(),
             expiresAt,
-            isActive: true
-          }
+            isActive: true,
+          },
         });
       }
 
@@ -357,15 +361,20 @@ export class RoleManager {
       abacEngine.clearCache();
 
       // Log audit event
-      await this.logAuditEvent(assignedBy, 'ASSIGN_ROLE', 'user_roles', `${userId}:${roleId}`, {
-        userId,
-        roleId,
-        roleName: role.name,
-        expiresAt
-      });
-
+      await this.logAuditEvent(
+        assignedBy,
+        "ASSIGN_ROLE",
+        "user_roles",
+        `${userId}:${roleId}`,
+        {
+          userId,
+          roleId,
+          roleName: role.name,
+          expiresAt,
+        },
+      );
     } catch (error) {
-      console.error('Error assigning role to user:', error);
+      console.error("Error assigning role to user:", error);
       throw error;
     }
   }
@@ -373,9 +382,13 @@ export class RoleManager {
   /**
    * Remove role from user
    */
-  async removeRoleFromUser(userId: string, roleId: string, removedBy: string): Promise<void> {
+  async removeRoleFromUser(
+    userId: string,
+    roleId: string,
+    removedBy: string,
+  ): Promise<void> {
     if (!prisma) {
-      throw new Error('Database not available');
+      throw new Error("Database not available");
     }
 
     try {
@@ -383,39 +396,44 @@ export class RoleManager {
         where: {
           userId_roleId: {
             userId,
-            roleId
-          }
+            roleId,
+          },
         },
         include: {
-          role: true
-        }
+          role: true,
+        },
       });
 
       if (!assignment) {
-        throw new Error('Role assignment not found');
+        throw new Error("Role assignment not found");
       }
 
       await prisma.userRole.delete({
         where: {
           userId_roleId: {
             userId,
-            roleId
-          }
-        }
+            roleId,
+          },
+        },
       });
 
       // Clear cache
       abacEngine.clearCache();
 
       // Log audit event
-      await this.logAuditEvent(removedBy, 'REMOVE_ROLE', 'user_roles', `${userId}:${roleId}`, {
-        userId,
-        roleId,
-        roleName: assignment.role.name
-      });
-
+      await this.logAuditEvent(
+        removedBy,
+        "REMOVE_ROLE",
+        "user_roles",
+        `${userId}:${roleId}`,
+        {
+          userId,
+          roleId,
+          roleName: assignment.role.name,
+        },
+      );
     } catch (error) {
-      console.error('Error removing role from user:', error);
+      console.error("Error removing role from user:", error);
       throw error;
     }
   }
@@ -433,27 +451,24 @@ export class RoleManager {
         where: {
           userId,
           isActive: true,
-          OR: [
-            { expiresAt: null },
-            { expiresAt: { gt: new Date() } }
-          ]
+          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
         },
         include: {
           role: {
             include: {
               permissions: {
                 include: {
-                  permission: true
-                }
-              }
-            }
-          }
-        }
+                  permission: true,
+                },
+              },
+            },
+          },
+        },
       });
 
       return userRoles.map((ur: any) => ur.role);
     } catch (error) {
-      console.error('Error fetching user roles:', error);
+      console.error("Error fetching user roles:", error);
       return [];
     }
   }
@@ -461,9 +476,12 @@ export class RoleManager {
   /**
    * Create a permission
    */
-  async createPermission(permissionData: PermissionDefinition, createdBy: string): Promise<string> {
+  async createPermission(
+    permissionData: PermissionDefinition,
+    createdBy: string,
+  ): Promise<string> {
     if (!prisma) {
-      throw new Error('Database not available');
+      throw new Error("Database not available");
     }
 
     try {
@@ -475,24 +493,30 @@ export class RoleManager {
           action: permissionData.action,
           conditions: permissionData.conditions || [],
           isSystem: permissionData.isSystem || false,
-          createdBy
-        }
+          createdBy,
+        },
       });
 
       // Clear cache
       abacEngine.clearCache();
 
       // Log audit event
-      await this.logAuditEvent(createdBy, 'CREATE_PERMISSION', 'permissions', permission.id, {
-        permissionName: permission.name,
-        resource: permission.resource,
-        action: permission.action
-      });
+      await this.logAuditEvent(
+        createdBy,
+        "CREATE_PERMISSION",
+        "permissions",
+        permission.id,
+        {
+          permissionName: permission.name,
+          resource: permission.resource,
+          action: permission.action,
+        },
+      );
 
       return permission.id;
     } catch (error) {
-      console.error('Error creating permission:', error);
-      throw new Error('Failed to create permission');
+      console.error("Error creating permission:", error);
+      throw new Error("Failed to create permission");
     }
   }
 
@@ -506,14 +530,10 @@ export class RoleManager {
 
     try {
       return await prisma.permission.findMany({
-        orderBy: [
-          { resource: 'asc' },
-          { action: 'asc' },
-          { name: 'asc' }
-        ]
+        orderBy: [{ resource: "asc" }, { action: "asc" }, { name: "asc" }],
       });
     } catch (error) {
-      console.error('Error fetching permissions:', error);
+      console.error("Error fetching permissions:", error);
       return [];
     }
   }
@@ -530,11 +550,11 @@ export class RoleManager {
       const result = await prisma.userRole.updateMany({
         where: {
           expiresAt: { lt: new Date() },
-          isActive: true
+          isActive: true,
         },
         data: {
-          isActive: false
-        }
+          isActive: false,
+        },
       });
 
       if (result.count > 0) {
@@ -543,7 +563,7 @@ export class RoleManager {
 
       return result.count;
     } catch (error) {
-      console.error('Error cleaning up expired assignments:', error);
+      console.error("Error cleaning up expired assignments:", error);
       return 0;
     }
   }
@@ -556,7 +576,7 @@ export class RoleManager {
     action: string,
     resource: string,
     resourceId: string,
-    details: any
+    details: any,
   ): Promise<void> {
     if (!prisma) return;
 
@@ -568,11 +588,11 @@ export class RoleManager {
           resource,
           resourceId,
           details,
-          timestamp: new Date()
-        }
+          timestamp: new Date(),
+        },
       });
     } catch (error) {
-      console.error('Failed to log audit event:', error);
+      console.error("Failed to log audit event:", error);
     }
   }
 
@@ -582,37 +602,63 @@ export class RoleManager {
   private getDemoRoles(): any[] {
     return [
       {
-        id: 'admin-role',
-        name: 'ADMIN',
-        description: 'Full system access',
+        id: "admin-role",
+        name: "ADMIN",
+        description: "Full system access",
         isSystem: true,
         permissions: [
-          { permission: { name: 'All Permissions', resource: '*', action: '*' } }
+          {
+            permission: { name: "All Permissions", resource: "*", action: "*" },
+          },
         ],
-        _count: { users: 0 }
+        _count: { users: 0 },
       },
       {
-        id: 'editor-role',
-        name: 'EDITOR',
-        description: 'Content management access',
+        id: "editor-role",
+        name: "EDITOR",
+        description: "Content management access",
         isSystem: true,
         permissions: [
-          { permission: { name: 'Edit Content', resource: 'content', action: 'create' } },
-          { permission: { name: 'Update Content', resource: 'content', action: 'update' } },
-          { permission: { name: 'Read Content', resource: 'content', action: 'read' } }
+          {
+            permission: {
+              name: "Edit Content",
+              resource: "content",
+              action: "create",
+            },
+          },
+          {
+            permission: {
+              name: "Update Content",
+              resource: "content",
+              action: "update",
+            },
+          },
+          {
+            permission: {
+              name: "Read Content",
+              resource: "content",
+              action: "read",
+            },
+          },
         ],
-        _count: { users: 0 }
+        _count: { users: 0 },
       },
       {
-        id: 'viewer-role',
-        name: 'VIEWER',
-        description: 'Read-only access',
+        id: "viewer-role",
+        name: "VIEWER",
+        description: "Read-only access",
         isSystem: true,
         permissions: [
-          { permission: { name: 'View Content', resource: 'content', action: 'read' } }
+          {
+            permission: {
+              name: "View Content",
+              resource: "content",
+              action: "read",
+            },
+          },
         ],
-        _count: { users: 0 }
-      }
+        _count: { users: 0 },
+      },
     ];
   }
 }
