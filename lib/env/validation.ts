@@ -33,8 +33,8 @@ const envSchema = z.object({
   SMTP_PASS: z.string().optional(),
   
   // Rate Limiting
-  RATE_LIMIT_REQUESTS: z.string().regex(/^\d+$/).transform(Number).default('100'),
-  RATE_LIMIT_WINDOW: z.string().regex(/^\d+$/).transform(Number).default('900000'),
+  RATE_LIMIT_REQUESTS: z.coerce.number().default(100),
+  RATE_LIMIT_WINDOW: z.coerce.number().default(900000),
   
   // Security
   ENABLE_2FA: z.string().transform(val => val === 'true').default('true'),
