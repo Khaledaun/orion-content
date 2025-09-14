@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Pre-commit validation for Orion Content Management System
+echo "🔍 Running pre-commit validation..."
+
+# Run lint-staged for staged files
+npx lint-staged
+
+# Run TypeScript check
+echo "🔷 Checking TypeScript..."
+npm run typecheck
+
+# Run basic validation
+echo "🛡️ Running security and compatibility checks..."
+if [ -f "./scripts/validate.sh" ]; then
+    ./scripts/validate.sh
+else
+    echo "⚠️ Validation script not found, skipping comprehensive checks"
+fi
+
+echo "✅ Pre-commit validation completed successfully!"

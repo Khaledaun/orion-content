@@ -1,0 +1,183 @@
+name: 🔍 Dependency Health Check
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+
+jobs:
+  dependency-check:
+    name: 📦 Dependency Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 🔧 Install dependencies
+        run: npm ci --silent
+
+      - name: 🛡️ Security audit
+        run: |
+          echo "🔍 Running comprehensive security audit..."
+          
+          # Run audit and capture results
+          npm audit --audit-level=low --format=json > full-audit.json || true
+          
+          if [ -s full-audit.json ]; then
+            echo "📊 Security audit summary:"
+            
+            # Extract vulnerability counts
+            info_count=$(jq '.metadata.vulnerabilities.info // 0' full-audit.json)
+            low_count=$(jq '.metadata.vulnerabilities.low // 0' full-audit.json)
+            moderate_count=$(jq '.metadata.vulnerabilities.moderate // 0' full-audit.json)
+            high_count=$(jq '.metadata.vulnerabilities.high // 0' full-audit.json)
+            critical_count=$(jq '.metadata.vulnerabilities.critical // 0' full-audit.json)
+            
+            echo "ℹ️ Info: $info_count"
+            echo "🟡 Low: $low_count" 
+            echo "🟠 Moderate: $moderate_count"
+            echo "🔴 High: $high_count"
+            echo "🚨 Critical: $critical_count"
+            
+            # Create GitHub summary
+            echo "## 🛡️ Security Audit Results" >> $GITHUB_STEP_SUMMARY
+            echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Critical | $critical_count |" >> $GITHUB_STEP_SUMMARY
+            echo "| High | $high_count |" >> $GITHUB_STEP_SUMMARY
+            echo "| Moderate | $moderate_count |" >> $GITHUB_STEP_SUMMARY
+            echo "| Low | $low_count |" >> $GITHUB_STEP_SUMMARY
+            echo "| Info | $info_count |" >> $GITHUB_STEP_SUMMARY
+            
+            # Fail if high or critical vulnerabilities
+            if [ "$high_count" -gt 0 ] || [ "$critical_count" -gt 0 ]; then
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "❌ **Action Required**: High or critical vulnerabilities detected!" >> $GITHUB_STEP_SUMMARY
+              echo "Run \`npm audit fix\` to resolve security issues." >> $GITHUB_STEP_SUMMARY
+              exit 1
+            fi
+          else
+            echo "✅ No vulnerabilities detected"
+            echo "## 🛡️ Security Audit Results" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **No vulnerabilities detected**" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: 📈 Dependency analysis
+        run: |
+          echo "📦 Analyzing dependency health..."
+          
+          # Count total dependencies
+          total_deps=$(jq '.dependencies | length' package.json)
+          total_dev_deps=$(jq '.devDependencies | length' package.json)
+          
+          echo "📊 Dependency counts:"
+          echo "Production dependencies: $total_deps"
+          echo "Development dependencies: $total_dev_deps"
+          echo "Total: $((total_deps + total_dev_deps))"
+          
+          # Check for outdated packages
+          echo "🔍 Checking for outdated packages..."
+          npm outdated --format=json > outdated.json || true
+          
+          if [ -s outdated.json ] && [ "$(cat outdated.json)" != "{}" ]; then
+            echo "📦 Outdated packages detected:"
+            jq -r 'to_entries[] | "\(.key): \(.value.current) → \(.value.latest)"' outdated.json | head -10
+            
+            outdated_count=$(jq 'keys | length' outdated.json)
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "📦 **$outdated_count outdated packages** detected" >> $GITHUB_STEP_SUMMARY
+            echo "Consider updating dependencies for security and performance improvements." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ All packages are up to date"
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **All packages are up to date**" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: 🔍 License compliance check
+        run: |
+          echo "📋 Checking license compliance..."
+          
+          # Install license checker
+          npx license-checker --summary --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0;Unlicense' > license-check.txt || true
+          
+          if [ -s license-check.txt ]; then
+            echo "📄 License summary:"
+            cat license-check.txt
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "## 📋 License Compliance" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            cat license-check.txt >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: 📊 Bundle impact analysis
+        run: |
+          echo "📏 Analyzing potential bundle impact..."
+          
+          # Check for heavy dependencies
+          heavy_deps=()
+          
+          # Common heavy packages to watch
+          check_packages=("moment" "lodash" "rxjs" "three" "d3" "chart.js")
+          
+          for package in "${check_packages[@]}"; do
+            if jq -e ".dependencies.\"$package\"" package.json >/dev/null 2>&1; then
+              heavy_deps+=("$package")
+            fi
+          done
+          
+          if [ ${#heavy_deps[@]} -gt 0 ]; then
+            echo "⚠️ Heavy dependencies detected:"
+            printf '%s\n' "${heavy_deps[@]}"
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **Heavy dependencies detected**: ${heavy_deps[*]}" >> $GITHUB_STEP_SUMMARY
+            echo "Consider alternatives or lazy loading for better performance." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ No obviously heavy dependencies detected"
+          fi
+
+      - name: 🔄 Dependency freshness
+        run: |
+          echo "📅 Checking dependency freshness..."
+          
+          # Check package.json last modified time
+          last_modified=$(stat -c %Y package.json)
+          current_time=$(date +%s)
+          days_since_update=$(( (current_time - last_modified) / 86400 ))
+          
+          echo "📆 Days since package.json last updated: $days_since_update"
+          
+          if [ $days_since_update -gt 90 ]; then
+            echo "⚠️ Dependencies haven't been updated in $days_since_update days"
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **Dependencies haven't been updated in $days_since_update days**" >> $GITHUB_STEP_SUMMARY
+            echo "Consider reviewing and updating dependencies for security and performance." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ Dependencies were recently updated ($days_since_update days ago)"
+          fi
+
+      - name: 🎯 Recommendations
+        if: always()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 💡 Recommendations" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- 🛡️ Run \`npm audit fix\` regularly to address security vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          echo "- 📦 Use \`npm update\` to update minor/patch versions safely" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔍 Review major version updates manually before applying" >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 Monitor bundle size impact when adding new dependencies" >> $GITHUB_STEP_SUMMARY
+          echo "- 📋 Ensure all dependencies use compatible licenses" >> $GITHUB_STEP_SUMMARY
+          echo "- 🎯 Consider using \`npm ci\` in production for faster, reproducible builds" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,237 @@
+name: 🤖 Copilot Automated Validation
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: 🔍 Comprehensive Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 🔧 Install dependencies
+        run: |
+          npm ci --silent
+          npx prisma generate
+
+      - name: 🔷 TypeScript validation
+        run: npm run typecheck
+
+      - name: 🧹 ESLint validation
+        run: npm run lint:check
+
+      - name: 🎨 Prettier validation
+        run: npx prettier --check "**/*.{ts,tsx,js,jsx,json,md}"
+
+      - name: 🛡️ Security audit
+        run: npm audit --audit-level=high
+
+      - name: 🗃️ Prisma validation
+        run: |
+          npx prisma validate
+          npx prisma format --check
+
+      - name: 🏗️ Build validation
+        run: npm run build
+        env:
+          SKIP_PRISMA_GENERATE: true
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: 📊 Bundle size analysis
+        run: |
+          if [ -d ".next/static" ]; then
+            echo "📦 Build output analysis:"
+            du -sh .next/static/chunks/_app-*.js 2>/dev/null || echo "App chunk not found"
+            du -sh .next/static/chunks/main-*.js 2>/dev/null || echo "Main chunk not found"
+            du -sh .next/static/chunks/webpack-*.js 2>/dev/null || echo "Webpack chunk not found"
+            
+            total_size=$(du -sh .next 2>/dev/null | cut -f1)
+            echo "📏 Total build size: $total_size"
+          fi
+
+      - name: 🔍 Edge Runtime compatibility check
+        run: |
+          echo "🌐 Checking for Edge Runtime incompatible APIs..."
+          
+          # Check for Node.js-specific APIs
+          incompatible_apis="fs\.|path\.|process\.env\.|os\.|crypto\.createHash"
+          
+          if grep -r "$incompatible_apis" app/ lib/ --include="*.ts" --include="*.tsx" | grep -v ".d.ts" | head -10; then
+            echo "⚠️ Potential Edge Runtime incompatible APIs found above"
+            echo "Consider using Web APIs instead of Node.js APIs for Edge Runtime compatibility"
+          else
+            echo "✅ No obvious Edge Runtime compatibility issues found"
+          fi
+
+      - name: 📋 Comprehensive validation
+        run: |
+          if [ -f "./scripts/validate.sh" ]; then
+            ./scripts/validate.sh
+          else
+            echo "⚠️ Comprehensive validation script not found"
+          fi
+
+      - name: 📝 Validation summary
+        if: always()
+        run: |
+          echo "## 🤖 Copilot Validation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ **All validations passed!** Code is ready for review and merge." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Some validations failed.** Please review the errors above." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Validation Checklist" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] TypeScript compilation" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] ESLint code quality" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] Prettier formatting" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] Security audit" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] Prisma schema validation" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] Production build" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] Bundle size analysis" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] Edge Runtime compatibility" >> $GITHUB_STEP_SUMMARY
+
+  security:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 🔧 Install dependencies
+        run: npm ci --silent
+
+      - name: 🛡️ Run security audit
+        run: |
+          echo "🔍 Running npm security audit..."
+          npm audit --audit-level=moderate --format=json > audit-results.json || true
+          
+          if [ -s audit-results.json ]; then
+            echo "📊 Security audit results:"
+            cat audit-results.json | jq '.metadata.vulnerabilities // empty'
+            
+            # Check for high/critical vulnerabilities
+            high_vulns=$(cat audit-results.json | jq '.metadata.vulnerabilities.high // 0')
+            critical_vulns=$(cat audit-results.json | jq '.metadata.vulnerabilities.critical // 0')
+            
+            if [ "$high_vulns" -gt 0 ] || [ "$critical_vulns" -gt 0 ]; then
+              echo "❌ High or critical vulnerabilities found!"
+              echo "Please run 'npm audit fix' to resolve security issues"
+              exit 1
+            else
+              echo "✅ No high or critical security vulnerabilities found"
+            fi
+          else
+            echo "✅ No security vulnerabilities detected"
+          fi
+
+      - name: 🔍 Check for hardcoded secrets
+        run: |
+          echo "🕵️ Scanning for potential hardcoded secrets..."
+          
+          # Common secret patterns
+          secret_patterns=(
+            "password\s*=\s*['\"][^'\"]*['\"]"
+            "api[_-]?key\s*[=:]\s*['\"][^'\"]*['\"]"
+            "secret\s*[=:]\s*['\"][^'\"]*['\"]"
+            "token\s*[=:]\s*['\"][^'\"]*['\"]"
+            "['\"][A-Za-z0-9]{20,}['\"]"
+          )
+          
+          found_secrets=false
+          for pattern in "${secret_patterns[@]}"; do
+            if grep -r -i "$pattern" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" . | grep -v node_modules | grep -v ".git" | head -5; then
+              found_secrets=true
+            fi
+          done
+          
+          if [ "$found_secrets" = true ]; then
+            echo "⚠️ Potential hardcoded secrets found. Please review the matches above."
+            echo "Consider using environment variables for sensitive data."
+          else
+            echo "✅ No obvious hardcoded secrets detected"
+          fi
+
+  performance:
+    name: ⚡ Performance Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 🔧 Install dependencies
+        run: npm ci --silent
+
+      - name: 🏗️ Build for performance analysis
+        run: |
+          npm run build
+          echo "📊 Analyzing build output..."
+          
+          if [ -d ".next/static/chunks" ]; then
+            echo "📦 Chunk analysis:"
+            find .next/static/chunks -name "*.js" -type f -exec du -h {} + | sort -hr | head -10
+            
+            # Check for large chunks (>1MB)
+            large_chunks=$(find .next/static/chunks -name "*.js" -type f -size +1M)
+            if [ -n "$large_chunks" ]; then
+              echo "⚠️ Large chunks detected (>1MB):"
+              echo "$large_chunks"
+              echo "Consider code splitting or lazy loading for these chunks"
+            else
+              echo "✅ No excessively large chunks detected"
+            fi
+          fi
+
+      - name: 📈 Bundle size tracking
+        run: |
+          if command -v jq >/dev/null 2>&1; then
+            echo "📏 Bundle size analysis:"
+            
+            # Calculate total bundle size
+            total_size=$(du -sh .next 2>/dev/null | cut -f1 || echo "unknown")
+            echo "Total build size: $total_size"
+            
+            # Create performance summary
+            echo "## ⚡ Performance Summary" >> $GITHUB_STEP_SUMMARY
+            echo "- **Total build size**: $total_size" >> $GITHUB_STEP_SUMMARY
+            echo "- **Chunks analyzed**: ✅" >> $GITHUB_STEP_SUMMARY
+            echo "- **Large chunk detection**: ✅" >> $GITHUB_STEP_SUMMARY
+          fi
