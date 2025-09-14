@@ -105,8 +105,16 @@ class Phase2Validator {
       
       // Check critical variables
       const criticalVars = ['NEXTAUTH_SECRET', 'JWT_SECRET', 'ENCRYPTION_KEY'];
+      const defaultValues: { [key: string]: string } = {
+        NEXTAUTH_SECRET: 'your-nextauth-secret-key-here-must-be-at-least-32-characters-long',
+        JWT_SECRET: 'your-jwt-secret-here',
+        ENCRYPTION_KEY: 'your-encryption-key-here',
+      };
       for (const varName of criticalVars) {
-        if (process.env[varName] && process.env[varName] !== `your-${varName.toLowerCase().replace('_', '-')}-here`) {
+        if (
+          process.env[varName] &&
+          process.env[varName] !== defaultValues[varName]
+        ) {
           this.addResult('Environment', varName, 'PASS', 'Set and not using default value');
         } else {
           this.addResult('Environment', varName, 'WARN', 'Using default value or not set');
