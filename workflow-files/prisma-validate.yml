@@ -1,0 +1,146 @@
+
+name: Prisma Schema Validation
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'prisma/**'
+      - 'package.json'
+      - 'package-lock.json'
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'prisma/**'
+
+jobs:
+  prisma-validation:
+    runs-on: ubuntu-latest
+    name: Validate Prisma Schema
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: orion_validation
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+          
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Validate Prisma schema syntax
+      run: |
+        if [ -f "prisma/schema.prisma" ]; then
+          npx prisma validate
+        else
+          echo "No Prisma schema found, skipping validation"
+          exit 0
+        fi
+        
+    - name: Generate Prisma client
+      run: |
+        if [ -f "prisma/schema.prisma" ]; then
+          npx prisma generate
+        fi
+        
+    - name: Check database connection
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/orion_validation
+      run: |
+        if [ -f "prisma/schema.prisma" ]; then
+          npx prisma db push --skip-generate
+        fi
+        
+    - name: Run migration validation
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/orion_validation
+      run: |
+        if [ -d "prisma/migrations" ]; then
+          npx prisma migrate deploy
+        else
+          echo "No migrations found, creating initial migration"
+          if [ -f "prisma/schema.prisma" ]; then
+            npx prisma migrate dev --name init --skip-generate
+          fi
+        fi
+
+  schema-security-check:
+    runs-on: ubuntu-latest
+    name: Schema Security Analysis
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Analyze schema for security issues
+      run: |
+        if [ -f "prisma/schema.prisma" ]; then
+          cat > schema-security-check.js << 'EOF'
+          const fs = require('fs');
+          
+          const schemaContent = fs.readFileSync('prisma/schema.prisma', 'utf8');
+          const securityIssues = [];
+          
+          // Check for potential security issues
+          const checks = [
+            {
+              pattern: /password\s+String(?!\s+@)/i,
+              message: 'Password field should be hashed (@db.VarChar or similar)'
+            },
+            {
+              pattern: /email\s+String(?!.*@unique)/i,
+              message: 'Email field should be unique'
+            },
+            {
+              pattern: /@default\(now\(\)\).*updatedAt/i,
+              message: 'updatedAt should use @updatedAt directive instead of @default(now())'
+            },
+            {
+              pattern: /String\s+@id/i,
+              message: 'Consider using @default(cuid()) or @default(uuid()) for String IDs'
+            }
+          ];
+          
+          checks.forEach(check => {
+            if (check.pattern.test(schemaContent)) {
+              securityIssues.push(check.message);
+            }
+          });
+          
+          if (securityIssues.length > 0) {
+            console.log('Schema Security Issues Found:');
+            securityIssues.forEach(issue => console.log(`- ${issue}`));
+            console.log('\nThese are recommendations, not blocking errors.');
+          } else {
+            console.log('No obvious security issues found in schema');
+          }
+          EOF
+          
+          node schema-security-check.js
+        fi

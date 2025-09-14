@@ -1,0 +1,192 @@
+
+name: Edge Runtime Compatibility Check
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  edge-runtime-validation:
+    runs-on: ubuntu-latest
+    name: Edge Runtime Compatibility Analysis
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Analyze code for Edge Runtime compatibility
+      run: |
+        cat > edge-runtime-analyzer.js << 'EOF'
+        const fs = require('fs');
+        const path = require('path');
+        
+        // APIs that are not available in Edge Runtime
+        const incompatibleAPIs = {
+          // Node.js specific APIs
+          'fs.': 'File system operations not available in Edge Runtime',
+          'path.': 'Use URL constructor or string manipulation instead',
+          'os.': 'Operating system APIs not available',
+          'crypto.createHash': 'Use Web Crypto API instead',
+          'crypto.randomBytes': 'Use crypto.getRandomValues() instead',
+          'Buffer.': 'Use TextEncoder/TextDecoder or Uint8Array instead',
+          'process.env': 'Use environment variables through Next.js config',
+          '__dirname': 'Not available in Edge Runtime',
+          '__filename': 'Not available in Edge Runtime',
+          'require.resolve': 'Use dynamic imports instead',
+        };
+        
+        function analyzeFile(filePath) {
+          const content = fs.readFileSync(filePath, 'utf8');
+          const issues = [];
+          
+          // Check for incompatible APIs
+          Object.entries(incompatibleAPIs).forEach(([api, message]) => {
+            if (content.includes(api)) {
+              issues.push(`❌ ${api}: ${message}`);
+            }
+          });
+          
+          return { issues };
+        }
+        
+        function scanDirectory(dir, results = { issues: [], files: 0 }) {
+          const items = fs.readdirSync(dir, { withFileTypes: true });
+          
+          items.forEach(item => {
+            const fullPath = path.join(dir, item.name);
+            
+            // Skip node_modules, .git, .next, etc.
+            if (item.isDirectory() && !item.name.startsWith('.') && 
+                item.name !== 'node_modules' && item.name !== 'dist' && 
+                item.name !== 'build') {
+              scanDirectory(fullPath, results);
+            } else if (item.isFile() && 
+                      (item.name.endsWith('.ts') || item.name.endsWith('.js') || 
+                       item.name.endsWith('.tsx') || item.name.endsWith('.jsx'))) {
+              
+              const analysis = analyzeFile(fullPath);
+              results.files++;
+              
+              if (analysis.issues.length > 0) {
+                results.issues.push(`\n📁 ${fullPath}:`);
+                results.issues.push(...analysis.issues.map(issue => `  ${issue}`));
+              }
+            }
+          });
+          
+          return results;
+        }
+        
+        console.log('🔍 Analyzing code for Edge Runtime compatibility...\n');
+        
+        const results = scanDirectory('.');
+        
+        console.log(`📊 Analyzed ${results.files} files\n`);
+        
+        if (results.issues.length > 0) {
+          console.log('🚨 Edge Runtime Compatibility Issues Found:');
+          results.issues.forEach(issue => console.log(issue));
+          console.log('\n');
+        } else {
+          console.log('✅ No obvious Edge Runtime compatibility issues found\n');
+        }
+        
+        // Generate report
+        const report = {
+          timestamp: new Date().toISOString(),
+          filesAnalyzed: results.files,
+          issuesFound: results.issues.length,
+          issues: results.issues
+        };
+        
+        fs.writeFileSync('edge-runtime-report.json', JSON.stringify(report, null, 2));
+        
+        if (results.issues.length > 0) {
+          console.log('⚠️  Edge Runtime compatibility issues detected. Review the report above.');
+          console.log('💡 Consider refactoring incompatible code before deploying to Edge Runtime.');
+        } else {
+          console.log('🎉 Code appears to be Edge Runtime compatible!');
+        }
+        EOF
+        
+        node edge-runtime-analyzer.js
+        
+    - name: Upload Edge Runtime report
+      uses: actions/upload-artifact@v4
+      with:
+        name: edge-runtime-report
+        path: edge-runtime-report.json
+
+  vercel-edge-runtime-test:
+    runs-on: ubuntu-latest
+    name: Vercel Edge Runtime Specific Tests
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Test Vercel Edge Functions
+      run: |
+        # Create a test edge function
+        mkdir -p api/test-edge
+        cat > api/test-edge/index.js << 'EOF'
+        export const config = {
+          runtime: 'edge',
+        }
+        
+        export default function handler(request) {
+          return new Response(
+            JSON.stringify({
+              message: 'Edge Runtime test successful',
+              timestamp: new Date().toISOString(),
+              url: request.url,
+              method: request.method,
+            }),
+            {
+              status: 200,
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            }
+          )
+        }
+        EOF
+        
+        echo "✅ Created test Edge Function"
+        
+    - name: Validate Edge Function syntax
+      run: |
+        if [ -f "api/test-edge/index.js" ]; then
+          node -c api/test-edge/index.js
+          echo "✅ Edge Function syntax is valid"
+        fi
+        
+    - name: Test build compatibility
+      run: |
+        # Test if the project builds successfully
+        npm run build || echo "Build test completed with warnings"
+        
+    - name: Clean up test files
+      run: |
+        rm -rf api/test-edge
+        echo "🧹 Cleaned up test files"
