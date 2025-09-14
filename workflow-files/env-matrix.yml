@@ -1,0 +1,173 @@
+
+name: Environment Compatibility Matrix
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  environment-matrix:
+    runs-on: ${{ matrix.os }}
+    name: Test on ${{ matrix.os }} with Node ${{ matrix.node-version }}
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [18, 20]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run linting
+      run: npm run lint
+      
+    - name: Run TypeScript check
+      run: npm run type-check
+      
+    - name: Run tests
+      run: npm test
+      
+    - name: Build application
+      run: npm run build
+
+  database-compatibility:
+    runs-on: ubuntu-latest
+    name: Database Compatibility Test
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: orion_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+          
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Setup test database
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/orion_test
+      run: |
+        if [ -f "prisma/schema.prisma" ]; then
+          npx prisma migrate deploy
+          npx prisma generate
+        fi
+        
+    - name: Run database tests
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/orion_test
+      run: |
+        if [ -f "prisma/schema.prisma" ]; then
+          npx prisma db push
+          npm run test:db || npm test
+        fi
+
+  edge-runtime-compatibility:
+    runs-on: ubuntu-latest
+    name: Edge Runtime Compatibility
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Check Edge Runtime compatibility
+      run: |
+        # Create a script to check for Edge Runtime incompatible APIs
+        cat > check-edge-compatibility.js << 'EOF'
+        const fs = require('fs');
+        const path = require('path');
+        
+        const incompatibleAPIs = [
+          'fs.readFileSync',
+          'fs.writeFileSync',
+          'process.env',
+          'Buffer.from',
+          'crypto.createHash',
+          '__dirname',
+          '__filename',
+          'require.resolve'
+        ];
+        
+        function checkFile(filePath) {
+          const content = fs.readFileSync(filePath, 'utf8');
+          const issues = [];
+          
+          incompatibleAPIs.forEach(api => {
+            if (content.includes(api)) {
+              issues.push(`Found potentially incompatible API: ${api}`);
+            }
+          });
+          
+          return issues;
+        }
+        
+        function scanDirectory(dir) {
+          const files = fs.readdirSync(dir, { withFileTypes: true });
+          let allIssues = [];
+          
+          files.forEach(file => {
+            const fullPath = path.join(dir, file.name);
+            
+            if (file.isDirectory() && !file.name.startsWith('.') && file.name !== 'node_modules') {
+              allIssues = allIssues.concat(scanDirectory(fullPath));
+            } else if (file.isFile() && (file.name.endsWith('.ts') || file.name.endsWith('.js'))) {
+              const issues = checkFile(fullPath);
+              if (issues.length > 0) {
+                allIssues.push(`${fullPath}:`);
+                allIssues = allIssues.concat(issues.map(issue => `  ${issue}`));
+              }
+            }
+          });
+          
+          return allIssues;
+        }
+        
+        const issues = scanDirectory('.');
+        if (issues.length > 0) {
+          console.log('Edge Runtime Compatibility Issues Found:');
+          issues.forEach(issue => console.log(issue));
+          process.exit(1);
+        } else {
+          console.log('No Edge Runtime compatibility issues found');
+        }
+        EOF
+        
+        node check-edge-compatibility.js

@@ -1,0 +1,128 @@
+
+name: Dependency Security & Compatibility Check
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+  schedule:
+    # Run weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+
+jobs:
+  dependency-audit:
+    runs-on: ubuntu-latest
+    name: Dependency Security Audit
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run npm audit
+      run: npm audit --audit-level=moderate
+      
+    - name: Check for outdated packages
+      run: npm outdated || true
+      
+    - name: Generate dependency report
+      run: |
+        echo "# Dependency Report" > dependency-report.md
+        echo "Generated on: $(date)" >> dependency-report.md
+        echo "" >> dependency-report.md
+        echo "## Security Audit Results" >> dependency-report.md
+        npm audit --json > audit-results.json || true
+        echo "## Outdated Packages" >> dependency-report.md
+        npm outdated --json > outdated-packages.json || true
+        
+    - name: Upload dependency report
+      uses: actions/upload-artifact@v4
+      with:
+        name: dependency-report
+        path: |
+          dependency-report.md
+          audit-results.json
+          outdated-packages.json
+
+  version-compatibility:
+    runs-on: ubuntu-latest
+    name: Version Compatibility Check
+    
+    strategy:
+      matrix:
+        node-version: [18, 20]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run TypeScript compilation
+      run: npm run build
+      
+    - name: Run tests
+      run: npm test
+      
+    - name: Check package compatibility
+      run: |
+        echo "Testing with Node.js ${{ matrix.node-version }}"
+        node --version
+        npm --version
+
+  bundle-size-analysis:
+    runs-on: ubuntu-latest
+    name: Bundle Size Analysis
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build application
+      run: npm run build
+      
+    - name: Analyze bundle size
+      run: |
+        if [ -f "package.json" ] && grep -q "next" package.json; then
+          npx @next/bundle-analyzer
+        fi
+        
+    - name: Generate bundle report
+      run: |
+        echo "# Bundle Size Report" > bundle-report.md
+        echo "Generated on: $(date)" >> bundle-report.md
+        echo "" >> bundle-report.md
+        if [ -d ".next" ]; then
+          du -sh .next >> bundle-report.md
+        fi
+        
+    - name: Upload bundle report
+      uses: actions/upload-artifact@v4
+      with:
+        name: bundle-report
+        path: bundle-report.md
