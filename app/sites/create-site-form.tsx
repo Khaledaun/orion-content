@@ -1,52 +1,56 @@
-'use client'
+"use client";
 
+"use client";
 
-'use client'
-
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { toast } from 'sonner'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 export default function CreateSiteForm() {
-  const [name, setName] = useState('')
-  const [key, setKey] = useState('')
-  const [timezone, setTimezone] = useState('UTC')
-  const [publisher, setPublisher] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
+  const [name, setName] = useState("");
+  const [key, setKey] = useState("");
+  const [timezone, setTimezone] = useState("UTC");
+  const [publisher, setPublisher] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     try {
-      const res = await fetch('/api/sites', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, key, timezone, publisher: publisher || null }),
-      })
+      const res = await fetch("/api/sites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          key,
+          timezone,
+          publisher: publisher || null,
+        }),
+      });
 
-      const data = await res.json()
+      const data = await res.json();
 
       if (res.ok) {
-        toast.success('Site created successfully')
-        setName('')
-        setKey('')
-        setTimezone('UTC')
-        setPublisher('')
-        router.refresh()
+        toast.success("Site created successfully");
+        setName("");
+        setKey("");
+        setTimezone("UTC");
+        setPublisher("");
+        router.refresh();
       } else {
-        toast.error(data.error || 'Failed to create site')
+        toast.error(data.error || "Failed to create site");
       }
     } catch (error) {
-      toast.error('Failed to create site')
+      toast.error("Failed to create site");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -91,8 +95,8 @@ export default function CreateSiteForm() {
         </div>
       </div>
       <Button type="submit" disabled={isLoading}>
-        {isLoading ? 'Creating...' : 'Create Site'}
+        {isLoading ? "Creating..." : "Create Site"}
       </Button>
     </form>
-  )
+  );
 }

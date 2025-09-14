@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 import { NextRequest, NextResponse } from "next/server";
@@ -6,36 +6,40 @@ import { withAuth } from "@/lib/withAuth";
 import { prisma } from "@/lib/prisma";
 
 // GET /api/daily-picks?date=YYYY-MM-DD&site=SITE_KEY&count=3
-export const GET = withAuth(async (req: NextRequest) => {
-  const { searchParams } = new URL(req.url);
-  const date = searchParams.get("date");
-  const siteKey = searchParams.get("site");
-  const count = parseInt(searchParams.get("count") || "3", 10);
+export const GET = withAuth(
+  async (req: NextRequest) => {
+    const { searchParams } = new URL(req.url);
+    const date = searchParams.get("date");
+    const siteKey = searchParams.get("site");
+    const count = parseInt(searchParams.get("count") || "3", 10);
 
-  if (!date || !siteKey) {
-    return NextResponse.json(
-      { error: "date and site parameters are required" },
-      { status: 400 }
-    );
-  }
+    if (!date || !siteKey) {
+      return NextResponse.json(
+        { error: "date and site parameters are required" },
+        { status: 400 },
+      );
+    }
 
-  // Find site
-  const site = await prisma.site.findUnique({ where: { key: siteKey } });
-  if (!site) {
-    return NextResponse.json({ error: "Site not found" }, { status: 404 });
-  }
+    // Find site
+    const site = await prisma.site.findUnique({ where: { key: siteKey } });
+    if (!site) {
+      return NextResponse.json({ error: "Site not found" }, { status: 404 });
+    }
 
-  // Most recent approved week
-  const currentWeek = await prisma.week.findFirst({
-    where: { status: "APPROVED" },
-    orderBy: { createdAt: "desc" },
-  });
-  if (!currentWeek) {
-    return NextResponse.json({ error: "No approved week found" }, { status: 404 });
-  }
+    // Most recent approved week
+    const currentWeek = await prisma.week.findFirst({
+      where: { status: "APPROVED" },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!currentWeek) {
+      return NextResponse.json(
+        { error: "No approved week found" },
+        { status: 404 },
+      );
+    }
 
-  // Get candidate topics
-  const topics = (await prisma.$queryRaw`
+    // Get candidate topics
+    const topics = (await prisma.$queryRaw`
     WITH DistinctCategories AS (
       SELECT DISTINCT "categoryId"
       FROM "Topic"
@@ -56,15 +60,22 @@ export const GET = withAuth(async (req: NextRequest) => {
     ORDER BY t.score DESC NULLS LAST, RANDOM()
   `) as any[];
 
-  // Pick at most one per category
-  const picks: any[] = [];
-  const used = new Set<string>();
-  for (const t of topics) {
-    if (picks.length >= count) break;
-    if (used.has(t.categoryId)) continue;
-    picks.push(t);
-    used.add(t.categoryId);
-  }
+    // Pick at most one per category
+    const picks: any[] = [];
+    const used = new Set<string>();
+    for (const t of topics) {
+      if (picks.length >= count) break;
+      if (used.has(t.categoryId)) continue;
+      picks.push(t);
+      used.add(t.categoryId);
+    }
 
-  return NextResponse.json({ picks, date, site: siteKey, weekId: currentWeek.id });
-}, ({ roles: ["editor", "admin"], allowBearer: true } as any));
+    return NextResponse.json({
+      picks,
+      date,
+      site: siteKey,
+      weekId: currentWeek.id,
+    });
+  },
+  { roles: ["editor", "admin"], allowBearer: true } as any,
+);

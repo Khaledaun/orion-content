@@ -1,4 +1,3 @@
-
 # Phase 2: Unified Authentication & Authorization
 
 ## Overview
@@ -10,6 +9,7 @@ Phase 2 implements a comprehensive authentication and authorization system with 
 ### Stream A - Authentication Service
 
 #### Enhanced NextAuth.js Implementation
+
 - **Multi-provider support**: Credentials, Google OAuth, GitHub OAuth
 - **Automatic user creation** for OAuth providers
 - **Session management** with Redis adapter support
@@ -17,6 +17,7 @@ Phase 2 implements a comprehensive authentication and authorization system with 
 - **Environment validation** with comprehensive checks
 
 #### Advanced Password Management
+
 - **Password policies** with customizable requirements
 - **Password strength calculation** with real-time feedback
 - **Password history** prevention
@@ -24,6 +25,7 @@ Phase 2 implements a comprehensive authentication and authorization system with 
 - **Password expiration** tracking
 
 #### Two-Factor Authentication (2FA)
+
 - **TOTP support** using Speakeasy library
 - **QR code generation** for authenticator apps
 - **Backup codes** with secure hashing
@@ -31,6 +33,7 @@ Phase 2 implements a comprehensive authentication and authorization system with 
 - **2FA disable** with password + token verification
 
 #### User Registration & Profile Management
+
 - **Secure user registration** with validation
 - **Email verification** tokens
 - **Profile management** APIs
@@ -39,6 +42,7 @@ Phase 2 implements a comprehensive authentication and authorization system with 
 ### Stream B - Authorization Framework
 
 #### Enhanced RBAC System
+
 - **Role-based access control** with inheritance
 - **Permission management** with fine-grained controls
 - **Role assignment** with expiration dates
@@ -46,6 +50,7 @@ Phase 2 implements a comprehensive authentication and authorization system with 
 - **Bulk role operations** for administrators
 
 #### Attribute-Based Access Control (ABAC)
+
 - **Context-aware permissions** based on user, resource, and environment attributes
 - **Dynamic role derivation** (e.g., owner, time-based roles)
 - **Condition evaluation** with multiple operators
@@ -53,6 +58,7 @@ Phase 2 implements a comprehensive authentication and authorization system with 
 - **Policy caching** for performance
 
 #### Role Management Interface
+
 - **CRUD operations** for roles and permissions
 - **User role assignments** with audit trails
 - **Permission inheritance** from parent roles
@@ -62,6 +68,7 @@ Phase 2 implements a comprehensive authentication and authorization system with 
 ### Stream C - Security Infrastructure
 
 #### JWT Token Management
+
 - **Access and refresh tokens** with proper expiration
 - **Token verification** with comprehensive validation
 - **API key generation** for service-to-service communication
@@ -69,6 +76,7 @@ Phase 2 implements a comprehensive authentication and authorization system with 
 - **Secure token storage** recommendations
 
 #### Advanced Session Management
+
 - **Redis-based sessions** with fallback to memory
 - **Session activity tracking** with device fingerprinting
 - **Multi-device session management**
@@ -76,6 +84,7 @@ Phase 2 implements a comprehensive authentication and authorization system with 
 - **Session statistics** and monitoring
 
 #### Comprehensive Audit Logging
+
 - **Structured event logging** with categories and severity levels
 - **Batch processing** for performance
 - **Audit querying** with filtering and pagination
@@ -83,6 +92,7 @@ Phase 2 implements a comprehensive authentication and authorization system with 
 - **Automatic cleanup** of old logs
 
 #### Rate Limiting & Brute Force Protection
+
 - **Edge runtime compatible** rate limiting
 - **Multiple rate limit configurations** for different endpoints
 - **Brute force protection** with progressive delays
@@ -92,6 +102,7 @@ Phase 2 implements a comprehensive authentication and authorization system with 
 ## 🏗️ Architecture
 
 ### Authentication Flow
+
 ```
 1. User submits credentials
 2. Middleware applies rate limiting
@@ -103,6 +114,7 @@ Phase 2 implements a comprehensive authentication and authorization system with 
 ```
 
 ### Authorization Flow
+
 ```
 1. Request with JWT token
 2. Token validation and extraction
@@ -113,6 +125,7 @@ Phase 2 implements a comprehensive authentication and authorization system with 
 ```
 
 ### Security Layers
+
 ```
 ┌─────────────────────────────────────┐
 │           Rate Limiting             │
@@ -130,6 +143,7 @@ Phase 2 implements a comprehensive authentication and authorization system with 
 ### Environment Variables
 
 #### Required
+
 ```env
 NEXTAUTH_URL="https://your-domain.com"
 NEXTAUTH_SECRET="your-32-character-secret"
@@ -139,6 +153,7 @@ DATABASE_URL="your-database-url"
 ```
 
 #### Optional but Recommended
+
 ```env
 # Redis for sessions and rate limiting
 UPSTASH_REDIS_URL="your-redis-url"
@@ -176,20 +191,24 @@ Different endpoints have different rate limits:
 ## 📡 API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/signin` - Sign in with credentials
 - `POST /api/auth/signup` - Register new user
 - `POST /api/auth/signout` - Sign out user
 
 ### Password Management
+
 - `POST /api/auth/password/reset` - Request password reset
 - `POST /api/auth/password/change` - Change password
 
 ### Two-Factor Authentication
+
 - `POST /api/auth/2fa/setup` - Setup 2FA
 - `POST /api/auth/2fa/verify` - Verify 2FA token
 - `POST /api/auth/2fa/disable` - Disable 2FA
 
 ### Role Management (Admin)
+
 - `GET /api/admin/roles` - List all roles
 - `POST /api/admin/roles` - Create new role
 - `GET /api/admin/roles/[id]` - Get role details
@@ -197,6 +216,7 @@ Different endpoints have different rate limits:
 - `DELETE /api/admin/roles/[id]` - Delete role
 
 ### User Role Management (Admin)
+
 - `GET /api/admin/users/[id]/roles` - Get user roles
 - `POST /api/admin/users/[id]/roles` - Assign role to user
 - `DELETE /api/admin/users/[id]/roles` - Remove role from user
@@ -204,6 +224,7 @@ Different endpoints have different rate limits:
 ## 🛡️ Security Features
 
 ### Password Security
+
 - **Bcrypt hashing** with 12 salt rounds
 - **Password policies** with strength validation
 - **Common password detection**
@@ -211,18 +232,21 @@ Different endpoints have different rate limits:
 - **Secure password generation**
 
 ### Session Security
+
 - **Secure session cookies** with HttpOnly and SameSite
 - **Session rotation** on privilege changes
 - **Device fingerprinting** for session tracking
 - **Automatic session cleanup**
 
 ### Rate Limiting
+
 - **Edge runtime compatible** for global distribution
 - **Multiple strategies**: IP-based, user-based, endpoint-based
 - **Progressive delays** for brute force protection
 - **Configurable limits** per endpoint type
 
 ### Audit & Monitoring
+
 - **Comprehensive event logging** with structured data
 - **Security event detection** and alerting
 - **Performance monitoring** with metrics
@@ -231,6 +255,7 @@ Different endpoints have different rate limits:
 ## 🧪 Testing
 
 ### Running Tests
+
 ```bash
 # Validate Phase 2 implementation
 npm run validate:phase2
@@ -245,6 +270,7 @@ npm run test:security
 ### Manual Testing Checklist
 
 #### Authentication
+
 - [ ] User registration with email verification
 - [ ] Login with email/password
 - [ ] OAuth login (Google, GitHub)
@@ -252,6 +278,7 @@ npm run test:security
 - [ ] Account lockout after failed attempts
 
 #### Two-Factor Authentication
+
 - [ ] 2FA setup with QR code
 - [ ] TOTP token verification
 - [ ] Backup code usage
@@ -259,6 +286,7 @@ npm run test:security
 - [ ] Recovery code generation
 
 #### Authorization
+
 - [ ] Role-based access control
 - [ ] Permission inheritance
 - [ ] Resource ownership checks
@@ -266,6 +294,7 @@ npm run test:security
 - [ ] Admin role management
 
 #### Security
+
 - [ ] Rate limiting enforcement
 - [ ] Audit log generation
 - [ ] Session management
@@ -275,25 +304,30 @@ npm run test:security
 ## 🚀 Deployment
 
 ### Prerequisites
+
 1. **Database**: PostgreSQL with Prisma schema
 2. **Redis**: For sessions and rate limiting (optional but recommended)
 3. **SMTP**: For email notifications (optional)
 4. **OAuth Apps**: Google/GitHub applications (optional)
 
 ### Deployment Steps
+
 1. **Environment Setup**
+
    ```bash
    cp .env.example .env
    # Update .env with your values
    ```
 
 2. **Database Migration**
+
    ```bash
    npx prisma migrate deploy
    npx prisma generate
    ```
 
 3. **Build Application**
+
    ```bash
    npm run build
    ```
@@ -304,6 +338,7 @@ npm run test:security
    ```
 
 ### Vercel Deployment
+
 ```bash
 # Set environment variables
 npm run setup:vercel
@@ -315,18 +350,21 @@ vercel --prod
 ## 🔍 Monitoring & Maintenance
 
 ### Health Checks
+
 - Monitor authentication success rates
 - Track 2FA adoption rates
 - Monitor rate limiting effectiveness
 - Check audit log storage usage
 
 ### Regular Maintenance
+
 - Clean up expired sessions
 - Rotate JWT secrets periodically
 - Review and update rate limits
 - Audit user permissions regularly
 
 ### Performance Optimization
+
 - Monitor Redis memory usage
 - Optimize database queries
 - Cache frequently accessed permissions
@@ -337,30 +375,35 @@ vercel --prod
 ### Common Issues
 
 #### Authentication Failures
+
 - Check environment variables
 - Verify database connectivity
 - Review NextAuth.js logs
 - Check OAuth provider configuration
 
 #### 2FA Issues
+
 - Verify TOTP secret generation
 - Check time synchronization
 - Validate backup code hashing
 - Review QR code generation
 
 #### Authorization Problems
+
 - Check role assignments
 - Verify permission inheritance
 - Review ABAC conditions
 - Check cache invalidation
 
 #### Performance Issues
+
 - Monitor Redis connectivity
 - Check rate limiting configuration
 - Review audit log batching
 - Optimize database queries
 
 ### Debug Mode
+
 ```env
 NODE_ENV=development
 ENABLE_DEBUG=true

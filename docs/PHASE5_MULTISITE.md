@@ -1,5 +1,3 @@
-
-
 # Phase 5: Multi-Site Automation
 
 This documentation covers the enhanced multi-site automation system that allows running content pipelines across multiple WordPress sites with individual configurations and sophisticated orchestration options.
@@ -9,7 +7,7 @@ This documentation covers the enhanced multi-site automation system that allows 
 Phase 5 extends the automation system with:
 
 - ✅ **Per-Site Configuration**: Individual settings for each site via environment variables
-- ✅ **Multiple Execution Modes**: Parallel, sequential, or matrix job execution  
+- ✅ **Multiple Execution Modes**: Parallel, sequential, or matrix job execution
 - ✅ **Enhanced Site Detection**: Auto-discovery of sites from environment variables
 - ✅ **Advanced Topic Management**: Site-specific topic counts with range support
 - ✅ **Flexible Prompt Strategies**: Per-site content generation strategies
@@ -39,12 +37,14 @@ Phase 5 extends the automation system with:
 Sites can be configured through multiple methods:
 
 #### Method 1: Explicit Site List
+
 ```bash
 # Environment variable with comma-separated sites
 ORION_SITES=travel,finance,health,technology
 ```
 
 #### Method 2: Auto-Detection
+
 Sites are automatically detected from environment variables with site-specific suffixes:
 
 ```bash
@@ -59,10 +59,11 @@ TOPIC_COUNT__HEALTH=7
 Each site can have individual configuration using the pattern `VARIABLE__SITE_KEY`:
 
 #### WordPress Configuration
+
 ```bash
 # Default WordPress credentials (used by all sites if no site-specific ones)
 WP_BASE_URL=https://default.example.com
-WP_USERNAME=default_admin  
+WP_USERNAME=default_admin
 WP_APP_PASSWORD=default_secret
 
 # Travel site specific
@@ -70,13 +71,14 @@ WP_URL__TRAVEL=https://travel.example.com
 WP_USERNAME__TRAVEL=travel_admin
 WP_APP_PASSWORD__TRAVEL=travel_secret
 
-# Finance site specific  
+# Finance site specific
 WP_URL__FINANCE=https://finance.example.com
 WP_USERNAME__FINANCE=finance_admin
 WP_APP_PASSWORD__FINANCE=finance_secret
 ```
 
 #### Content Generation Configuration
+
 ```bash
 # Default settings
 TOPIC_COUNT=5
@@ -99,13 +101,15 @@ ENRICH_PROMPT_STRATEGY__HEALTH=default         # Use default strategy
 In your GitHub repository settings, add secrets following the naming patterns:
 
 #### Core Secrets
+
 - `CONSOLE_BASE_URL` - Orion API base URL
 - `CONSOLE_API_TOKEN` - Orion API token
 - `ORION_SITES` - Comma-separated list of sites (optional if using auto-detection)
 
 #### Default WordPress Credentials
+
 - `WP_BASE_URL` - Default WordPress URL
-- `WP_USERNAME` - Default WordPress username  
+- `WP_USERNAME` - Default WordPress username
 - `WP_APP_PASSWORD` - Default WordPress app password
 
 #### Site-Specific Secrets
@@ -113,13 +117,15 @@ In your GitHub repository settings, add secrets following the naming patterns:
 For each site, add secrets with the pattern `VARIABLE__SITE_NAME`:
 
 **Travel Site Example:**
+
 - `WP_URL__TRAVEL`
-- `WP_USERNAME__TRAVEL` 
+- `WP_USERNAME__TRAVEL`
 - `WP_APP_PASSWORD__TRAVEL`
 - `TOPIC_COUNT__TRAVEL`
 - `ENRICH_PROMPT_STRATEGY__TRAVEL`
 
 **Finance Site Example:**
+
 - `WP_URL__FINANCE`
 - `WP_USERNAME__FINANCE`
 - `WP_APP_PASSWORD__FINANCE`
@@ -133,19 +139,25 @@ For each site, add secrets with the pattern `VARIABLE__SITE_NAME`:
 The workflow supports three execution modes:
 
 #### 1. Parallel Mode (Default)
+
 Runs all sites within a single job using ThreadPoolExecutor:
+
 - Faster execution
 - Shared resource limits
 - Combined logging
 
-#### 2. Sequential Mode  
+#### 2. Sequential Mode
+
 Runs sites one after another within a single job:
+
 - Reliable execution
 - Lower resource usage
 - Easy debugging
 
 #### 3. Matrix Mode
+
 Runs each site as a separate GitHub Actions job:
+
 - Maximum parallelization
 - Independent resource limits
 - Isolated failure handling
@@ -153,13 +165,16 @@ Runs each site as a separate GitHub Actions job:
 ### Workflow Usage
 
 #### Manual Trigger
+
 Go to Actions → "Orion Multi-Site Automation" → "Run workflow":
+
 - **Sites**: Comma-separated list (leave empty for auto-detection)
-- **Execution Mode**: `parallel`, `sequential`, or `matrix`  
+- **Execution Mode**: `parallel`, `sequential`, or `matrix`
 - **Topic Count Override**: Override all site configurations
 - **Dry Run**: Test mode without WordPress publishing
 
 #### Scheduled Execution
+
 The workflow runs automatically twice daily (6 AM and 4 PM UTC) in parallel mode.
 
 ## Command Line Usage
@@ -176,7 +191,7 @@ python -m orion.automate.run_pipeline_multisite --sites travel,finance --sequent
 # Override topic count for all sites
 python -m orion.automate.run_pipeline_multisite --topics 10
 
-# Dry-run mode (no WordPress publishing)  
+# Dry-run mode (no WordPress publishing)
 python -m orion.automate.run_pipeline_multisite --publish 0
 
 # Control parallel execution
@@ -244,17 +259,20 @@ python -m orion.automate.run_pipeline --site-key newsite --topics 1 --dry-run-wp
 The system includes comprehensive validation:
 
 ### WordPress Configuration
+
 - ✅ Valid HTTP/HTTPS URLs
 - ✅ Required credentials present
 - ⚠ Missing credentials → Dry-run mode
 
 ### Topic Count Validation
+
 - ✅ Positive integers (1-20)
 - ✅ Valid ranges (e.g., "3-7", "5-10")
 - ❌ Invalid formats → Default to 5
 - ⚠ High counts (>20) → Warning about rate limits
 
-### Prompt Strategy Validation  
+### Prompt Strategy Validation
+
 - ✅ "default", "random" strategies
 - ✅ Custom `.md` filenames
 - ❌ Invalid strategies → Error
@@ -264,7 +282,7 @@ The system includes comprehensive validation:
 ```
 Validating configuration for 3 sites: ['finance', 'health', 'travel']
   finance: ✓ Configured, topics=5, strategy=random
-  health: ⚠ Dry-run only, topics=3-7, strategy=default  
+  health: ⚠ Dry-run only, topics=3-7, strategy=default
   travel: ✓ Configured, topics=10, strategy=listicle.md
 
 Summary: 2/3 sites fully configured for WordPress publishing
@@ -275,11 +293,12 @@ Summary: 2/3 sites fully configured for WordPress publishing
 ### Multi-Site Logs
 
 Global execution logs are stored in:
+
 ```
 automation-logs/
 ├── multisite/           # Global multi-site logs
 │   └── 2024-08-28.jsonl
-├── travel/              # Site-specific logs  
+├── travel/              # Site-specific logs
 │   └── 2024-08-28.jsonl
 ├── finance/
 │   └── 2024-08-28.jsonl
@@ -290,10 +309,11 @@ automation-logs/
 ### Log Structure
 
 #### Global Events
+
 ```json
 {
   "ts": "2024-08-28T14:30:00Z",
-  "event_type": "multisite_start", 
+  "event_type": "multisite_start",
   "ok": true,
   "sites": ["travel", "finance", "health"],
   "parallel": true,
@@ -301,7 +321,8 @@ automation-logs/
 }
 ```
 
-#### Site Events  
+#### Site Events
+
 ```json
 {
   "ts": "2024-08-28T14:32:15Z",
@@ -318,6 +339,7 @@ automation-logs/
 ### GitHub Actions Artifacts
 
 Each workflow run creates artifacts:
+
 - `automation-logs-unified-{run_id}` (parallel/sequential mode)
 - `automation-logs-{site}-{run_id}` (matrix mode)
 - Retained for 30 days
@@ -330,7 +352,7 @@ Use ranges to add natural variation:
 
 ```bash
 TOPIC_COUNT__TRAVEL=3-7    # Random 3-7 topics per run
-TOPIC_COUNT__FINANCE=5-12  # Random 5-12 topics per run  
+TOPIC_COUNT__FINANCE=5-12  # Random 5-12 topics per run
 TOPIC_COUNT__HEALTH=2      # Always exactly 2 topics
 ```
 
@@ -349,7 +371,7 @@ Each site can use different content generation strategies:
 
 ```bash
 ENRICH_PROMPT_STRATEGY__TRAVEL=listicle.md    # Travel listicles
-ENRICH_PROMPT_STRATEGY__FINANCE=analysis.md   # Financial analysis  
+ENRICH_PROMPT_STRATEGY__FINANCE=analysis.md   # Financial analysis
 ENRICH_PROMPT_STRATEGY__HEALTH=how-to.md      # Health guides
 ENRICH_PROMPT_STRATEGY__TECH=random           # Random prompts
 ```
@@ -359,9 +381,11 @@ ENRICH_PROMPT_STRATEGY__TECH=random           # Random prompts
 ### Common Issues
 
 #### "No sites configured" Error
+
 **Cause**: No `ORION_SITES` variable and no site-specific environment variables detected.
 
-**Solution**: 
+**Solution**:
+
 ```bash
 # Either set explicit list
 ORION_SITES=mysite
@@ -371,18 +395,22 @@ WP_URL__MYSITE=https://example.com
 ```
 
 #### "Configuration issues" Warnings
+
 **Cause**: Invalid URLs, topic counts, or prompt strategies.
 
 **Solution**: Validate configuration:
+
 ```bash
 python -m orion.automate.multisite --site-key problematic-site
 ```
 
 #### Matrix Job Failures
+
 **Cause**: GitHub secret naming doesn't match site keys.
 
 **Solution**: Ensure secret names match pattern:
-- Site: `my-travel-blog` 
+
+- Site: `my-travel-blog`
 - Secret: `WP_URL__MY_TRAVEL_BLOG` (hyphens → underscores, uppercase)
 
 ### Debug Commands
@@ -391,7 +419,7 @@ python -m orion.automate.multisite --site-key problematic-site
 # Check site detection
 python -m orion.automate.multisite --list-sites
 
-# Validate all configurations  
+# Validate all configurations
 python -m orion.automate.multisite --validate-all
 
 # Test single site
@@ -408,7 +436,7 @@ python -m orion.automate.multisite --matrix
 tail -f automation-logs/multisite/2024-08-28.jsonl
 
 # View site-specific logs
-tail -f automation-logs/travel/2024-08-28.jsonl  
+tail -f automation-logs/travel/2024-08-28.jsonl
 
 # Parse JSON logs
 cat automation-logs/multisite/2024-08-28.jsonl | jq '.event_type'
@@ -419,6 +447,7 @@ cat automation-logs/multisite/2024-08-28.jsonl | jq '.event_type'
 Phase 5 is fully backward compatible. Existing single-site configurations continue to work:
 
 ### Existing Setup (Still Works)
+
 ```bash
 ORION_SITES=mysite
 WP_BASE_URL=https://example.com
@@ -427,7 +456,8 @@ WP_APP_PASSWORD=secret
 TOPIC_COUNT=5
 ```
 
-### Enhanced Setup (New in Phase 5)  
+### Enhanced Setup (New in Phase 5)
+
 ```bash
 # Auto-detected from site-specific variables
 WP_URL__TRAVEL=https://travel.example.com
@@ -436,7 +466,7 @@ WP_APP_PASSWORD__TRAVEL=travel_secret
 TOPIC_COUNT__TRAVEL=3-7
 ENRICH_PROMPT_STRATEGY__TRAVEL=listicle.md
 
-WP_URL__FINANCE=https://finance.example.com  
+WP_URL__FINANCE=https://finance.example.com
 WP_USERNAME__FINANCE=finance_admin
 WP_APP_PASSWORD__FINANCE=finance_secret
 TOPIC_COUNT__FINANCE=10
@@ -453,9 +483,8 @@ Phase 5 transforms the Orion automation system into a sophisticated multi-site c
 
 - **Flexible Site Management**: Auto-detection and explicit configuration
 - **Scalable Execution**: Parallel, sequential, and matrix job modes
-- **Individual Site Control**: Per-site topics, strategies, and credentials  
+- **Individual Site Control**: Per-site topics, strategies, and credentials
 - **Production-Ready Monitoring**: Comprehensive logging and error handling
 - **Easy GitHub Integration**: Matrix jobs and manual workflow triggers
 
 This system can efficiently manage content generation across dozens of sites with minimal configuration overhead.
-

@@ -1,46 +1,50 @@
+"use client";
 
-'use client'
-
-import React, { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, Search, Globe, FileText, Info } from 'lucide-react'
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Search, Globe, FileText, Info } from "lucide-react";
 
 interface GSCStepProps {
-  onComplete: (stepId: string, data?: any) => void
-  loading: boolean
-  status: any
+  onComplete: (stepId: string, data?: any) => void;
+  loading: boolean;
+  status: any;
 }
 
 export function GSCStep({ onComplete, loading, status }: GSCStepProps) {
-  const [useDummy, setUseDummy] = useState(true)
+  const [useDummy, setUseDummy] = useState(true);
   const [formData, setFormData] = useState({
-    siteUrl: '',
-    serviceAccountJson: ''
-  })
+    siteUrl: "",
+    serviceAccountJson: "",
+  });
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    const data = {
-      credentials: useDummy ? { useDummy: true } : formData
-    }
-    
-    onComplete('gsc', data)
-  }
+    e.preventDefault();
 
-  const isFormValid = useDummy || (
-    formData.siteUrl && formData.serviceAccountJson
-  )
+    const data = {
+      credentials: useDummy ? { useDummy: true } : formData,
+    };
+
+    onComplete("gsc", data);
+  };
+
+  const isFormValid =
+    useDummy || (formData.siteUrl && formData.serviceAccountJson);
 
   return (
     <div className="space-y-6">
@@ -48,8 +52,8 @@ export function GSCStep({ onComplete, loading, status }: GSCStepProps) {
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Google Search Console integration allows you to track SEO performance and search analytics.
-          For the MVP demo, we'll use simulated data.
+          Google Search Console integration allows you to track SEO performance
+          and search analytics. For the MVP demo, we'll use simulated data.
         </AlertDescription>
       </Alert>
 
@@ -88,16 +92,20 @@ export function GSCStep({ onComplete, loading, status }: GSCStepProps) {
                 type="url"
                 placeholder="https://yoursite.com"
                 value={formData.siteUrl}
-                onChange={(e) => handleInputChange('siteUrl', e.target.value)}
+                onChange={(e) => handleInputChange("siteUrl", e.target.value)}
                 required={!useDummy}
               />
               <p className="text-xs text-muted-foreground">
-                The exact URL as it appears in your Google Search Console property
+                The exact URL as it appears in your Google Search Console
+                property
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="serviceAccount" className="flex items-center space-x-2">
+              <Label
+                htmlFor="serviceAccount"
+                className="flex items-center space-x-2"
+              >
                 <FileText className="h-4 w-4" />
                 <span>Service Account JSON</span>
               </Label>
@@ -105,22 +113,29 @@ export function GSCStep({ onComplete, loading, status }: GSCStepProps) {
                 id="serviceAccount"
                 placeholder="Paste your service account JSON here..."
                 value={formData.serviceAccountJson}
-                onChange={(e) => handleInputChange('serviceAccountJson', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("serviceAccountJson", e.target.value)
+                }
                 required={!useDummy}
                 rows={8}
                 className="font-mono text-xs"
               />
               <p className="text-xs text-muted-foreground">
-                Download this from your Google Cloud Console → IAM & Admin → Service Accounts
+                Download this from your Google Cloud Console → IAM & Admin →
+                Service Accounts
               </p>
             </div>
 
             <Alert>
               <AlertDescription>
-                <strong>Setup Instructions:</strong><br />
-                1. Create a project in Google Cloud Console<br />
-                2. Enable the Google Search Console API<br />
-                3. Create a service account and download the JSON key<br />
+                <strong>Setup Instructions:</strong>
+                <br />
+                1. Create a project in Google Cloud Console
+                <br />
+                2. Enable the Google Search Console API
+                <br />
+                3. Create a service account and download the JSON key
+                <br />
                 4. Add the service account email as a user in your GSC property
               </AlertDescription>
             </Alert>
@@ -135,15 +150,22 @@ export function GSCStep({ onComplete, loading, status }: GSCStepProps) {
                 <span>Demo Mode</span>
               </CardTitle>
               <CardDescription className="text-green-700">
-                Using dummy Google Search Console credentials for demonstration purposes.
-                This will simulate GSC data and analytics.
+                Using dummy Google Search Console credentials for demonstration
+                purposes. This will simulate GSC data and analytics.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-sm text-green-600 space-y-1">
-                <p><strong>Site URL:</strong> https://example-site.com</p>
-                <p><strong>Service Account:</strong> gsc-service@example-project.iam.gserviceaccount.com</p>
-                <p><strong>Status:</strong> Ready to connect</p>
+                <p>
+                  <strong>Site URL:</strong> https://example-site.com
+                </p>
+                <p>
+                  <strong>Service Account:</strong>{" "}
+                  gsc-service@example-project.iam.gserviceaccount.com
+                </p>
+                <p>
+                  <strong>Status:</strong> Ready to connect
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -161,11 +183,11 @@ export function GSCStep({ onComplete, loading, status }: GSCStepProps) {
                 Connecting...
               </>
             ) : (
-              'Connect GSC'
+              "Connect GSC"
             )}
           </Button>
         </div>
       </form>
     </div>
-  )
+  );
 }

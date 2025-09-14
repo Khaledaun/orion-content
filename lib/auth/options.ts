@@ -10,7 +10,7 @@ export const authOptions: NextAuthOptions = {
       name: "Code",
       credentials: {
         email: { label: "Email", type: "email" },
-        code:  { label: "One-time code", type: "text" },
+        code: { label: "One-time code", type: "text" },
       },
       async authorize(creds) {
         // Phase 10: dummy auth — any email/code works
@@ -25,7 +25,8 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      if (session.user) (session.user as any).role = (token as any).role ?? "editor";
+      if (session.user)
+        (session.user as any).role = (token as any).role ?? "editor";
       return session;
     },
   },

@@ -1,4 +1,3 @@
-
 {
   "OBSERVABILITY_REPORT": {
     "pipeline_id": "pipe-phase7-test-20250829-124600",
@@ -72,7 +71,7 @@
     "cost_breakdown": {
       "research": 0.012,
       "generation": 0.0585,
-      "quality_check": 0.000,
+      "quality_check": 0.0,
       "i18n_validation": 0.0015,
       "infrastructure": 0.015
     },
@@ -87,7 +86,7 @@
   "PII_REDACTION_APPLIED": true,
   "SENSITIVE_DATA_FILTERED": [
     "Bearer tokens",
-    "API keys", 
+    "API keys",
     "Email addresses",
     "Personal identifiers"
   ]

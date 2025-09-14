@@ -27,7 +27,7 @@
     },
     {
       "name": "Bearer Token Validation",
-      "status": "PASSED", 
+      "status": "PASSED",
       "duration": 156,
       "details": "Bearer token authentication with database integration working correctly"
     },
@@ -44,7 +44,7 @@
       "details": "Content creation pipeline from topics to drafts working with proper metadata handling"
     },
     {
-      "name": "QA to Publish Pipeline", 
+      "name": "QA to Publish Pipeline",
       "status": "PASSED",
       "duration": 387,
       "details": "Quality assurance validation and publishing workflow operational with stubbed integrations"
@@ -70,14 +70,14 @@
   ],
   "metrics": {
     "databaseConnectivity": "HEALTHY",
-    "redactionStatus": "CLEAN", 
+    "redactionStatus": "CLEAN",
     "compilationStatus": "WARNINGS_ONLY",
     "buildStatus": "SUCCESS",
     "securityValidation": "PASSED"
   },
   "features": {
     "authentication": "✅ Enhanced RBAC with admin/editor roles",
-    "onboarding": "✅ 4-step wizard with progress tracking", 
+    "onboarding": "✅ 4-step wizard with progress tracking",
     "contentPipeline": "✅ Topic → Draft → QA → Approve → Publish",
     "qaValidation": "✅ Rulebook validation with structured reporting",
     "integrations": "✅ Encrypted credential storage with dummy support",

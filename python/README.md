@@ -1,4 +1,3 @@
-
 # Orion Content Management - Python Pipelines
 
 This Python package provides command-line tools for managing content topics and WordPress publishing as part of the Orion Content Management System.
@@ -36,16 +35,19 @@ export WP_APP_PASSWORD="your-wp-app-password"
 ### 3. Basic Usage
 
 Generate topics for the current week:
+
 ```bash
 python -m orion.gather_trends --site-key my-site --count 30
 ```
 
 Create a WordPress draft:
+
 ```bash
 python -m orion.publish.publisher_wp --title "Hello World" --content "Test post content"
 ```
 
 Audit recent drafts:
+
 ```bash
 python -m orion.audit.audit_wp --limit 10
 ```
@@ -67,6 +69,7 @@ Options:
 ```
 
 **Example:**
+
 ```bash
 python -m orion.gather_trends --site-key tech-blog --count 25 --dry-run
 ```
@@ -80,12 +83,13 @@ python -m orion.publish.publisher_wp --title TITLE --content CONTENT [options]
 
 Options:
   --title TITLE         Post title (required)
-  --content CONTENT     Post content, HTML allowed (required)  
+  --content CONTENT     Post content, HTML allowed (required)
   --status STATUS       Post status: draft|publish (default: draft)
   --categories CATS     Comma-separated category names
 ```
 
 **Examples:**
+
 ```bash
 # Create a draft (dry-run if WP not configured)
 python -m orion.publish.publisher_wp \
@@ -113,6 +117,7 @@ Options:
 ```
 
 **Example:**
+
 ```bash
 python -m orion.audit.audit_wp --limit 20 --status any
 ```
@@ -152,7 +157,7 @@ make test
 - `orion/config.py` - Configuration and session management
 - `orion/api_client.py` - Orion API client with Bearer authentication
 - `orion/gather_trends.py` - Topic generation CLI
-- `orion/publish/publisher_wp.py` - WordPress publishing CLI  
+- `orion/publish/publisher_wp.py` - WordPress publishing CLI
 - `orion/audit/audit_wp.py` - WordPress audit CLI
 - `tests/` - Pytest test suite
 
@@ -170,7 +175,7 @@ The Python tools integrate with these Orion API endpoints:
 
 - `GET /api/health` - Health check
 - `GET /api/sites` - List sites and categories
-- `POST /api/weeks` - Create/get current week  
+- `POST /api/weeks` - Create/get current week
 - `POST /api/weeks/{id}/topics` - Bulk create topics
 - `POST /api/jobrun` - Record job runs (optional)
 

@@ -1,27 +1,28 @@
-import { encryptJson } from '@/lib/crypto';
-export const dynamic = 'force-dynamic';
+import { encryptJson } from "@/lib/crypto";
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
-import { requireApiAuth } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { requireApiAuth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 // import { encryptJson } from '@/lib/crypto' // Disabled due to missing module
 
 const secretSchema = z.object({
   kind: z.string().min(1),
   data: z.record(z.any()),
-})
+});
 
 async function handler(req: NextRequest) {
-  if (req.method === 'POST') {
+  if (req.method === "POST") {
     try {
-      const body = await req.json()
-      const { kind, data } = secretSchema.parse(body)
-      
-      const encryptionKey = process.env.ENCRYPTION_KEY || 'fallback-key-for-development';
-      const encrypted = await encryptJson(data, encryptionKey)
-      
+      const body = await req.json();
+      const { kind, data } = secretSchema.parse(body);
+
+      const encryptionKey =
+        process.env.ENCRYPTION_KEY || "fallback-key-for-development";
+      const encrypted = await encryptJson(data, encryptionKey);
+
       await prisma.connection.upsert({
         where: { kind },
         create: {
@@ -31,30 +32,33 @@ async function handler(req: NextRequest) {
         update: {
           dataEnc: encrypted,
         },
-      })
-      
-      return NextResponse.json({ success: true })
+      });
+
+      return NextResponse.json({ success: true });
     } catch (error) {
-      console.error('Error saving secret:', error)
-      return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+      console.error("Error saving secret:", error);
+      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
   }
-  
-  if (req.method === 'GET') {
+
+  if (req.method === "GET") {
     try {
       const connections = await prisma.connection.findMany({
         select: { kind: true, createdAt: true, updatedAt: true },
-      })
-      
-      return NextResponse.json({ connections })
+      });
+
+      return NextResponse.json({ connections });
     } catch (error) {
-      console.error('Error fetching connections:', error)
-      return NextResponse.json({ error: 'Failed to fetch connections' }, { status: 500 })
+      console.error("Error fetching connections:", error);
+      return NextResponse.json(
+        { error: "Failed to fetch connections" },
+        { status: 500 },
+      );
     }
   }
-  
-  return NextResponse.json({ error: 'Method not allowed' }, { status: 405 })
+
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
-export const GET = requireApiAuth(handler)
-export const POST = requireApiAuth(handler)
+export const GET = requireApiAuth(handler);
+export const POST = requireApiAuth(handler);

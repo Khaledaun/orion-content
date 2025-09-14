@@ -1,4 +1,3 @@
-
 import { Redis } from "@upstash/redis";
 import { env } from "@/lib/env/validation";
 
@@ -41,7 +40,9 @@ export class EdgeRateLimiter {
    */
   async checkRateLimit(options: RateLimitOptions): Promise<RateLimitResult> {
     const { identifier, config } = options;
-    const key = config.keyGenerator ? config.keyGenerator(identifier) : `rate_limit:${identifier}`;
+    const key = config.keyGenerator
+      ? config.keyGenerator(identifier)
+      : `rate_limit:${identifier}`;
     const now = Date.now();
     const windowStart = now - config.windowMs;
 
@@ -52,13 +53,13 @@ export class EdgeRateLimiter {
         return this.checkMemoryRateLimit(key, config, now, windowStart);
       }
     } catch (error) {
-      console.error('Rate limit check failed:', error);
+      console.error("Rate limit check failed:", error);
       // Fail open - allow request if rate limiting fails
       return {
         allowed: true,
         remaining: config.maxRequests - 1,
         resetTime: new Date(now + config.windowMs),
-        totalHits: 1
+        totalHits: 1,
       };
     }
   }
@@ -70,25 +71,25 @@ export class EdgeRateLimiter {
     key: string,
     config: RateLimitConfig,
     now: number,
-    windowStart: number
+    windowStart: number,
   ): Promise<RateLimitResult> {
     const pipeline = this.redis!.pipeline();
-    
+
     // Remove expired entries
     pipeline.zremrangebyscore(key, 0, windowStart);
-    
+
     // Count current requests in window
     pipeline.zcard(key);
-    
+
     // Add current request
     pipeline.zadd(key, { score: now, member: `${now}-${Math.random()}` });
-    
+
     // Set expiration
     pipeline.expire(key, Math.ceil(config.windowMs / 1000));
-    
+
     const results = await pipeline.exec();
     const currentCount = (results[1] as number) + 1; // +1 for the request we just added
-    
+
     const allowed = currentCount <= config.maxRequests;
     const remaining = Math.max(0, config.maxRequests - currentCount);
     const resetTime = new Date(now + config.windowMs);
@@ -97,7 +98,7 @@ export class EdgeRateLimiter {
       allowed,
       remaining,
       resetTime,
-      totalHits: currentCount
+      totalHits: currentCount,
     };
   }
 
@@ -108,23 +109,23 @@ export class EdgeRateLimiter {
     key: string,
     config: RateLimitConfig,
     now: number,
-    windowStart: number
+    windowStart: number,
   ): RateLimitResult {
     const entry = this.memoryStore.get(key);
-    
+
     if (!entry || entry.resetTime <= now) {
       // New window
       const newEntry = {
         count: 1,
-        resetTime: now + config.windowMs
+        resetTime: now + config.windowMs,
       };
       this.memoryStore.set(key, newEntry);
-      
+
       return {
         allowed: true,
         remaining: config.maxRequests - 1,
         resetTime: new Date(newEntry.resetTime),
-        totalHits: 1
+        totalHits: 1,
       };
     }
 
@@ -137,7 +138,7 @@ export class EdgeRateLimiter {
       allowed,
       remaining,
       resetTime: new Date(entry.resetTime),
-      totalHits: entry.count
+      totalHits: entry.count,
     };
   }
 
@@ -172,48 +173,48 @@ export const RATE_LIMIT_CONFIGS = {
   // API endpoints
   API_GENERAL: {
     windowMs: 15 * 60 * 1000, // 15 minutes
-    maxRequests: 100
+    maxRequests: 100,
   },
   API_STRICT: {
     windowMs: 15 * 60 * 1000, // 15 minutes
-    maxRequests: 20
+    maxRequests: 20,
   },
-  
+
   // Authentication
   AUTH_LOGIN: {
     windowMs: 15 * 60 * 1000, // 15 minutes
-    maxRequests: 5
+    maxRequests: 5,
   },
   AUTH_REGISTER: {
     windowMs: 60 * 60 * 1000, // 1 hour
-    maxRequests: 3
+    maxRequests: 3,
   },
   AUTH_PASSWORD_RESET: {
     windowMs: 60 * 60 * 1000, // 1 hour
-    maxRequests: 3
+    maxRequests: 3,
   },
-  
+
   // 2FA
   TWO_FACTOR_VERIFY: {
     windowMs: 5 * 60 * 1000, // 5 minutes
-    maxRequests: 10
+    maxRequests: 10,
   },
   TWO_FACTOR_SETUP: {
     windowMs: 60 * 60 * 1000, // 1 hour
-    maxRequests: 5
+    maxRequests: 5,
   },
-  
+
   // File uploads
   FILE_UPLOAD: {
     windowMs: 60 * 60 * 1000, // 1 hour
-    maxRequests: 50
+    maxRequests: 50,
   },
-  
+
   // Search
   SEARCH: {
     windowMs: 60 * 1000, // 1 minute
-    maxRequests: 30
-  }
+    maxRequests: 30,
+  },
 } as const;
 
 // Singleton instance
@@ -222,16 +223,17 @@ export const rateLimiter = new EdgeRateLimiter();
 // Utility functions
 export function getClientIdentifier(request: Request): string {
   // Try to get IP from various headers
-  const forwardedFor = request.headers.get('x-forwarded-for');
-  const realIp = request.headers.get('x-real-ip');
-  const cfConnectingIp = request.headers.get('cf-connecting-ip');
-  
-  const ip = forwardedFor?.split(',')[0] || realIp || cfConnectingIp || 'unknown';
-  
+  const forwardedFor = request.headers.get("x-forwarded-for");
+  const realIp = request.headers.get("x-real-ip");
+  const cfConnectingIp = request.headers.get("cf-connecting-ip");
+
+  const ip =
+    forwardedFor?.split(",")[0] || realIp || cfConnectingIp || "unknown";
+
   // Include user agent for additional uniqueness
-  const userAgent = request.headers.get('user-agent') || 'unknown';
+  const userAgent = request.headers.get("user-agent") || "unknown";
   const userAgentHash = hashString(userAgent);
-  
+
   return `${ip}:${userAgentHash}`;
 }
 
@@ -249,34 +251,39 @@ function hashString(str: string): string {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32-bit integer
   }
   return Math.abs(hash).toString(36);
 }
 
 // Rate limit response helpers
-export function createRateLimitResponse(result: RateLimitResult, config: RateLimitConfig): Response {
+export function createRateLimitResponse(
+  result: RateLimitResult,
+  config: RateLimitConfig,
+): Response {
   const headers = new Headers({
-    'X-RateLimit-Limit': config.maxRequests.toString(),
-    'X-RateLimit-Remaining': result.remaining.toString(),
-    'X-RateLimit-Reset': result.resetTime.getTime().toString(),
-    'Retry-After': Math.ceil((result.resetTime.getTime() - Date.now()) / 1000).toString()
+    "X-RateLimit-Limit": config.maxRequests.toString(),
+    "X-RateLimit-Remaining": result.remaining.toString(),
+    "X-RateLimit-Reset": result.resetTime.getTime().toString(),
+    "Retry-After": Math.ceil(
+      (result.resetTime.getTime() - Date.now()) / 1000,
+    ).toString(),
   });
 
   return new Response(
     JSON.stringify({
-      error: 'Too Many Requests',
-      message: 'Rate limit exceeded. Please try again later.',
-      retryAfter: result.resetTime.toISOString()
+      error: "Too Many Requests",
+      message: "Rate limit exceeded. Please try again later.",
+      retryAfter: result.resetTime.toISOString(),
     }),
     {
       status: 429,
       headers: {
-        'Content-Type': 'application/json',
-        ...Object.fromEntries(headers.entries())
-      }
-    }
+        "Content-Type": "application/json",
+        ...Object.fromEntries(headers.entries()),
+      },
+    },
   );
 }
 
@@ -284,19 +291,19 @@ export function createRateLimitResponse(result: RateLimitResult, config: RateLim
 export async function applyRateLimit(
   request: Request,
   config: RateLimitConfig,
-  identifier?: string
+  identifier?: string,
 ): Promise<{ allowed: boolean; response?: Response }> {
   const clientId = identifier || getClientIdentifier(request);
-  
+
   const result = await rateLimiter.checkRateLimit({
     identifier: clientId,
-    config
+    config,
   });
 
   if (!result.allowed) {
     return {
       allowed: false,
-      response: createRateLimitResponse(result, config)
+      response: createRateLimitResponse(result, config),
     };
   }
 
@@ -317,25 +324,25 @@ export class BruteForceProtection {
     const config: RateLimitConfig = {
       windowMs: this.ATTEMPT_WINDOW,
       maxRequests: this.MAX_ATTEMPTS,
-      keyGenerator: (id) => `brute_force:${id}`
+      keyGenerator: (id) => `brute_force:${id}`,
     };
 
     const result = await rateLimiter.checkRateLimit({
       identifier,
-      config
+      config,
     });
 
     if (!result.allowed) {
       return {
         allowed: false,
         attemptsRemaining: 0,
-        lockoutUntil: new Date(Date.now() + this.LOCKOUT_DURATION)
+        lockoutUntil: new Date(Date.now() + this.LOCKOUT_DURATION),
       };
     }
 
     return {
       allowed: true,
-      attemptsRemaining: result.remaining
+      attemptsRemaining: result.remaining,
     };
   }
 

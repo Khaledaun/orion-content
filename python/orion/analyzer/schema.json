@@ -33,42 +33,54 @@
       "description": "Mode-specific analysis results",
       "oneOf": [
         {
-          "if": {"properties": {"mode": {"const": "my-site"}}},
+          "if": { "properties": { "mode": { "const": "my-site" } } },
           "then": {
-            "required": ["seo_audit", "site_blueprint", "linking_opportunities"],
+            "required": [
+              "seo_audit",
+              "site_blueprint",
+              "linking_opportunities"
+            ],
             "properties": {
-              "seo_audit": {"type": "object"},
-              "site_blueprint": {"type": "object"},
-              "linking_opportunities": {"type": "object"},
-              "content_audit": {"type": "object"},
-              "performance": {"type": "object"},
-              "llm_insights": {"type": "object"}
+              "seo_audit": { "type": "object" },
+              "site_blueprint": { "type": "object" },
+              "linking_opportunities": { "type": "object" },
+              "content_audit": { "type": "object" },
+              "performance": { "type": "object" },
+              "llm_insights": { "type": "object" }
             }
           }
         },
         {
-          "if": {"properties": {"mode": {"const": "competitor"}}},
+          "if": { "properties": { "mode": { "const": "competitor" } } },
           "then": {
-            "required": ["content_strategy", "keyword_strategy", "strategic_opportunities"],
+            "required": [
+              "content_strategy",
+              "keyword_strategy",
+              "strategic_opportunities"
+            ],
             "properties": {
-              "content_strategy": {"type": "object"},
-              "keyword_strategy": {"type": "object"},
-              "strategic_opportunities": {"type": "object"},
-              "competitive_positioning": {"type": "object"},
-              "llm_insights": {"type": "object"}
+              "content_strategy": { "type": "object" },
+              "keyword_strategy": { "type": "object" },
+              "strategic_opportunities": { "type": "object" },
+              "competitive_positioning": { "type": "object" },
+              "llm_insights": { "type": "object" }
             }
           }
         },
         {
-          "if": {"properties": {"mode": {"const": "prospect"}}},
+          "if": { "properties": { "mode": { "const": "prospect" } } },
           "then": {
-            "required": ["missed_opportunities_audit", "proposal", "business_impact_analysis"],
+            "required": [
+              "missed_opportunities_audit",
+              "proposal",
+              "business_impact_analysis"
+            ],
             "properties": {
-              "missed_opportunities_audit": {"type": "object"},
-              "proposal": {"type": "object"},
-              "business_impact_analysis": {"type": "object"},
-              "authority_metrics": {"type": "object"},
-              "llm_insights": {"type": "object"}
+              "missed_opportunities_audit": { "type": "object" },
+              "proposal": { "type": "object" },
+              "business_impact_analysis": { "type": "object" },
+              "authority_metrics": { "type": "object" },
+              "llm_insights": { "type": "object" }
             }
           }
         }
@@ -89,12 +101,7 @@
     },
     "metadata": {
       "type": "object",
-      "required": [
-        "model",
-        "tokens_used",
-        "latency_ms",
-        "cost_usd"
-      ],
+      "required": ["model", "tokens_used", "latency_ms", "cost_usd"],
       "properties": {
         "model": {
           "type": "string",

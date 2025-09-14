@@ -1,11 +1,13 @@
 # Orion Content Platform - Phase 1 Validation Guide
 
 ## Overview
+
 This guide provides comprehensive validation procedures for testing all Phase 1 features across the three development streams: Core Platform, Security & Monitoring, and Quality Framework.
 
 ## Health Check Endpoints
 
 ### Primary Health Check
+
 **Endpoint**: `GET /api/health`
 **Purpose**: Overall system health verification
 
@@ -14,6 +16,7 @@ curl http://localhost:3000/api/health
 ```
 
 **Expected Response**:
+
 ```json
 {
   "status": "healthy",
@@ -31,6 +34,7 @@ curl http://localhost:3000/api/health
 ```
 
 ### Database Connection Validation
+
 **Endpoint**: `GET /api/ops/status`
 **Purpose**: Database and core services status
 
@@ -39,6 +43,7 @@ curl http://localhost:3000/api/ops/status
 ```
 
 **Expected Response**:
+
 ```json
 {
   "database": {
@@ -63,6 +68,7 @@ curl http://localhost:3000/api/ops/status
 ```
 
 ### Security Monitoring Endpoints
+
 **Endpoint**: `GET /api/ops/metrics`
 **Purpose**: Security and performance metrics
 
@@ -71,6 +77,7 @@ curl -H "Authorization: Bearer <admin-token>" http://localhost:3000/api/ops/metr
 ```
 
 **Expected Response**:
+
 ```json
 {
   "security": {
@@ -92,6 +99,7 @@ curl -H "Authorization: Bearer <admin-token>" http://localhost:3000/api/ops/metr
 ```
 
 ### Quality Framework Validation
+
 **Endpoint**: `GET /api/ops/controls`
 **Purpose**: Quality framework status and metrics
 
@@ -100,6 +108,7 @@ curl -H "Authorization: Bearer <admin-token>" http://localhost:3000/api/ops/cont
 ```
 
 **Expected Response**:
+
 ```json
 {
   "quality_gates": {
@@ -124,6 +133,7 @@ curl -H "Authorization: Bearer <admin-token>" http://localhost:3000/api/ops/cont
 ## Authentication and Authorization Testing
 
 ### 1. Login Endpoint Validation
+
 ```bash
 # Test admin login
 curl -X POST http://localhost:3000/api/login \
@@ -135,6 +145,7 @@ curl -X POST http://localhost:3000/api/login \
 ```
 
 **Expected Response**:
+
 ```json
 {
   "success": true,
@@ -152,30 +163,35 @@ curl -X POST http://localhost:3000/api/login \
 ### 2. Role-Based Access Control (RBAC) Testing
 
 #### Admin Access Test
+
 ```bash
 curl -H "Authorization: Bearer <admin-token>" \
   http://localhost:3000/api/sites
 ```
 
 #### Content Manager Access Test
+
 ```bash
 curl -H "Authorization: Bearer <manager-token>" \
   http://localhost:3000/api/weeks
 ```
 
 #### Reviewer Access Test
+
 ```bash
 curl -H "Authorization: Bearer <reviewer-token>" \
   http://localhost:3000/api/weeks/1/approve
 ```
 
 #### Unauthorized Access Test (Should Fail)
+
 ```bash
 curl -H "Authorization: Bearer <viewer-token>" \
   -X DELETE http://localhost:3000/api/sites/1
 ```
 
 **Expected Response** (403 Forbidden):
+
 ```json
 {
   "error": "Insufficient permissions",
@@ -187,6 +203,7 @@ curl -H "Authorization: Bearer <viewer-token>" \
 ## Core Platform Feature Testing
 
 ### 1. Site Management
+
 ```bash
 # Create new site
 curl -X POST http://localhost:3000/api/sites \
@@ -212,6 +229,7 @@ curl -H "Authorization: Bearer <admin-token>" \
 ```
 
 ### 2. Content Week Management
+
 ```bash
 # Create content week
 curl -X POST http://localhost:3000/api/weeks \
@@ -234,6 +252,7 @@ curl -X POST http://localhost:3000/api/weeks/1/approve \
 ```
 
 ### 3. Daily Picks and Content
+
 ```bash
 # Get daily picks
 curl -H "Authorization: Bearer <user-token>" \
@@ -255,6 +274,7 @@ curl -X POST http://localhost:3000/api/weeks/1/topics \
 ## Security & Monitoring Validation
 
 ### 1. Rate Limiting Tests
+
 ```bash
 # Test rate limiting (should succeed initially)
 for i in {1..10}; do
@@ -268,6 +288,7 @@ done
 ```
 
 ### 2. Encryption and Credential Security
+
 ```bash
 # Test credential storage
 curl -X POST http://localhost:3000/api/credentials \
@@ -287,6 +308,7 @@ curl -H "Authorization: Bearer <admin-token>" \
 ```
 
 ### 3. Audit Logging Verification
+
 ```bash
 # Check audit logs
 curl -H "Authorization: Bearer <admin-token>" \
@@ -294,6 +316,7 @@ curl -H "Authorization: Bearer <admin-token>" \
 ```
 
 **Expected Response**:
+
 ```json
 {
   "logs": [
@@ -310,7 +333,7 @@ curl -H "Authorization: Bearer <admin-token>" \
       "user": "admin@orion-content.local",
       "action": "CREATE",
       "resource": "sites",
-      "details": {"siteId": 1},
+      "details": { "siteId": 1 },
       "success": true
     }
   ]
@@ -320,6 +343,7 @@ curl -H "Authorization: Bearer <admin-token>" \
 ## Quality Framework Testing
 
 ### 1. Lighthouse Integration
+
 ```bash
 # Trigger Lighthouse audit
 curl -X POST http://localhost:3000/api/quality/lighthouse \
@@ -332,6 +356,7 @@ curl -X POST http://localhost:3000/api/quality/lighthouse \
 ```
 
 ### 2. Content Quality Analysis
+
 ```bash
 # Analyze content quality
 curl -X POST http://localhost:3000/api/quality/analyze \
@@ -344,6 +369,7 @@ curl -X POST http://localhost:3000/api/quality/analyze \
 ```
 
 ### 3. Automated Quality Gates
+
 ```bash
 # Check quality gate status
 curl -H "Authorization: Bearer <admin-token>" \
@@ -353,6 +379,7 @@ curl -H "Authorization: Bearer <admin-token>" \
 ## Integration Testing
 
 ### 1. WordPress Integration
+
 ```bash
 # Test WordPress connection
 curl -X POST http://localhost:3000/api/integrations/wordpress/test \
@@ -364,6 +391,7 @@ curl -X POST http://localhost:3000/api/integrations/wordpress/test \
 ```
 
 ### 2. Google Services Integration
+
 ```bash
 # Test GA4 connection
 curl -X POST http://localhost:3000/api/integrations/ga4/test \
@@ -375,6 +403,7 @@ curl -X POST http://localhost:3000/api/integrations/gsc/test \
 ```
 
 ### 3. 10Web Integration
+
 ```bash
 # Test 10Web connection
 curl -X POST http://localhost:3000/api/integrations/10web/test \
@@ -384,6 +413,7 @@ curl -X POST http://localhost:3000/api/integrations/10web/test \
 ## Performance Testing
 
 ### 1. Load Testing Script
+
 ```bash
 # Install Apache Bench (if not available)
 sudo apt-get install apache2-utils
@@ -397,6 +427,7 @@ ab -n 50 -c 5 -H "Authorization: Bearer <token>" \
 ```
 
 ### 2. Database Performance
+
 ```bash
 # Test database query performance
 curl -H "Authorization: Bearer <admin-token>" \
@@ -406,11 +437,13 @@ curl -H "Authorization: Bearer <admin-token>" \
 ## Automated Testing
 
 ### 1. Run Integration Tests
+
 ```bash
 npm test
 ```
 
 ### 2. Run Python Tests
+
 ```bash
 cd python
 source .venv/bin/activate
@@ -418,6 +451,7 @@ python -m pytest tests/ -v
 ```
 
 ### 3. Run Quality Framework Tests
+
 ```bash
 npm run test:quality
 ```
@@ -425,6 +459,7 @@ npm run test:quality
 ## Validation Checklist
 
 ### Core Platform ✅
+
 - [ ] User authentication and authorization
 - [ ] Site management (CRUD operations)
 - [ ] Content week management
@@ -433,6 +468,7 @@ npm run test:quality
 - [ ] Role-based access control
 
 ### Security & Monitoring ✅
+
 - [ ] Rate limiting functionality
 - [ ] Credential encryption/decryption
 - [ ] Audit logging
@@ -441,6 +477,7 @@ npm run test:quality
 - [ ] SQL injection protection
 
 ### Quality Framework ✅
+
 - [ ] Lighthouse integration
 - [ ] Content quality analysis
 - [ ] Automated quality gates
@@ -449,6 +486,7 @@ npm run test:quality
 - [ ] Accessibility validation
 
 ### Integrations ✅
+
 - [ ] WordPress API connectivity
 - [ ] Google Analytics 4 integration
 - [ ] Google Search Console integration
@@ -457,6 +495,7 @@ npm run test:quality
 - [ ] Perplexity API integration
 
 ### Infrastructure ✅
+
 - [ ] Database connectivity
 - [ ] Redis caching
 - [ ] Environment configuration
@@ -467,24 +506,28 @@ npm run test:quality
 ## Troubleshooting Common Issues
 
 ### Authentication Failures
+
 1. Check NEXTAUTH_SECRET is set
 2. Verify database user table exists
 3. Clear browser cookies
 4. Check token expiration
 
 ### Database Connection Issues
+
 1. Verify DATABASE_URL format
 2. Check database server status
 3. Test connection with Prisma Studio
 4. Verify user permissions
 
 ### API Integration Failures
+
 1. Verify API keys are correct
 2. Check API quotas and limits
 3. Test API endpoints independently
 4. Review error logs
 
 ### Performance Issues
+
 1. Check Redis connection
 2. Monitor database query performance
 3. Review rate limiting settings

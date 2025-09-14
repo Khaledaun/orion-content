@@ -26,12 +26,18 @@ export async function auth(): Promise<AuthSession> {
 }
 
 /** Minimal guard. Extend with RBAC when ready. */
-export async function requireAuth(_req?: NextRequest, opts: { api?: boolean } = {}) {
+export async function requireAuth(
+  _req?: NextRequest,
+  opts: { api?: boolean } = {},
+) {
   try {
     const session = (await getServerSession(authOptions as any)) as AuthSession;
     const isApi = opts.api ?? !!_req;
     if (!session?.user) {
-      const err = new AuthError(isApi ? "Unauthorized" : "Unauthorized (redirect to login)", 401);
+      const err = new AuthError(
+        isApi ? "Unauthorized" : "Unauthorized (redirect to login)",
+        401,
+      );
       throw err;
     }
     return session;
@@ -41,7 +47,12 @@ export async function requireAuth(_req?: NextRequest, opts: { api?: boolean } = 
       throw error;
     }
     console.error("Auth check error:", error);
-    const err = new AuthError(isApi ? "Authentication service unavailable" : "Authentication service unavailable", 503);
+    const err = new AuthError(
+      isApi
+        ? "Authentication service unavailable"
+        : "Authentication service unavailable",
+      503,
+    );
     throw err;
   }
 }
@@ -49,9 +60,9 @@ export async function requireAuth(_req?: NextRequest, opts: { api?: boolean } = 
 /** HOF wrapper for API routes: export const GET = requireApiAuth(handler, { roles: ["admin"] }) */
 export function requireApiAuth(
   handler: (req: any) => Promise<Response> | Response,
-  _opts: { roles?: string[] | string; allowBearer?: boolean } = {}
+  _opts: { roles?: string[] | string; allowBearer?: boolean } = {},
 ) {
-  return async function(req: any): Promise<Response> {
+  return async function (req: any): Promise<Response> {
     await requireAuth(req, { api: true });
     // TODO: apply RBAC checks using _opts.roles when rbac is wired.
     return handler(req);
@@ -59,16 +70,32 @@ export function requireApiAuth(
 }
 
 /** Legacy helpers used in login/logout routes (NextAuth manages sessions) */
-export async function verifyPassword(plain: string, hash: string): Promise<boolean> {
-  try { return await bcrypt.compare(plain, hash); } catch { return false; }
+export async function verifyPassword(
+  plain: string,
+  hash: string,
+): Promise<boolean> {
+  try {
+    return await bcrypt.compare(plain, hash);
+  } catch {
+    return false;
+  }
 }
-export async function createSession(_userId: string, _email?: string): Promise<void> { return; }
-export async function deleteSession(): Promise<void> { return; }
+export async function createSession(
+  _userId: string,
+  _email?: string,
+): Promise<void> {
+  return;
+}
+export async function deleteSession(): Promise<void> {
+  return;
+}
 
 /** Minimal AuthError (for legacy imports) */
 export class AuthError extends Error {
   status: number;
   constructor(message = "Unauthorized", status = 401) {
-    super(message); this.name = "AuthError"; this.status = status;
+    super(message);
+    this.name = "AuthError";
+    this.status = status;
   }
 }

@@ -1,4 +1,3 @@
-
 /**
  * Phase 1: Environment guards for safe Vercel Preview builds
  */
@@ -7,7 +6,7 @@
  * Check if we're in a build environment where database access should be skipped
  */
 export function isBuildTime(): boolean {
-  return process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL;
+  return process.env.NODE_ENV === "production" && !process.env.DATABASE_URL;
 }
 
 /**
@@ -22,17 +21,17 @@ export function isDatabaseAvailable(): boolean {
  */
 export async function safeDbOperation<T>(
   operation: () => Promise<T>,
-  fallback: T
+  fallback: T,
 ): Promise<T> {
   if (!isDatabaseAvailable()) {
-    console.warn('Database not available, returning fallback value');
+    console.warn("Database not available, returning fallback value");
     return fallback;
   }
 
   try {
     return await operation();
   } catch (error) {
-    console.error('Database operation failed:', error);
+    console.error("Database operation failed:", error);
     return fallback;
   }
 }
@@ -41,13 +40,15 @@ export async function safeDbOperation<T>(
  * Environment-aware configuration
  */
 export const config = {
-  isDevelopment: process.env.NODE_ENV === 'development',
-  isProduction: process.env.NODE_ENV === 'production',
+  isDevelopment: process.env.NODE_ENV === "development",
+  isProduction: process.env.NODE_ENV === "production",
   isBuild: isBuildTime(),
   hasDatabase: isDatabaseAvailable(),
-  
+
   // Safe defaults for missing environment variables
-  databaseUrl: process.env.DATABASE_URL || 'postgresql://localhost:5432/orion_dev',
-  nextAuthSecret: process.env.NEXTAUTH_SECRET || 'dev-secret-change-in-production',
-  nextAuthUrl: process.env.NEXTAUTH_URL || 'http://localhost:3000',
+  databaseUrl:
+    process.env.DATABASE_URL || "postgresql://localhost:5432/orion_dev",
+  nextAuthSecret:
+    process.env.NEXTAUTH_SECRET || "dev-secret-change-in-production",
+  nextAuthUrl: process.env.NEXTAUTH_URL || "http://localhost:3000",
 };

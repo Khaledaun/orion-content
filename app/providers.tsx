@@ -1,13 +1,12 @@
+"use client";
 
-'use client'
-
-import { SessionProvider } from 'next-auth/react'
-import { ReactNode } from 'react'
-import { LanguageProvider } from '@/lib/i18n/language-context'
-import { Toaster } from '@/components/ui/sonner'
+import { SessionProvider } from "next-auth/react";
+import { ReactNode } from "react";
+import { LanguageProvider } from "@/lib/i18n/language-context";
+import { Toaster } from "@/components/ui/sonner";
 
 interface ProvidersProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export function Providers({ children }: ProvidersProps) {
@@ -18,5 +17,5 @@ export function Providers({ children }: ProvidersProps) {
         <Toaster />
       </LanguageProvider>
     </SessionProvider>
-  )
+  );
 }

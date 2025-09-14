@@ -11,18 +11,24 @@ let prismaInstance: any = null;
 
 try {
   // Try to import PrismaClient, but don't fail if binaries aren't downloaded
-  PrismaClient = require('@prisma/client').PrismaClient;
-  
-  prismaInstance = global.prisma ?? new PrismaClient({
-    log: process.env.NODE_ENV === "development" ? ["error","warn"] : ["error"],
-    errorFormat: 'minimal'
-  });
-  
+  PrismaClient = require("@prisma/client").PrismaClient;
+
+  prismaInstance =
+    global.prisma ??
+    new PrismaClient({
+      log:
+        process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+      errorFormat: "minimal",
+    });
+
   if (process.env.NODE_ENV !== "production") {
     global.prisma = prismaInstance;
   }
 } catch (error) {
-  console.warn('Prisma client not available (likely due to DNS restrictions during build):', error instanceof Error ? error.message : String(error));
+  console.warn(
+    "Prisma client not available (likely due to DNS restrictions during build):",
+    error instanceof Error ? error.message : String(error),
+  );
   // Create a mock client that won't crash the application
   prismaInstance = null;
 }

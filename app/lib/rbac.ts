@@ -8,7 +8,9 @@ export type Role = "ADMIN" | "EDITOR" | "VIEWER" | (string & {});
 async function rolesForUser(userId: string): Promise<string[]> {
   // Handle case where Prisma is not available (e.g., due to DNS restrictions)
   if (!prisma) {
-    console.warn("Prisma not available for role checking, defaulting to VIEWER");
+    console.warn(
+      "Prisma not available for role checking, defaulting to VIEWER",
+    );
     return ["VIEWER"];
   }
 
@@ -20,7 +22,10 @@ async function rolesForUser(userId: string): Promise<string[]> {
     });
     return rows.map((r: any) => String(r.role).toUpperCase());
   } catch (error) {
-    console.warn("Error fetching user roles:", error instanceof Error ? error.message : String(error));
+    console.warn(
+      "Error fetching user roles:",
+      error instanceof Error ? error.message : String(error),
+    );
     return ["VIEWER"]; // Default fallback role
   }
 }
@@ -40,10 +45,16 @@ export function createForbiddenResponse(msg = "Forbidden") {
   return NextResponse.json({ error: msg }, { status: 403 });
 }
 
-export async function requireRole(req: NextRequest, role: Role, _siteId?: string) {
+export async function requireRole(
+  req: NextRequest,
+  role: Role,
+  _siteId?: string,
+) {
   // 1) Bearer token
   const authz = req.headers.get("authorization") || "";
-  const bearer = authz.toLowerCase().startsWith("bearer ") ? authz.slice(7).trim() : "";
+  const bearer = authz.toLowerCase().startsWith("bearer ")
+    ? authz.slice(7).trim()
+    : "";
   if (bearer) {
     // For bearer tokens, use a simple validation for now
     // TODO: Implement proper token-to-user mapping when UserRole model is ready
@@ -64,6 +75,8 @@ export async function requireRole(req: NextRequest, role: Role, _siteId?: string
 }
 
 export async function requireEditAccess(req: NextRequest, siteId?: string) {
-  try { return await requireRole(req, "ADMIN", siteId); } catch {}
+  try {
+    return await requireRole(req, "ADMIN", siteId);
+  } catch {}
   return requireRole(req, "EDITOR", siteId);
 }

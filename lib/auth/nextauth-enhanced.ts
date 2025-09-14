@@ -1,4 +1,3 @@
-
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
@@ -22,14 +21,14 @@ if (env.UPSTASH_REDIS_URL && env.UPSTASH_REDIS_TOKEN) {
 
 export const authOptions: NextAuthOptions = {
   secret: env.NEXTAUTH_SECRET,
-  
+
   // Use Redis adapter if available, otherwise fall back to JWT
   ...(redis && {
     adapter: UpstashRedisAdapter(redis, {
       baseKeyPrefix: "orion:auth:",
     }),
   }),
-  
+
   session: {
     strategy: redis ? "database" : "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
@@ -45,7 +44,7 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
         totpCode: { label: "2FA Code", type: "text", optional: true },
-        rememberMe: { label: "Remember Me", type: "checkbox", optional: true }
+        rememberMe: { label: "Remember Me", type: "checkbox", optional: true },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -62,8 +61,8 @@ export const authOptions: NextAuthOptions = {
               where: { email },
               include: {
                 twoFactorAuth: true,
-                userRoles: true
-              }
+                userRoles: true,
+              },
             });
 
             if (!user) {
@@ -71,8 +70,12 @@ export const authOptions: NextAuthOptions = {
             }
 
             // Verify password
-            const passwordHash = (user as any).passwordHash || (user as any).hashedPassword;
-            if (!passwordHash || !await PasswordManager.verifyPassword(password, passwordHash)) {
+            const passwordHash =
+              (user as any).passwordHash || (user as any).hashedPassword;
+            if (
+              !passwordHash ||
+              !(await PasswordManager.verifyPassword(password, passwordHash))
+            ) {
               throw new Error("Invalid credentials");
             }
 
@@ -94,7 +97,7 @@ export const authOptions: NextAuthOptions = {
               const isValidTotp = TwoFactorAuth.verifyTokenOrBackupCode(
                 credentials.totpCode,
                 user.twoFactorAuth.secret,
-                user.twoFactorAuth.backupCodes || []
+                user.twoFactorAuth.backupCodes || [],
               );
 
               if (!isValidTotp.isValid) {
@@ -106,10 +109,11 @@ export const authOptions: NextAuthOptions = {
                 await prisma.twoFactorAuth.update({
                   where: { userId: user.id },
                   data: {
-                    backupCodes: user.twoFactorAuth.backupCodes?.filter(
-                      (code: string) => code !== isValidTotp.usedBackupCode
-                    ) || []
-                  }
+                    backupCodes:
+                      user.twoFactorAuth.backupCodes?.filter(
+                        (code: string) => code !== isValidTotp.usedBackupCode,
+                      ) || [],
+                  },
                 });
               }
             }
@@ -119,8 +123,8 @@ export const authOptions: NextAuthOptions = {
               where: { id: user.id },
               data: {
                 lastLoginAt: new Date(),
-                loginCount: { increment: 1 }
-              }
+                loginCount: { increment: 1 },
+              },
             });
 
             // Extract roles
@@ -133,7 +137,7 @@ export const authOptions: NextAuthOptions = {
               image: (user as any).image || null,
               roles,
               emailVerified: (user as any).emailVerified,
-              twoFactorEnabled: user.twoFactorAuth?.isEnabled || false
+              twoFactorEnabled: user.twoFactorAuth?.isEnabled || false,
             };
           }
 
@@ -145,7 +149,7 @@ export const authOptions: NextAuthOptions = {
               name: "Demo User",
               roles: ["VIEWER"],
               emailVerified: new Date(),
-              twoFactorEnabled: false
+              twoFactorEnabled: false,
             };
           }
 
@@ -154,37 +158,41 @@ export const authOptions: NextAuthOptions = {
           console.error("Authentication error:", error);
           throw error;
         }
-      }
+      },
     }),
 
     // Google OAuth Provider
-    ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET ? [
-      GoogleProvider({
-        clientId: env.GOOGLE_CLIENT_ID,
-        clientSecret: env.GOOGLE_CLIENT_SECRET,
-        authorization: {
-          params: {
-            prompt: "consent",
-            access_type: "offline",
-            response_type: "code",
-            scope: "openid email profile"
-          }
-        }
-      })
-    ] : []),
+    ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
+      ? [
+          GoogleProvider({
+            clientId: env.GOOGLE_CLIENT_ID,
+            clientSecret: env.GOOGLE_CLIENT_SECRET,
+            authorization: {
+              params: {
+                prompt: "consent",
+                access_type: "offline",
+                response_type: "code",
+                scope: "openid email profile",
+              },
+            },
+          }),
+        ]
+      : []),
 
     // GitHub OAuth Provider
-    ...(env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET ? [
-      GitHubProvider({
-        clientId: env.GITHUB_CLIENT_ID,
-        clientSecret: env.GITHUB_CLIENT_SECRET,
-        authorization: {
-          params: {
-            scope: "read:user user:email"
-          }
-        }
-      })
-    ] : []),
+    ...(env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET
+      ? [
+          GitHubProvider({
+            clientId: env.GITHUB_CLIENT_ID,
+            clientSecret: env.GITHUB_CLIENT_SECRET,
+            authorization: {
+              params: {
+                scope: "read:user user:email",
+              },
+            },
+          }),
+        ]
+      : []),
   ],
 
   pages: {
@@ -192,7 +200,7 @@ export const authOptions: NextAuthOptions = {
     signOut: "/logout",
     error: "/auth/error",
     verifyRequest: "/auth/verify-request",
-    newUser: "/auth/new-user"
+    newUser: "/auth/new-user",
   },
 
   callbacks: {
@@ -201,7 +209,7 @@ export const authOptions: NextAuthOptions = {
         // Handle OAuth sign-ins
         if (account?.provider !== "credentials" && prisma) {
           const existingUser = await prisma.user.findUnique({
-            where: { email: user.email! }
+            where: { email: user.email! },
           });
 
           // Create user if doesn't exist
@@ -214,21 +222,21 @@ export const authOptions: NextAuthOptions = {
                 emailVerified: new Date(),
                 provider: account.provider,
                 providerId: account.providerAccountId,
-                isActive: true
-              }
+                isActive: true,
+              },
             });
 
             // Assign default role
             const viewerRole = await prisma.role.findUnique({
-              where: { name: "VIEWER" }
+              where: { name: "VIEWER" },
             });
 
             if (viewerRole) {
               await prisma.userRole.create({
                 data: {
                   userId: newUser.id,
-                  roleId: viewerRole.id
-                }
+                  roleId: viewerRole.id,
+                },
               });
             }
 
@@ -241,8 +249,8 @@ export const authOptions: NextAuthOptions = {
                 name: user.name || existingUser.name,
                 image: user.image || (existingUser as any).image,
                 lastLoginAt: new Date(),
-                loginCount: { increment: 1 }
-              }
+                loginCount: { increment: 1 },
+              },
             });
 
             user.id = existingUser.id;
@@ -275,13 +283,18 @@ export const authOptions: NextAuthOptions = {
       }
 
       // Refresh user data periodically
-      if (token.sub && prisma && Date.now() - ((token.iat as number) || 0) * 1000 > 60 * 60 * 1000) { // 1 hour
+      if (
+        token.sub &&
+        prisma &&
+        Date.now() - ((token.iat as number) || 0) * 1000 > 60 * 60 * 1000
+      ) {
+        // 1 hour
         try {
           const user = await prisma.user.findUnique({
             where: { id: token.sub as string },
             include: {
-              userRoles: true
-            }
+              userRoles: true,
+            },
           });
 
           if (user) {
@@ -304,7 +317,8 @@ export const authOptions: NextAuthOptions = {
         session.user.name = token.name as string;
         (session.user as any).roles = token.roles || ["VIEWER"];
         (session.user as any).emailVerified = token.emailVerified;
-        (session.user as any).twoFactorEnabled = token.twoFactorEnabled || false;
+        (session.user as any).twoFactorEnabled =
+          token.twoFactorEnabled || false;
         (session.user as any).sessionId = token.sessionId;
       }
 
@@ -320,18 +334,18 @@ export const authOptions: NextAuthOptions = {
     async redirect({ url, baseUrl }) {
       // Allows relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`;
-      
+
       // Allows callback URLs on the same origin
       if (new URL(url).origin === baseUrl) return url;
-      
+
       return baseUrl;
-    }
+    },
   },
 
   events: {
     async signIn({ user, account, profile, isNewUser }) {
       console.log(`User signed in: ${user.email} via ${account?.provider}`);
-      
+
       // Log audit event
       if (prisma) {
         try {
@@ -344,9 +358,9 @@ export const authOptions: NextAuthOptions = {
                 provider: account?.provider,
                 isNewUser,
                 userAgent: "unknown", // Would need to pass from request
-                ip: "unknown" // Would need to pass from request
-              }
-            }
+                ip: "unknown", // Would need to pass from request
+              },
+            },
           });
         } catch (error) {
           console.error("Failed to log sign-in event:", error);
@@ -356,7 +370,7 @@ export const authOptions: NextAuthOptions = {
 
     async signOut({ session, token }) {
       console.log(`User signed out: ${session?.user?.email || token?.email}`);
-      
+
       // Log audit event
       if (prisma && (session?.user?.id || token?.sub)) {
         try {
@@ -365,8 +379,8 @@ export const authOptions: NextAuthOptions = {
               userId: (session?.user?.id || token?.sub) as string,
               action: "SIGN_OUT",
               resource: "AUTH",
-              details: {}
-            }
+              details: {},
+            },
           });
         } catch (error) {
           console.error("Failed to log sign-out event:", error);
@@ -388,11 +402,11 @@ export const authOptions: NextAuthOptions = {
 
     async session({ session, token }) {
       // Session accessed - could be used for activity tracking
-    }
+    },
   },
 
   debug: env.NODE_ENV === "development",
-  
+
   logger: {
     error(code, metadata) {
       console.error(`NextAuth Error [${code}]:`, metadata);
@@ -404,6 +418,6 @@ export const authOptions: NextAuthOptions = {
       if (env.NODE_ENV === "development") {
         console.debug(`NextAuth Debug [${code}]:`, metadata);
       }
-    }
-  }
+    },
+  },
 };

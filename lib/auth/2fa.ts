@@ -1,8 +1,7 @@
-
-import speakeasy from 'speakeasy';
-import QRCode from 'qrcode';
-import crypto from 'crypto';
-import { env } from '@/lib/env/validation';
+import speakeasy from "speakeasy";
+import QRCode from "qrcode";
+import crypto from "crypto";
+import { env } from "@/lib/env/validation";
 
 export interface TwoFactorSecret {
   secret: string;
@@ -17,7 +16,7 @@ export interface TwoFactorVerification {
 }
 
 export class TwoFactorAuth {
-  private static readonly APP_NAME = 'Orion CMS';
+  private static readonly APP_NAME = "Orion CMS";
   private static readonly BACKUP_CODES_COUNT = 10;
   private static readonly BACKUP_CODE_LENGTH = 8;
 
@@ -28,7 +27,7 @@ export class TwoFactorAuth {
     const secret = speakeasy.generateSecret({
       name: userEmail,
       issuer: this.APP_NAME,
-      length: 32
+      length: 32,
     });
 
     const qrCodeUrl = await QRCode.toDataURL(secret.otpauth_url!);
@@ -38,19 +37,23 @@ export class TwoFactorAuth {
       secret: secret.base32!,
       qrCodeUrl,
       manualEntryKey: secret.base32!,
-      backupCodes
+      backupCodes,
     };
   }
 
   /**
    * Verify a TOTP token
    */
-  static verifyToken(token: string, secret: string, window: number = 1): boolean {
+  static verifyToken(
+    token: string,
+    secret: string,
+    window: number = 1,
+  ): boolean {
     return speakeasy.totp.verify({
       secret,
-      encoding: 'base32',
-      token: token.replace(/\s/g, ''), // Remove any spaces
-      window // Allow for time drift
+      encoding: "base32",
+      token: token.replace(/\s/g, ""), // Remove any spaces
+      window, // Allow for time drift
     });
   }
 
@@ -60,7 +63,7 @@ export class TwoFactorAuth {
   static verifyTokenOrBackupCode(
     token: string,
     secret: string,
-    backupCodes: string[]
+    backupCodes: string[],
   ): TwoFactorVerification {
     // First try TOTP verification
     if (this.verifyToken(token, secret)) {
@@ -68,15 +71,15 @@ export class TwoFactorAuth {
     }
 
     // Then try backup codes
-    const cleanToken = token.replace(/\s/g, '').toLowerCase();
-    const matchingBackupCode = backupCodes.find(code => 
-      code.toLowerCase() === cleanToken
+    const cleanToken = token.replace(/\s/g, "").toLowerCase();
+    const matchingBackupCode = backupCodes.find(
+      (code) => code.toLowerCase() === cleanToken,
     );
 
     if (matchingBackupCode) {
-      return { 
-        isValid: true, 
-        usedBackupCode: matchingBackupCode 
+      return {
+        isValid: true,
+        usedBackupCode: matchingBackupCode,
       };
     }
 
@@ -88,17 +91,18 @@ export class TwoFactorAuth {
    */
   static generateBackupCodes(): string[] {
     const codes: string[] = [];
-    
+
     for (let i = 0; i < this.BACKUP_CODES_COUNT; i++) {
-      const code = crypto.randomBytes(this.BACKUP_CODE_LENGTH / 2)
-        .toString('hex')
+      const code = crypto
+        .randomBytes(this.BACKUP_CODE_LENGTH / 2)
+        .toString("hex")
         .toUpperCase();
-      
+
       // Format as XXXX-XXXX for readability
-      const formattedCode = code.match(/.{1,4}/g)?.join('-') || code;
+      const formattedCode = code.match(/.{1,4}/g)?.join("-") || code;
       codes.push(formattedCode);
     }
-    
+
     return codes;
   }
 
@@ -106,11 +110,11 @@ export class TwoFactorAuth {
    * Hash backup codes for secure storage
    */
   static hashBackupCodes(codes: string[]): string[] {
-    return codes.map(code => 
+    return codes.map((code) =>
       crypto
-        .createHmac('sha256', env.ENCRYPTION_KEY)
+        .createHmac("sha256", env.ENCRYPTION_KEY)
         .update(code.toLowerCase())
-        .digest('hex')
+        .digest("hex"),
     );
   }
 
@@ -119,15 +123,15 @@ export class TwoFactorAuth {
    */
   static verifyBackupCode(code: string, hashedCodes: string[]): boolean {
     const hashedInput = crypto
-      .createHmac('sha256', env.ENCRYPTION_KEY)
-      .update(code.toLowerCase().replace(/\s/g, ''))
-      .digest('hex');
+      .createHmac("sha256", env.ENCRYPTION_KEY)
+      .update(code.toLowerCase().replace(/\s/g, ""))
+      .digest("hex");
 
-    return hashedCodes.some(hashedCode => 
+    return hashedCodes.some((hashedCode) =>
       crypto.timingSafeEqual(
-        Buffer.from(hashedCode, 'hex'),
-        Buffer.from(hashedInput, 'hex')
-      )
+        Buffer.from(hashedCode, "hex"),
+        Buffer.from(hashedInput, "hex"),
+      ),
     );
   }
 
@@ -137,7 +141,7 @@ export class TwoFactorAuth {
   static generateToken(secret: string): string {
     return speakeasy.totp({
       secret,
-      encoding: 'base32'
+      encoding: "base32",
     });
   }
 
@@ -163,12 +167,12 @@ export class TwoFactorAuth {
     hashedRecoveryCode: string;
     expiresAt: Date;
   } {
-    const recoveryCode = crypto.randomBytes(16).toString('hex').toUpperCase();
+    const recoveryCode = crypto.randomBytes(16).toString("hex").toUpperCase();
     const hashedRecoveryCode = crypto
-      .createHmac('sha256', env.ENCRYPTION_KEY)
+      .createHmac("sha256", env.ENCRYPTION_KEY)
       .update(recoveryCode)
-      .digest('hex');
-    
+      .digest("hex");
+
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     return { recoveryCode, hashedRecoveryCode, expiresAt };
@@ -179,13 +183,13 @@ export class TwoFactorAuth {
    */
   static verifyRecoveryCode(code: string, hashedCode: string): boolean {
     const computedHash = crypto
-      .createHmac('sha256', env.ENCRYPTION_KEY)
+      .createHmac("sha256", env.ENCRYPTION_KEY)
       .update(code.toUpperCase())
-      .digest('hex');
-    
+      .digest("hex");
+
     return crypto.timingSafeEqual(
-      Buffer.from(hashedCode, 'hex'),
-      Buffer.from(computedHash, 'hex')
+      Buffer.from(hashedCode, "hex"),
+      Buffer.from(computedHash, "hex"),
     );
   }
 
@@ -194,27 +198,32 @@ export class TwoFactorAuth {
    */
   static formatBackupCodesForDisplay(codes: string[]): string {
     return codes
-      .map((code, index) => `${(index + 1).toString().padStart(2, '0')}. ${code}`)
-      .join('\n');
+      .map(
+        (code, index) => `${(index + 1).toString().padStart(2, "0")}. ${code}`,
+      )
+      .join("\n");
   }
 
   /**
    * Validate TOTP setup parameters
    */
-  static validateSetupParams(secret: string, token: string): {
+  static validateSetupParams(
+    secret: string,
+    token: string,
+  ): {
     isValid: boolean;
     error?: string;
   } {
     if (!secret || secret.length < 16) {
-      return { isValid: false, error: 'Invalid secret provided' };
+      return { isValid: false, error: "Invalid secret provided" };
     }
 
     if (!token || token.length !== 6 || !/^\d{6}$/.test(token)) {
-      return { isValid: false, error: 'Token must be 6 digits' };
+      return { isValid: false, error: "Token must be 6 digits" };
     }
 
     if (!this.verifyToken(token, secret)) {
-      return { isValid: false, error: 'Invalid token provided' };
+      return { isValid: false, error: "Invalid token provided" };
     }
 
     return { isValid: true };

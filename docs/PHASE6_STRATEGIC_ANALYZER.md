@@ -1,7 +1,7 @@
-
 # Phase 6: Strategic Site Analyzer
 
 ## Overview
+
 The Strategic Site Analyzer is a comprehensive analysis tool that provides competitive intelligence and strategic insights for content optimization. It supports three distinct analysis modes for different use cases.
 
 ## Features
@@ -72,7 +72,7 @@ from orion.analyzer import SiteAnalyzer
 async def analyze_site():
     config = OrionConfig()
     analyzer = SiteAnalyzer(config)
-    
+
     # Run analysis
     results = await analyzer.analyze('my-site', 'https://yoursite.com')
     print(results)
@@ -84,6 +84,7 @@ asyncio.run(analyze_site())
 ## Output Format
 
 ### My-Site Analysis Output
+
 ```json
 {
   "mode": "my-site",

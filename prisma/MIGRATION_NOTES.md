@@ -1,4 +1,3 @@
-
 # Prisma Migration Notes - Phase 7 Quality Framework
 
 ## Migration Strategy: Database-First Reconciliation
@@ -21,14 +20,16 @@
 **Purpose**: Establish clean migration baseline from current production state
 
 **Includes**:
+
 - All existing models (User, Site, Category, Week, Topic, Connection, JobRun)
-- NextAuth models (Account, Session, VerificationToken)  
+- NextAuth models (Account, Session, VerificationToken)
 - **Phase 7 models** (already in production DB):
   - `SiteStrategy` - Per-site quality customization
   - `GlobalRulebook` - Global quality standards
   - `RulebookVersion` - Version history for rulebooks
-  
+
 **Strategy**: Created baseline migration SQL and marked as applied using:
+
 ```bash
 npx prisma migrate resolve --applied "0_init_from_db_20250829_121502"
 ```
@@ -36,12 +37,13 @@ npx prisma migrate resolve --applied "0_init_from_db_20250829_121502"
 #### Schema Updates Applied
 
 **Enhanced Models**:
+
 ```prisma
 model Site {
   strategy   SiteStrategy?  // Added Phase 7 relation
 }
 
-model Topic {  
+model Topic {
   flags      Json?          // Added for quality flags
 }
 
@@ -55,6 +57,7 @@ model Connection {
 ```
 
 **New Phase 7 Models**:
+
 ```prisma
 model SiteStrategy {
   id        String   @id @default(cuid())
@@ -79,7 +82,7 @@ model GlobalRulebook {
 
 model RulebookVersion {
   id        String   @id @default(cuid())
-  version   Int      // Version number  
+  version   Int      // Version number
   rules     Json     // Historical rules snapshot
   sources   Json     // Historical sources
   notes     String?  // Update notes
@@ -91,6 +94,7 @@ model RulebookVersion {
 ### Current State
 
 **Migration Status**: ✅ Clean
+
 ```bash
 npx prisma migrate status
 # Output: 1 migration found in prisma/migrations
@@ -104,14 +108,16 @@ npx prisma migrate status
 ### Future Migrations
 
 **Process**:
+
 1. Edit `prisma/schema.prisma` with changes
 2. Run `npx prisma migrate dev --name descriptive_name`
 3. Commit the new migration file
 4. Deploy with `npx prisma migrate deploy`
 
 **Guidelines**:
+
 - ✅ **DO**: Add new fields as optional (`field_name Type?`)
-- ✅ **DO**: Add new tables and relations  
+- ✅ **DO**: Add new tables and relations
 - ✅ **DO**: Create additive indexes
 - ❌ **AVOID**: Dropping columns with data
 - ❌ **AVOID**: Changing column types that lose data
@@ -120,7 +126,8 @@ npx prisma migrate status
 ### Rollback Strategy
 
 **Current Baseline**: Can safely revert to pre-Phase 7 state
-**Method**: 
+**Method**:
+
 1. Remove Phase 7 models from schema
 2. Create migration to drop Phase 7 tables
 3. Deploy migration
@@ -130,11 +137,13 @@ npx prisma migrate status
 ### Troubleshooting
 
 **Common Issues**:
+
 1. **Migration Drift**: Run `npx prisma db pull` then create new migration
 2. **Schema Sync**: Use `npx prisma generate` after schema changes
 3. **Connection Issues**: Verify `DATABASE_URL` environment variable
 
 **Verification Commands**:
+
 ```bash
 # Check migration status
 npx prisma migrate status
@@ -142,7 +151,7 @@ npx prisma migrate status
 # Verify schema sync
 npx prisma validate
 
-# Test database connection  
+# Test database connection
 npx prisma db pull --preview-feature
 ```
 
