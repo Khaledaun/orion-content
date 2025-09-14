@@ -33,18 +33,29 @@ jobs:
         run: |
           echo "🔍 Running comprehensive security audit..."
           
-          # Run audit and capture results
-          npm audit --audit-level=low --format=json > full-audit.json || true
+          # Check if jq is available
+          if ! command -v jq >/dev/null 2>&1; then
+            echo "❌ jq is not available, installing..."
+            sudo apt-get update && sudo apt-get install -y jq
+          fi
           
-          if [ -s full-audit.json ]; then
+          # Run audit and capture results with proper error handling
+          if npm audit --audit-level=low --format=json > full-audit.json 2>/dev/null; then
+            audit_success=true
+          else
+            audit_success=false
+          fi
+          
+          # Check if we have valid JSON output
+          if [ -s full-audit.json ] && jq empty full-audit.json 2>/dev/null; then
             echo "📊 Security audit summary:"
             
-            # Extract vulnerability counts
-            info_count=$(jq '.metadata.vulnerabilities.info // 0' full-audit.json)
-            low_count=$(jq '.metadata.vulnerabilities.low // 0' full-audit.json)
-            moderate_count=$(jq '.metadata.vulnerabilities.moderate // 0' full-audit.json)
-            high_count=$(jq '.metadata.vulnerabilities.high // 0' full-audit.json)
-            critical_count=$(jq '.metadata.vulnerabilities.critical // 0' full-audit.json)
+            # Extract vulnerability counts safely
+            info_count=$(jq '.metadata.vulnerabilities.info // 0' full-audit.json 2>/dev/null || echo "0")
+            low_count=$(jq '.metadata.vulnerabilities.low // 0' full-audit.json 2>/dev/null || echo "0")
+            moderate_count=$(jq '.metadata.vulnerabilities.moderate // 0' full-audit.json 2>/dev/null || echo "0")
+            high_count=$(jq '.metadata.vulnerabilities.high // 0' full-audit.json 2>/dev/null || echo "0")
+            critical_count=$(jq '.metadata.vulnerabilities.critical // 0' full-audit.json 2>/dev/null || echo "0")
             
             echo "ℹ️ Info: $info_count"
             echo "🟡 Low: $low_count" 
@@ -70,9 +81,21 @@ jobs:
               exit 1
             fi
           else
-            echo "✅ No vulnerabilities detected"
+            # Handle cases where npm audit fails or produces non-JSON output
+            echo "⚠️ npm audit did not produce valid JSON output"
+            
+            # Try to run audit again for human-readable output
+            echo "📋 Running npm audit for readable output:"
+            npm audit --audit-level=low || audit_exit_code=$?
+            
+            # Create summary based on exit code
             echo "## 🛡️ Security Audit Results" >> $GITHUB_STEP_SUMMARY
-            echo "✅ **No vulnerabilities detected**" >> $GITHUB_STEP_SUMMARY
+            if [ "$audit_success" = true ]; then
+              echo "✅ **No vulnerabilities detected**" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "⚠️ **Security audit completed with findings**" >> $GITHUB_STEP_SUMMARY
+              echo "Please review the audit output above and run \`npm audit fix\` if needed." >> $GITHUB_STEP_SUMMARY
+            fi
           fi
 
       - name: 📈 Dependency analysis
@@ -80,8 +103,8 @@ jobs:
           echo "📦 Analyzing dependency health..."
           
           # Count total dependencies
-          total_deps=$(jq '.dependencies | length' package.json)
-          total_dev_deps=$(jq '.devDependencies | length' package.json)
+          total_deps=$(jq '.dependencies | length' package.json 2>/dev/null || echo "0")
+          total_dev_deps=$(jq '.devDependencies | length' package.json 2>/dev/null || echo "0")
           
           echo "📊 Dependency counts:"
           echo "Production dependencies: $total_deps"
@@ -90,13 +113,17 @@ jobs:
           
           # Check for outdated packages
           echo "🔍 Checking for outdated packages..."
-          npm outdated --format=json > outdated.json || true
+          if npm outdated --format=json > outdated.json 2>/dev/null; then
+            outdated_success=true
+          else
+            outdated_success=false
+          fi
           
-          if [ -s outdated.json ] && [ "$(cat outdated.json)" != "{}" ]; then
+          if [ -s outdated.json ] && jq empty outdated.json 2>/dev/null && [ "$(cat outdated.json)" != "{}" ]; then
             echo "📦 Outdated packages detected:"
-            jq -r 'to_entries[] | "\(.key): \(.value.current) → \(.value.latest)"' outdated.json | head -10
+            jq -r 'to_entries[] | "\(.key): \(.value.current) → \(.value.latest)"' outdated.json 2>/dev/null | head -10
             
-            outdated_count=$(jq 'keys | length' outdated.json)
+            outdated_count=$(jq 'keys | length' outdated.json 2>/dev/null || echo "0")
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "📦 **$outdated_count outdated packages** detected" >> $GITHUB_STEP_SUMMARY
             echo "Consider updating dependencies for security and performance improvements." >> $GITHUB_STEP_SUMMARY
@@ -134,7 +161,7 @@ jobs:
           check_packages=("moment" "lodash" "rxjs" "three" "d3" "chart.js")
           
           for package in "${check_packages[@]}"; do
-            if jq -e ".dependencies.\"$package\"" package.json >/dev/null 2>&1; then
+            if jq -e ".dependencies.\"$package\"" package.json >/dev/null 2>&1 || jq -e ".devDependencies.\"$package\"" package.json >/dev/null 2>&1; then
               heavy_deps+=("$package")
             fi
           done

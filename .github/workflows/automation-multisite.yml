@@ -111,15 +111,23 @@ jobs:
           # Generate matrix for sites
           MATRIX_JSON=$(PYTHONPATH=python python -m orion.automate.multisite --matrix)
           echo "Generated matrix:"
-          echo "$MATRIX_JSON" | jq .
           
-          # Output matrix for subsequent jobs
-          echo "matrix=${MATRIX_JSON}" >> $GITHUB_OUTPUT
-          
-          # Extract site list for summary
-          SITES=$(echo "$MATRIX_JSON" | jq -r '.include[].site' | tr '\n' ',' | sed 's/,$//')
-          echo "sites=${SITES}" >> $GITHUB_OUTPUT
-          echo "Detected sites: ${SITES}"
+          # Validate JSON before processing with jq
+          if echo "$MATRIX_JSON" | jq empty 2>/dev/null; then
+            echo "$MATRIX_JSON" | jq .
+            
+            # Output matrix for subsequent jobs
+            echo "matrix=${MATRIX_JSON}" >> $GITHUB_OUTPUT
+            
+            # Extract site list for summary
+            SITES=$(echo "$MATRIX_JSON" | jq -r '.include[].site' 2>/dev/null | tr '\n' ',' | sed 's/,$//' || echo "unknown")
+            echo "sites=${SITES}" >> $GITHUB_OUTPUT
+            echo "Detected sites: ${SITES}"
+          else
+            echo "❌ Error: Python script did not generate valid JSON matrix"
+            echo "Raw output: $MATRIX_JSON"
+            exit 1
+          fi
 
   # Job 2A: Run sites in parallel/sequential mode (unified approach)
   run-unified:

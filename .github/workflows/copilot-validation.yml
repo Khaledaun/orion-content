@@ -134,15 +134,28 @@ jobs:
       - name: 🛡️ Run security audit
         run: |
           echo "🔍 Running npm security audit..."
-          npm audit --audit-level=moderate --format=json > audit-results.json || true
           
-          if [ -s audit-results.json ]; then
+          # Check if jq is available
+          if ! command -v jq >/dev/null 2>&1; then
+            echo "❌ jq is not available, installing..."
+            sudo apt-get update && sudo apt-get install -y jq
+          fi
+          
+          # Try to run audit with JSON format first
+          if npm audit --audit-level=moderate --format=json > audit-results.json 2>/dev/null; then
+            audit_success=true
+          else
+            audit_success=false
+          fi
+          
+          # Check if we have valid JSON
+          if [ -s audit-results.json ] && jq empty audit-results.json 2>/dev/null; then
             echo "📊 Security audit results:"
-            cat audit-results.json | jq '.metadata.vulnerabilities // empty'
+            jq '.metadata.vulnerabilities // empty' audit-results.json 2>/dev/null || echo "No vulnerability metadata found"
             
-            # Check for high/critical vulnerabilities
-            high_vulns=$(cat audit-results.json | jq '.metadata.vulnerabilities.high // 0')
-            critical_vulns=$(cat audit-results.json | jq '.metadata.vulnerabilities.critical // 0')
+            # Check for high/critical vulnerabilities safely
+            high_vulns=$(jq '.metadata.vulnerabilities.high // 0' audit-results.json 2>/dev/null || echo "0")
+            critical_vulns=$(jq '.metadata.vulnerabilities.critical // 0' audit-results.json 2>/dev/null || echo "0")
             
             if [ "$high_vulns" -gt 0 ] || [ "$critical_vulns" -gt 0 ]; then
               echo "❌ High or critical vulnerabilities found!"
@@ -152,7 +165,15 @@ jobs:
               echo "✅ No high or critical security vulnerabilities found"
             fi
           else
-            echo "✅ No security vulnerabilities detected"
+            # Handle non-JSON output
+            echo "⚠️ npm audit did not produce valid JSON, running with standard output:"
+            npm audit --audit-level=moderate || true
+            
+            if [ "$audit_success" = false ]; then
+              echo "⚠️ Security audit found issues, please review output above"
+            else
+              echo "✅ No security vulnerabilities detected"
+            fi
           fi
 
       - name: 🔍 Check for hardcoded secrets
