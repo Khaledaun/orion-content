@@ -1,21 +1,20 @@
-
 name: Bi-monthly Rulebook Update
 
 on:
   schedule:
     # Run on 1st and 15th of every month at 2 AM UTC
-    - cron: '0 2 1,15 * *'
+    - cron: "0 2 1,15 * *"
   workflow_dispatch: # Allow manual triggering
     inputs:
       dry_run:
-        description: 'Run in dry-run mode (no actual updates)'
+        description: "Run in dry-run mode (no actual updates)"
         required: false
-        default: 'false'
+        default: "false"
         type: boolean
       force_update:
-        description: 'Force update even if no changes detected'
+        description: "Force update even if no changes detected"
         required: false
-        default: 'false'
+        default: "false"
         type: boolean
 
 permissions:
@@ -25,38 +24,38 @@ permissions:
 jobs:
   update-rulebook:
     runs-on: ubuntu-latest
-    
+
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
       ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
       PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
-      
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
-          
+          node-version: "18"
+          cache: "npm"
+
       - name: Install dependencies
         run: |
           npm ci
           npx prisma generate
-          
+
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
-          
+          python-version: "3.11"
+
       - name: Install Python dependencies
         run: |
           cd python
           pip install -r requirements.txt
-          
+
       - name: Run rulebook research update
         id: research
         run: |
@@ -65,7 +64,7 @@ jobs:
             --output-dir ../artifacts \
             --dry-run=${{ github.event.inputs.dry_run || 'false' }} \
             --force=${{ github.event.inputs.force_update || 'false' }}
-          
+
       - name: Check for updates
         id: check_updates
         run: |
@@ -75,13 +74,13 @@ jobs:
           else
             echo "has_updates=false" >> $GITHUB_OUTPUT
           fi
-          
+
       - name: Validate new rulebook
         if: steps.check_updates.outputs.has_updates == 'true'
         run: |
           cd python
           python -m orion.research.validate_rulebook artifacts/rulebook-*.json
-          
+
       - name: Apply conservative merge
         if: steps.check_updates.outputs.has_updates == 'true' && github.event.inputs.dry_run != 'true'
         run: |
@@ -90,14 +89,14 @@ jobs:
             --rulebook-file artifacts/rulebook-*.json \
             --conservative-only \
             --require-approval=false
-            
+
       - name: Generate rollback script
         if: steps.check_updates.outputs.has_updates == 'true'
         run: |
           cd python
           python -m orion.research.generate_rollback \
             --output artifacts/rollback-$(date +%Y%m%d).sql
-            
+
       - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -106,7 +105,7 @@ jobs:
           path: |
             artifacts/
           retention-days: 90
-          
+
       - name: Create summary
         if: always()
         run: |
@@ -114,7 +113,7 @@ jobs:
           echo "- **Run Date**: $(date -u)" >> $GITHUB_STEP_SUMMARY
           echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Dry Run**: ${{ github.event.inputs.dry_run || 'false' }}" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ "${{ steps.check_updates.outputs.has_updates }}" == "true" ]; then
             echo "- **Status**: ✅ Updates available" >> $GITHUB_STEP_SUMMARY
             if [ -f artifacts/rulebook-diff.json ]; then
@@ -123,11 +122,11 @@ jobs:
           else
             echo "- **Status**: ℹ️ No updates needed" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
           echo "- Rulebook versions and diffs available in run artifacts" >> $GITHUB_STEP_SUMMARY
           echo "- Rollback scripts generated if updates applied" >> $GITHUB_STEP_SUMMARY
-          
+
       - name: Notify on failure
         if: failure()
         run: |
