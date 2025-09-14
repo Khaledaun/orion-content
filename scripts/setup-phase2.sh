@@ -89,19 +89,19 @@ print_status "Checking security keys..."
 if grep -q "your-nextauth-secret-key-here" .env; then
     print_warning "Generating NEXTAUTH_SECRET..."
     NEXTAUTH_SECRET=$(openssl rand -base64 32)
-    sed -i "s/your-nextauth-secret-key-here-must-be-at-least-32-characters-long/$NEXTAUTH_SECRET/" .env
+    sed -i "s#your-nextauth-secret-key-here-must-be-at-least-32-characters-long#$NEXTAUTH_SECRET#" .env
 fi
 
 if grep -q "your-jwt-secret-key-here" .env; then
     print_warning "Generating JWT_SECRET..."
     JWT_SECRET=$(openssl rand -base64 32)
-    sed -i "s/your-jwt-secret-key-here-must-be-at-least-32-characters-long/$JWT_SECRET/" .env
+    sed -i "s#your-jwt-secret-key-here-must-be-at-least-32-characters-long#$JWT_SECRET#" .env
 fi
 
 if grep -q "your-32-character-encryption-key-here" .env; then
     print_warning "Generating ENCRYPTION_KEY..."
     ENCRYPTION_KEY=$(openssl rand -hex 16)
-    sed -i "s/your-32-character-encryption-key-here/$ENCRYPTION_KEY/" .env
+    sed -i "s#your-32-character-encryption-key-here#$ENCRYPTION_KEY#" .env
 fi
 
 # Build the application
