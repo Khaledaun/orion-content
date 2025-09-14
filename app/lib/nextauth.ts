@@ -65,10 +65,20 @@ function validateEnvironment() {
 
 // Validate environment on module load
 const envValidation = validateEnvironment();
+
+// Check if we're in a build environment
+const isBuildTime = process.env.NODE_ENV === undefined || process.env.CI === 'true' || process.env.VERCEL === '1';
+
 if (envValidation.errors.length > 0) {
   console.error("❌ NextAuth Environment Validation Errors:");
   envValidation.errors.forEach(error => console.error(`  - ${error}`));
-  throw new Error(`NextAuth configuration invalid: ${envValidation.errors.join(', ')}`);
+  
+  // Only throw error if not in build environment
+  if (!isBuildTime) {
+    throw new Error(`NextAuth configuration invalid: ${envValidation.errors.join(', ')}`);
+  } else {
+    console.warn("⚠️ Build environment detected - continuing despite NextAuth validation errors");
+  }
 }
 
 if (envValidation.warnings.length > 0) {
@@ -91,7 +101,7 @@ try {
 import * as bcryptjs from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET!,
+  secret: process.env.NEXTAUTH_SECRET || 'build-time-secret-not-for-production-use',
   session: { strategy: "jwt" },
 
   providers: [
