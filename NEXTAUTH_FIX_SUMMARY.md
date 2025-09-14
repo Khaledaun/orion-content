@@ -221,10 +221,43 @@ curl https://your-domain.vercel.app/api/auth/session
 
 ### Quick Recovery Checklist
 1. **Check Environment Variables**: Run `npm run check:env` locally with production values
-2. **Verify Endpoints**: Use `npm run verify:endpoints` to test critical endpoints
-3. **Review Build Logs**: Check Vercel deployment logs for specific errors
-4. **Test Database**: Verify database connectivity with `npx prisma db push --preview-feature`
-5. **Rollback if Needed**: Use Vercel's instant rollback to previous working deployment
+2. **Setup Missing Variables**: Run `npm run setup:vercel` for automated guidance
+3. **Verify Endpoints**: Use `npm run verify:endpoints` to test critical endpoints
+4. **Review Build Logs**: Check Vercel deployment logs for specific errors
+5. **Test Database**: Verify database connectivity with `npx prisma db push --preview-feature`
+6. **Rollback if Needed**: Use Vercel's instant rollback to previous working deployment
+
+### Emergency Environment Variable Setup
+```bash
+# Quick setup for Vercel deployments
+npm run setup:vercel
+
+# Generate secure secrets
+npm run setup:vercel -- --generate-only
+```
+
+### Common Deployment Failures and Solutions
+
+#### "NEXTAUTH_URL is required but not set"
+**Quick Fix:**
+1. Go to Vercel Dashboard → Your Project → Settings → Environment Variables
+2. Add `NEXTAUTH_URL` with value: `https://your-app.vercel.app`
+3. Redeploy the application
+
+**Automated Fix:**
+```bash
+# Get setup instructions
+npm run setup:vercel
+
+# Generate environment variables template
+npm run setup:vercel -- --generate-only
+```
+
+#### "NEXTAUTH_SECRET is required but not set"
+**Quick Fix:**
+1. Generate a secure secret: `openssl rand -base64 32`
+2. Add to Vercel environment variables as `NEXTAUTH_SECRET`
+3. Redeploy the application
 
 ### Emergency Fixes
 ```bash

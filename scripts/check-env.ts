@@ -161,6 +161,30 @@ class EnvironmentValidator {
     }
   }
 
+  private getVercelUrlSuggestion(): string | null {
+    // Check Vercel-specific environment variables
+    const vercelUrl = process.env.VERCEL_URL;
+    const vercelProjectName = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+    const vercelBranchUrl = process.env.VERCEL_BRANCH_URL;
+    
+    // For production deployments, use the production URL
+    if (vercelProjectName) {
+      return `https://${vercelProjectName}`;
+    }
+    
+    // For preview deployments, use the Vercel URL
+    if (vercelUrl) {
+      return `https://${vercelUrl}`;
+    }
+    
+    // For branch deployments
+    if (vercelBranchUrl) {
+      return `https://${vercelBranchUrl}`;
+    }
+    
+    return null;
+  }
+
   private validateGoogleOAuth(): void {
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
@@ -241,7 +265,19 @@ class EnvironmentValidator {
       const value = process.env[rule.key];
 
       if (rule.required && !value) {
-        this.result.errors.push(`Required environment variable ${rule.key} is missing`);
+        // Special handling for NEXTAUTH_URL in Vercel environment
+        if (rule.key === 'NEXTAUTH_URL' && this.isVercelBuild) {
+          const suggestion = this.getVercelUrlSuggestion();
+          if (suggestion) {
+            this.result.errors.push(`Required environment variable ${rule.key} is missing. ` +
+              `Suggested value: ${suggestion} (Set this in your Vercel environment variables)`);
+          } else {
+            this.result.errors.push(`Required environment variable ${rule.key} is missing. ` +
+              `Set this to your Vercel deployment URL in the environment variables.`);
+          }
+        } else {
+          this.result.errors.push(`Required environment variable ${rule.key} is missing`);
+        }
         continue;
       }
 
@@ -307,6 +343,29 @@ class EnvironmentValidator {
       console.log('✅ No critical errors found. Review warnings but deployment should succeed.');
     } else {
       console.log('💥 Critical errors found. Fix these before deploying.');
+      
+      // Provide helpful guidance for Vercel deployments
+      if (this.isVercelBuild) {
+        console.log('\n📖 VERCEL DEPLOYMENT HELP:');
+        console.log('  1. Go to your Vercel project dashboard');
+        console.log('  2. Navigate to Settings → Environment Variables');
+        console.log('  3. Add the missing environment variables listed above');
+        console.log('  4. Redeploy your application');
+        
+        // Provide specific guidance for NEXTAUTH_URL
+        if (result.errors.some(error => error.includes('NEXTAUTH_URL'))) {
+          const suggestion = this.getVercelUrlSuggestion();
+          console.log('\n  🔧 NEXTAUTH_URL Quick Fix:');
+          if (suggestion) {
+            console.log(`     Set NEXTAUTH_URL to: ${suggestion}`);
+          } else {
+            console.log('     Set NEXTAUTH_URL to: https://your-app.vercel.app');
+          }
+        }
+        
+        console.log('\n  For automated setup help, run: npm run setup:vercel');
+        console.log('  For more help, see: https://vercel.com/docs/projects/environment-variables');
+      }
     }
   }
 }

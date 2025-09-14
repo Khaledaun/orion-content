@@ -17,6 +17,7 @@
     "validate:deployment": "node scripts/validate-deployment.js",
     "check:env": "npx tsx scripts/check-env.ts",
     "verify:endpoints": "npx tsx scripts/verify-endpoints.ts",
+    "setup:vercel": "npx tsx scripts/setup-vercel-env.ts",
     "proof": "tsx scripts/proof_phase9.ts",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
