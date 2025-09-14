@@ -25,6 +25,7 @@
     "setup:vercel": "npx tsx scripts/setup-vercel-env.ts",
     "setup:phase2": "chmod +x scripts/setup-phase2.sh && ./scripts/setup-phase2.sh",
     "proof": "tsx scripts/proof_phase9.ts",
+    "test-deploy": "npx tsx scripts/test-deploy.ts",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:seed": "tsx --require dotenv/config scripts/seed.ts",

@@ -45,3 +45,6 @@ test-outdated.json
 
 # test scripts
 test-enterprise-fixes.sh
+
+# deployment reports
+deployment-report-*.json
