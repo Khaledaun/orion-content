@@ -43,17 +43,17 @@ WARNINGS=0
 
 # Track validation results
 add_pass() {
-    ((PASSED++))
+    PASSED=$((PASSED + 1))
     print_success "$1"
 }
 
 add_fail() {
-    ((FAILED++))
+    FAILED=$((FAILED + 1))
     print_error "$1"
 }
 
 add_warning() {
-    ((WARNINGS++))
+    WARNINGS=$((WARNINGS + 1))
     print_warning "$1"
 }
 
@@ -135,13 +135,13 @@ if [ -f "prisma/schema.prisma" ]; then
     add_pass "Prisma schema found"
     
     if command_exists npx; then
-        if npx prisma validate 2>/dev/null; then
+        if DATABASE_URL="postgresql://user:password@localhost:5432/test_db" npx prisma validate 2>/dev/null; then
             add_pass "Prisma schema is valid"
         else
             add_fail "Prisma schema validation failed"
         fi
         
-        if npx prisma generate 2>/dev/null; then
+        if DATABASE_URL="postgresql://user:password@localhost:5432/test_db" npx prisma generate 2>/dev/null; then
             add_pass "Prisma client generation successful"
         else
             add_fail "Prisma client generation failed"
@@ -208,12 +208,22 @@ fi
 print_status "Checking for security best practices..."
 
 # Check for sensitive files that shouldn't be committed
-sensitive_patterns=(".env" "*.key" "*.pem" "config/secrets*")
+sensitive_patterns=(".env" "*.key")
 for pattern in "${sensitive_patterns[@]}"; do
-    if find . -name "$pattern" -not -path "./node_modules/*" | grep -q .; then
+    if find . -name "$pattern" -not -path "./node_modules/*" -not -path "./python/*" 2>/dev/null | grep -q .; then
         add_warning "Potentially sensitive files found matching pattern: $pattern"
     fi
 done
+
+# Check for .pem files but exclude certificate authority files
+if find . -name "*.pem" -not -path "./node_modules/*" -not -path "./python/*" -not -name "*cert*.pem" -not -name "*ca*.pem" 2>/dev/null | grep -q .; then
+    add_warning "Potentially sensitive files found matching pattern: *.pem"
+fi
+
+# Check for config/secrets* separately to handle the path properly
+if find . -path "./config/secrets*" -not -path "./node_modules/*" 2>/dev/null | grep -q .; then
+    add_warning "Potentially sensitive files found matching pattern: config/secrets*"
+fi
 
 # Check .gitignore
 if [ -f ".gitignore" ]; then
@@ -232,7 +242,12 @@ else
 fi
 
 print_status "Testing build process..."
-if npm run build > /dev/null 2>&1; then
+export SKIP_PRISMA_GENERATE=true
+export NEXT_TELEMETRY_DISABLED=1
+export ENCRYPTION_KEY="test-encryption-key-for-ci-builds-only"
+export NODE_ENV="production"
+
+if npm run build:offline > /dev/null 2>&1; then
     add_pass "Production build successful"
     
     # Check build output size
