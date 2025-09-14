@@ -62,11 +62,7 @@ export const authOptions: NextAuthOptions = {
               where: { email },
               include: {
                 twoFactorAuth: true,
-                userRoles: {
-                  include: {
-                    role: true
-                  }
-                }
+                userRoles: true
               }
             });
 
@@ -111,7 +107,7 @@ export const authOptions: NextAuthOptions = {
                   where: { userId: user.id },
                   data: {
                     backupCodes: user.twoFactorAuth.backupCodes?.filter(
-                      code => code !== isValidTotp.usedBackupCode
+                      (code: string) => code !== isValidTotp.usedBackupCode
                     ) || []
                   }
                 });
@@ -128,7 +124,7 @@ export const authOptions: NextAuthOptions = {
             });
 
             // Extract roles
-            const roles = user.userRoles.map(ur => ur.role.name);
+            const roles = user.userRoles.map((ur: any) => ur.role);
 
             return {
               id: user.id,
@@ -209,7 +205,7 @@ export const authOptions: NextAuthOptions = {
           });
 
           // Create user if doesn't exist
-          if (!existingUser) {
+          if (!existingUser && account) {
             const newUser = await prisma.user.create({
               data: {
                 email: user.email!,
@@ -279,21 +275,17 @@ export const authOptions: NextAuthOptions = {
       }
 
       // Refresh user data periodically
-      if (token.sub && prisma && Date.now() - (token.iat || 0) * 1000 > 60 * 60 * 1000) { // 1 hour
+      if (token.sub && prisma && Date.now() - ((token.iat as number) || 0) * 1000 > 60 * 60 * 1000) { // 1 hour
         try {
           const user = await prisma.user.findUnique({
             where: { id: token.sub as string },
             include: {
-              userRoles: {
-                include: {
-                  role: true
-                }
-              }
+              userRoles: true
             }
           });
 
           if (user) {
-            token.roles = user.userRoles.map(ur => ur.role.name);
+            token.roles = user.userRoles.map((ur: any) => ur.role);
             token.name = (user as any).name;
             token.emailVerified = (user as any).emailVerified;
           }
@@ -306,7 +298,7 @@ export const authOptions: NextAuthOptions = {
     },
 
     async session({ session, token, user }) {
-      if (token) {
+      if (token && session.user) {
         session.user.id = token.sub as string;
         session.user.email = token.email as string;
         session.user.name = token.name as string;
@@ -317,7 +309,7 @@ export const authOptions: NextAuthOptions = {
       }
 
       // Database session
-      if (user) {
+      if (user && session.user) {
         session.user.id = user.id;
         (session.user as any).roles = (user as any).roles || ["VIEWER"];
       }
