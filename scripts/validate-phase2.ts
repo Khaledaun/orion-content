@@ -1,6 +1,4 @@
 
-#!/usr/bin/env tsx
-
 /**
  * Phase 2 Validation Script
  * Validates the implementation of unified authentication and authorization features
