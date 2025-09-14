@@ -1,0 +1,28 @@
+# npm audit report
+
+cookie  <0.7.0
+cookie accepts cookie name, path, and domain with out of bounds characters - https://github.com/advisories/GHSA-pxg6-pf52-xh8x
+fix available via `npm audit fix --force`
+Will install next-auth@4.24.7, which is a breaking change
+node_modules/@auth/core/node_modules/cookie
+  @auth/core  <=0.35.3
+  Depends on vulnerable versions of cookie
+  node_modules/@auth/core
+    next-auth  <=0.0.0-pr.11562.ed0fce23 || 4.24.8 - 5.0.0-beta.22
+    Depends on vulnerable versions of @auth/core
+    node_modules/next-auth
+
+next  0.9.9 - 14.2.31
+Severity: moderate
+Information exposure in Next.js dev server due to lack of origin verification - https://github.com/advisories/GHSA-3h52-269p-cp9r
+Next.js Affected by Cache Key Confusion for Image Optimization API Routes - https://github.com/advisories/GHSA-g5qg-72qw-gw5v
+Next.js Improper Middleware Redirect Handling Leads to SSRF - https://github.com/advisories/GHSA-4342-x723-ch2f
+Next.js Content Injection Vulnerability for Image Optimization - https://github.com/advisories/GHSA-xv57-4mr9-wg8v
+fix available via `npm audit fix --force`
+Will install next@14.2.32, which is outside the stated dependency range
+node_modules/next
+
+4 vulnerabilities (3 low, 1 moderate)
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
