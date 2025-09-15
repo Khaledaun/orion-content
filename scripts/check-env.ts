@@ -8,6 +8,11 @@
 
 import { existsSync, readFileSync } from "fs";
 import { URL } from "url";
+import { config } from "dotenv";
+
+// Load environment variables from .env.local and .env files
+config({ path: ".env.local" });
+config({ path: ".env" });
 
 interface ValidationRule {
   key: string;
@@ -32,6 +37,8 @@ class EnvironmentValidator {
 
   private isProduction = process.env.NODE_ENV === "production";
   private isVercelBuild = process.env.VERCEL === "1";
+  private isBuildTime =
+    process.env.NODE_ENV === "production" && !process.env.VERCEL;
 
   private rules: ValidationRule[] = [
     // Core NextAuth Configuration
@@ -154,13 +161,21 @@ class EnvironmentValidator {
 
     const url = new URL(value);
 
-    if (this.isProduction || this.isVercelBuild) {
+    // Only enforce HTTPS and localhost restrictions in actual production deployment
+    if (this.isVercelBuild || (this.isProduction && !this.isBuildTime)) {
       if (url.protocol !== "https:") {
         this.result.errors.push("NEXTAUTH_URL must use HTTPS in production");
       }
       if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
         this.result.errors.push(
           "NEXTAUTH_URL cannot use localhost in production",
+        );
+      }
+    } else if (this.isBuildTime) {
+      // During build time, just warn about localhost URLs
+      if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+        this.result.warnings.push(
+          "NEXTAUTH_URL uses localhost - ensure production URL is set for deployment",
         );
       }
     }
