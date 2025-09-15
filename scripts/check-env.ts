@@ -37,7 +37,8 @@ class EnvironmentValidator {
 
   private isProduction = process.env.NODE_ENV === "production";
   private isVercelBuild = process.env.VERCEL === "1";
-  private isBuildTime = process.env.NODE_ENV === "production" && !process.env.VERCEL;
+  private isBuildTime =
+    process.env.NODE_ENV === "production" && !process.env.VERCEL;
 
   private rules: ValidationRule[] = [
     // Core NextAuth Configuration
