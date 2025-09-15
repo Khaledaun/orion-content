@@ -3,7 +3,7 @@
  * Comprehensive testing of enhanced foundation and core architecture
  */
 
-import { dbManager, enhancedPrisma } from "@/lib/database/connection-manager";
+import { dbManager, _enhancedPrisma } from "@/lib/database/connection-manager";
 import { queryOptimizer } from "@/lib/database/query-optimizer";
 import { migrationManager } from "@/lib/database/migration-manager";
 import { serviceContainer } from "@/lib/architecture/service-container";
@@ -95,9 +95,9 @@ describe("Phase 1 Enhanced Foundation", () => {
 
       // Test migration status check
       const status = await migrationManager.checkMigrationStatus();
-      expect(status).toHaveProperty("pendingMigrations");
-      expect(status).toHaveProperty("appliedMigrations");
-      expect(status).toHaveProperty("databaseStatus");
+      expect(_status).toHaveProperty("pendingMigrations");
+      expect(_status).toHaveProperty("appliedMigrations");
+      expect(_status).toHaveProperty("databaseStatus");
     });
   });
 
@@ -145,7 +145,7 @@ describe("Phase 1 Enhanced Foundation", () => {
       // Test middleware processing
       const response = await middlewareStack.process(mockRequest);
       expect(response).toBeDefined();
-      expect(response.status).toBeDefined();
+      expect(response._status).toBeDefined();
 
       // Test middleware info
       const middlewareInfo = middlewareStack.getMiddlewareInfo();
@@ -163,8 +163,8 @@ describe("Phase 1 Enhanced Foundation", () => {
 
       const response = await errorHandler.handleError(testError, mockRequest);
       expect(response).toBeDefined();
-      expect(response.status).toBeDefined();
-      expect(response.status).toBeGreaterThanOrEqual(400);
+      expect(response._status).toBeDefined();
+      expect(response._status).toBeGreaterThanOrEqual(400);
 
       // Test error stats
       const stats = errorHandler.getErrorStats();
@@ -196,7 +196,7 @@ describe("Phase 1 Enhanced Foundation", () => {
 
       const report = performanceMonitor.endTest(testName);
 
-      expect(report).toBeDefined();
+      expect(_report).toBeDefined();
       expect(report?.testName).toBe(testName);
       expect(report?.duration).toBeGreaterThan(0);
       expect(report?.metrics.length).toBeGreaterThanOrEqual(2);
@@ -211,7 +211,7 @@ describe("Phase 1 Enhanced Foundation", () => {
         testName,
         "test-async-op",
         async () => {
-          await new Promise((resolve) => setTimeout(resolve, 10));
+          await new Promise((resolve) => setTimeout(/* resolve, */ 10));
           return "async-result";
         },
       );
@@ -256,9 +256,9 @@ describe("Phase 1 Enhanced Foundation", () => {
 
     test("Environment manager should generate reports", () => {
       const report = envManager.generateConfigReport();
-      expect(typeof report).toBe("string");
+      expect(typeof _report).toBe("string");
       expect(report.length).toBeGreaterThan(100);
-      expect(report).toContain("Environment Configuration Report");
+      expect(_report).toContain("Environment Configuration Report");
     });
   });
 
@@ -277,8 +277,8 @@ describe("Phase 1 Enhanced Foundation", () => {
       );
 
       // Run individual check
-      const result = await healthMonitor.runHealthCheck("test-check");
-      expect(result.status).toBe("healthy");
+      const _result = await healthMonitor.runHealthCheck("test-check");
+      expect(result._status).toBe("healthy");
       expect(result.message).toBe("Test check passed");
       expect(result.responseTime).toBeGreaterThanOrEqual(0);
 
@@ -329,7 +329,7 @@ describe("Phase 1 Enhanced Foundation", () => {
 
       // Test query with optimization
       const optimizedQuery = async () => ({ integration: "test" });
-      const result = await queryOptimizer.executeQuery(
+      const _result = await queryOptimizer.executeQuery(
         dbConnection,
         "integration-test-query",
         optimizedQuery,

@@ -3,7 +3,7 @@
  */
 "use client";
 
-import { useState, useEffect } from "react";
+import { /* useState, */ useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -46,8 +46,8 @@ import {
   type ConnectionState,
 } from "@/components/ui/state-indicator";
 import {
-  LoadingState,
-  ErrorState,
+  /* LoadingState, */
+  /* ErrorState, */
   EmptyState,
 } from "@/components/ui/enhanced-states";
 import { SkipLink, useFocusManagement } from "@/components/ui/accessibility";
@@ -68,7 +68,7 @@ interface EnhancedStoredCredential extends StoredCredential {
 export default function CredentialsPage() {
   const dict = useDictionary();
   const { isRTL } = useLanguage();
-  const { focusMainContent } = useFocusManagement();
+  const { _focusMainContent } = useFocusManagement();
 
   const [credentials, setCredentials] = useState<EnhancedStoredCredential[]>(
     [],
@@ -119,7 +119,7 @@ export default function CredentialsPage() {
 
     try {
       // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(/* resolve, */ 2000));
 
       // Simulate random test results
       const isSuccess = Math.random() > 0.3;

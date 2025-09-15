@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { /* NextRequest, */ NextResponse } from "next/server";
 import { logger } from "./logger";
 
 export function addSecurityHeaders(response: NextResponse): NextResponse {

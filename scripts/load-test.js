@@ -77,7 +77,7 @@ class LoadTestHarness {
 
   async processSite(siteId) {
     const siteResult = {
-      siteId,
+      _siteId,
       requests: [],
       summary: {
         total: 0,
@@ -92,7 +92,7 @@ class LoadTestHarness {
 
     for (let i = 1; i <= CONFIG.requestsPerSite; i++) {
       try {
-        const requestResult = await this.makeRequest(siteId, i);
+        const requestResult = await this.makeRequest(_siteId, i);
         siteResult.requests.push(requestResult);
         siteResult.summary.total++;
 
@@ -134,12 +134,12 @@ class LoadTestHarness {
     return siteResult;
   }
 
-  async makeRequest(siteId, requestId) {
+  async makeRequest(_siteId, requestId) {
     const startTime = performance.now();
     const timestamp = new Date().toISOString();
 
     // Generate realistic test content
-    const testContent = this.generateTestContent(siteId, requestId);
+    const testContent = this.generateTestContent(_siteId, requestId);
 
     try {
       const response = await fetch(
@@ -159,8 +159,8 @@ class LoadTestHarness {
       const endTime = performance.now();
       const latency = endTime - startTime;
 
-      const result = {
-        siteId,
+      const _result = {
+        _siteId,
         requestId,
         success: response.ok,
         statusCode: response.status,
@@ -195,7 +195,7 @@ class LoadTestHarness {
       const latency = endTime - startTime;
 
       return {
-        siteId,
+        _siteId,
         requestId,
         success: false,
         statusCode: 0,
@@ -207,7 +207,7 @@ class LoadTestHarness {
     }
   }
 
-  generateTestContent(siteId, requestId) {
+  generateTestContent(_siteId, requestId) {
     const languages = ["en", "ar", "fr", "he"];
     const lang = languages[Math.floor(Math.random() * languages.length)];
 
@@ -243,7 +243,7 @@ class LoadTestHarness {
       },
       metadata: {
         loadTestRun: true,
-        concurrentSite: siteId,
+        concurrentSite: _siteId,
         requestSequence: requestId,
       },
     };
@@ -352,7 +352,7 @@ class LoadTestHarness {
   }
 
   sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(/* resolve, */ ms));
   }
 }
 
@@ -360,7 +360,7 @@ class LoadTestHarness {
 async function runPerformanceBenchmarks() {
   console.log("\n🏁 Running Performance Benchmarks...");
 
-  const benchmarks = {
+  const _benchmarks = {
     healthCheck: await benchmarkEndpoint("/api/health", "GET"),
     unauthorizedRulebook: await benchmarkEndpoint("/api/rulebook", "POST"),
     unauthorizedStrategy: await benchmarkEndpoint(
@@ -392,7 +392,7 @@ async function benchmarkEndpoint(path, method, samples = 10) {
     latencies.push(performance.now() - start);
 
     // Small delay between requests
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(/* resolve, */ 100));
   }
 
   return {
@@ -410,7 +410,7 @@ if (require.main === module) {
       const harness = new LoadTestHarness();
 
       // Run performance benchmarks first
-      const benchmarks = await runPerformanceBenchmarks();
+      const _benchmarks = await runPerformanceBenchmarks();
 
       // Run main load test
       const results = await harness.runLoadTest();

@@ -5,7 +5,7 @@
  * Comprehensive assessment of PR #25 Phase 1 implementation
  */
 
-import { writeFileSync, readFileSync, existsSync } from "fs";
+import { writeFileSync, /* readFileSync, */ existsSync } from "fs";
 import { resolve } from "path";
 
 interface ValidationAssessment {
@@ -647,7 +647,7 @@ class Phase1FinalValidator {
     }
 
     // Security for production
-    const productionSecurityFeatures = [
+    const _productionSecurityFeatures = [
       "Rate limiting configuration",
       "Encryption implementation",
       "Audit logging",
@@ -792,7 +792,7 @@ class Phase1FinalValidator {
     console.log(`\n📄 Final validation report saved to: ${reportPath}`);
 
     // Generate summary for PR review
-    this.generatePRSummary(report);
+    this.generatePRSummary(_report);
   }
 
   private verifyPRClaims(): any {

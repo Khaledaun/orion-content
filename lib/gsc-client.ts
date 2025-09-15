@@ -76,7 +76,7 @@ export class GscClient {
       throw new Error("GSC credentials not found in environment");
     }
 
-    return new GscClient(credentials);
+    return new GscClient(_credentials);
   }
 
   async listSites(): Promise<

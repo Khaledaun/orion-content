@@ -134,7 +134,7 @@ export class MigrationManager {
           logger.info("Applying migration", { migration: migration.name });
 
           // Execute migration
-          const result = execSync(
+          const _result = execSync(
             `npx prisma migrate deploy --schema=prisma/schema.prisma`,
             {
               encoding: "utf8",
@@ -208,7 +208,7 @@ export class MigrationManager {
       logger.info("Creating new migration", { name, description });
 
       // Generate migration
-      const result = execSync(
+      const _result = execSync(
         `npx prisma migrate dev --name ${name} --create-only --schema=prisma/schema.prisma`,
         {
           encoding: "utf8",
@@ -251,7 +251,7 @@ export class MigrationManager {
     try {
       logger.info("Validating Prisma schema");
 
-      const result = execSync(
+      const _result = execSync(
         "npx prisma validate --schema=prisma/schema.prisma",
         {
           encoding: "utf8",

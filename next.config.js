@@ -5,7 +5,7 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ["@radix-ui/react-icons", "lucide-react"],
   },
-  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+  webpack: (config, { _buildId, dev, isServer, _defaultLoaders, webpack }) => {
     // Fix for module resolution issues
     config.resolve.alias = {
       ...config.resolve.alias,
@@ -26,6 +26,22 @@ const nextConfig = {
         fullySpecified: false,
       },
     });
+
+    // Suppress specific warnings during build
+    config.infrastructureLogging = {
+      level: "error",
+    };
+
+    // Handle Prisma edge runtime warnings
+    if (!dev && !isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+      };
+    }
 
     return config;
   },

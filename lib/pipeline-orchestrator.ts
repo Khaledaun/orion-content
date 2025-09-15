@@ -46,7 +46,7 @@ export interface PipelineResult {
   qualityScore: number;
   qualityDetails: Record<string, any>;
   language: string;
-  observabilityReport: any;
+  _observabilityReport: any;
   wordpressResult?: {
     postId: number;
     link: string;
@@ -61,7 +61,7 @@ export class ProductionPipelineOrchestrator {
   private openaiClient = createOpenAIClient();
   private perplexityClient = createPerplexityClient();
   private auditLogger = getAuditLogger();
-  private redisStore = getRedisStore();
+  private _redisStore = getRedisStore();
 
   async processPipeline(request: PipelineRequest): Promise<PipelineResult> {
     const pipelineId = `pipeline-${Date.now()}-${Math.random().toString(36).substring(2)}`;
@@ -69,7 +69,7 @@ export class ProductionPipelineOrchestrator {
     // Initialize observability tracking
     const observability = new ProductionObservabilityTracker(
       pipelineId,
-      request.siteId,
+      request._siteId,
       request.topic,
     );
 
@@ -80,9 +80,9 @@ export class ProductionPipelineOrchestrator {
         action: "pipeline_started",
         metadata: {
           pipelineId,
-          siteId: request.siteId,
+          siteId: request._siteId,
           topic: request.topic,
-          flags: request.flags,
+          flags: request._flags,
         },
       });
 
@@ -190,7 +190,7 @@ export class ProductionPipelineOrchestrator {
       const qualityStage = observability.startStage("quality_assessment");
       const qualityResult = await this.assessQuality(
         { title, html, language, citations },
-        request.siteId,
+        request._siteId,
       );
 
       qualityStage.complete(
@@ -263,7 +263,7 @@ export class ProductionPipelineOrchestrator {
         } else {
           // Real WordPress integration would happen here
           // For now, simulate based on quality score
-          const threshold = await this.getQualityThreshold(request.siteId);
+          const _threshold = await this.getQualityThreshold(request.siteId);
 
           if (qualityResult.score >= threshold) {
             wordpressResult = {
@@ -310,10 +310,10 @@ export class ProductionPipelineOrchestrator {
       }
 
       // Step 8: Finalize observability
-      const observabilityReport = await observability.finalize(
+      const _observabilityReport = await observability.finalize(
         qualityResult.score,
         {
-          ...request.flags,
+          ...request._flags,
           i18n_validation: i18nValidation,
           wordpress_action: wordpressResult.action,
         },
@@ -327,20 +327,20 @@ export class ProductionPipelineOrchestrator {
         action: "pipeline_completed",
         metadata: {
           pipelineId,
-          siteId: request.siteId,
+          siteId: request._siteId,
           qualityScore: qualityResult.score,
           wordpressAction: wordpressResult.action,
-          totalCost: observabilityReport.totalCostUsd,
+          totalCost: _observabilityReport.totalCostUsd,
           language,
         },
         success: true,
-        latencyMs: observabilityReport.totalLatencyMs,
-        cost: observabilityReport.totalCostUsd,
+        latencyMs: _observabilityReport.totalLatencyMs,
+        cost: _observabilityReport.totalCostUsd,
       });
 
       return {
         pipelineId,
-        siteId: request.siteId,
+        siteId: request._siteId,
         title,
         slug,
         html,
@@ -349,13 +349,13 @@ export class ProductionPipelineOrchestrator {
         qualityScore: qualityResult.score,
         qualityDetails: qualityResult.details,
         language,
-        observabilityReport,
+        _observabilityReport,
         wordpressResult,
         success: true,
       };
     } catch (error) {
       // Error handling and cleanup
-      const observabilityReport = await observability.finalize(
+      const _observabilityReport = await observability.finalize(
         0,
         { error: true, ...request.flags },
         request.metadata,
@@ -367,7 +367,7 @@ export class ProductionPipelineOrchestrator {
         action: "pipeline_failed",
         metadata: {
           pipelineId,
-          siteId: request.siteId,
+          siteId: request._siteId,
           error: error instanceof Error ? error.message : "Unknown error",
         },
         success: false,
@@ -572,7 +572,7 @@ export class ProductionPipelineOrchestrator {
   ): PipelineResult {
     return {
       pipelineId,
-      siteId: request.siteId,
+      siteId: request._siteId,
       title: "Error",
       slug: "error",
       html: "<p>Pipeline processing failed</p>",
@@ -581,7 +581,7 @@ export class ProductionPipelineOrchestrator {
       qualityScore: 0,
       qualityDetails: {},
       language: request.requirements?.language || "en",
-      observabilityReport: null,
+      _observabilityReport: null,
       success: false,
       error,
     };
@@ -607,7 +607,7 @@ export async function processContentPipeline(
   const pipeline = createProductionPipeline();
 
   return pipeline.processPipeline({
-    siteId,
+    _siteId,
     topic,
     requirements: {
       language: options.language || "en",

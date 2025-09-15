@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { /* NextRequest, */ NextResponse } from "next/server";
 import { requireBearerToken } from "@/lib/enhanced-auth";
 import { getAuditLogger } from "@/lib/audit-prod";
 import { getRedisStore } from "@/lib/redis-store";
@@ -19,14 +19,14 @@ interface ControlAction {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await requireBearerToken(request, {
+    const _user = await requireBearerToken(request, {
       role: "admin",
       rateLimitConfig: { windowMs: 300000, limit: 10 }, // 10 operations per 5 minutes
     });
 
     const body: ControlAction = await request.json();
     const auditLogger = getAuditLogger();
-    const redisStore = getRedisStore();
+    const _redisStore = getRedisStore();
 
     // Validate action
     const validActions = [
@@ -43,13 +43,13 @@ export async function POST(request: NextRequest) {
 
     switch (body.action) {
       case "disable_enforcement":
-        result = await disableEnforcement(body.duration, body.reason);
+        _result = await disableEnforcement(body.duration, body.reason);
         break;
       case "enable_enforcement":
-        result = await enableEnforcement();
+        _result = await enableEnforcement();
         break;
       case "set_dry_run":
-        result = await setDryRunMode(body.duration, body.reason);
+        _result = await setDryRunMode(body.duration, body.reason);
         break;
       case "emergency_rollback":
         if (!body.targetVersion) {
@@ -58,14 +58,14 @@ export async function POST(request: NextRequest) {
             { status: 400 },
           );
         }
-        result = await emergencyRollback(body.targetVersion, body.reason);
+        _result = await emergencyRollback(body.targetVersion, body.reason);
         break;
     }
 
     // Audit log the control action
     await auditLogger.log({
       action: `ops_control_${body.action}`,
-      actor: user.id,
+      actor: _user.id,
       route: "/api/ops/controls",
       success: result.success,
       metadata: {
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
 }
 
 async function disableEnforcement(durationMinutes?: number, reason?: string) {
-  const redisStore = getRedisStore();
+  const _redisStore = getRedisStore();
 
   try {
     const config = {
@@ -106,9 +106,9 @@ async function disableEnforcement(durationMinutes?: number, reason?: string) {
 
     const ttl = durationMinutes ? durationMinutes * 60 : undefined;
     if (ttl) {
-      await redisStore.set("enforcement_disabled", JSON.stringify(config), ttl);
+      await _redisStore.set("enforcement_disabled", JSON.stringify(config), ttl);
     } else {
-      await redisStore.set("enforcement_disabled", JSON.stringify(config));
+      await _redisStore.set("enforcement_disabled", JSON.stringify(config));
     }
 
     console.warn("ENFORCEMENT_DISABLED:", config);
@@ -128,10 +128,10 @@ async function disableEnforcement(durationMinutes?: number, reason?: string) {
 }
 
 async function enableEnforcement() {
-  const redisStore = getRedisStore();
+  const _redisStore = getRedisStore();
 
   try {
-    await redisStore.del("enforcement_disabled");
+    await _redisStore.del("enforcement_disabled");
 
     console.info("ENFORCEMENT_ENABLED: Quality enforcement re-enabled");
 
@@ -148,7 +148,7 @@ async function enableEnforcement() {
 }
 
 async function setDryRunMode(durationMinutes?: number, reason?: string) {
-  const redisStore = getRedisStore();
+  const _redisStore = getRedisStore();
 
   try {
     const config = {
@@ -162,9 +162,9 @@ async function setDryRunMode(durationMinutes?: number, reason?: string) {
 
     const ttl = durationMinutes ? durationMinutes * 60 : undefined;
     if (ttl) {
-      await redisStore.set("dry_run_mode", JSON.stringify(config), ttl);
+      await _redisStore.set("dry_run_mode", JSON.stringify(config), ttl);
     } else {
-      await redisStore.set("dry_run_mode", JSON.stringify(config));
+      await _redisStore.set("dry_run_mode", JSON.stringify(config));
     }
 
     console.warn("DRY_RUN_ENABLED:", config);
@@ -250,12 +250,12 @@ async function emergencyRollback(targetVersion: number, reason?: string) {
 // GET endpoint to check current control states
 export async function GET(request: NextRequest) {
   try {
-    const user = await requireBearerToken(request, {
+    const _user = await requireBearerToken(request, {
       role: "admin",
       rateLimitConfig: { windowMs: 60000, limit: 30 },
     });
 
-    const redisStore = getRedisStore();
+    const _redisStore = getRedisStore();
     const states = {
       enforcementDisabled: false,
       dryRunMode: false,
@@ -263,8 +263,8 @@ export async function GET(request: NextRequest) {
       dryRunConfig: null,
     };
 
-    const disabledConfig = await redisStore.get("enforcement_disabled");
-    const dryRunConfig = await redisStore.get("dry_run_mode");
+    const disabledConfig = await _redisStore.get("enforcement_disabled");
+    const dryRunConfig = await _redisStore.get("dry_run_mode");
 
     if (disabledConfig) {
       states.enforcementDisabled = true;

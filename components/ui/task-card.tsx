@@ -23,7 +23,7 @@ export function TaskCard({
   description,
   category,
   completed,
-  onComplete,
+  _onComplete,
   onDelete,
   onEdit,
 }: TaskCardProps) {

@@ -184,7 +184,7 @@ export class PerplexityClient {
   async research(
     topic: string,
     focusAreas: string[] = [],
-    maxSources: number = 10,
+    _maxSources: number = 10,
   ): Promise<PerplexityResponse> {
     const query = this.buildResearchQuery(topic, focusAreas);
 

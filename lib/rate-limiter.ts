@@ -28,7 +28,7 @@ export class RateLimiter {
       : this.getDefaultKey(request);
 
     const now = Date.now();
-    const windowStart = now - config.windowMs;
+    const _windowStart = now - config.windowMs;
     const redisKey = `rate_limit:${key}`;
 
     try {

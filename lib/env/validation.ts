@@ -127,9 +127,9 @@ class EnvironmentValidator {
     }
 
     // OAuth provider validation
-    const hasGoogleOAuth =
+    const _hasGoogleOAuth =
       this.config.GOOGLE_CLIENT_ID && this.config.GOOGLE_CLIENT_SECRET;
-    const hasGitHubOAuth =
+    const _hasGitHubOAuth =
       this.config.GITHUB_CLIENT_ID && this.config.GITHUB_CLIENT_SECRET;
 
     if (this.config.GOOGLE_CLIENT_ID && !this.config.GOOGLE_CLIENT_SECRET) {
@@ -224,7 +224,7 @@ if (validation.warnings.length > 0) {
 }
 
 // Use empty defaults for build time if validation fails
-export const env =
+export const _env =
   validation.config ||
   ({
     NEXTAUTH_URL: "https://localhost:3000",

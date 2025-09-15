@@ -90,7 +90,7 @@ export function AuditLogs({ userRole }: AuditLogsProps) {
     }
   };
 
-  const toggleExpanded = (id: string) => {
+  const _toggleExpanded = (id: string) => {
     const newExpanded = new Set(expandedItems);
     if (newExpanded.has(id)) {
       newExpanded.delete(id);

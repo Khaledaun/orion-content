@@ -4,7 +4,7 @@
  */
 
 import { execSync } from "child_process";
-import { existsSync, readFileSync } from "fs";
+import { /* existsSync, */ readFileSync } from "fs";
 import { join } from "path";
 
 interface ValidationResult {
@@ -465,7 +465,7 @@ class Phase2Validator {
         },
       };
 
-      const result = await abacEngine.authorize(authRequest);
+      const _result = await abacEngine.authorize(authRequest);
       if (typeof result.allowed === "boolean") {
         this.addResult(
           "Authorization",
@@ -536,7 +536,7 @@ class Phase2Validator {
 
       // Test audit querying (if database is available)
       try {
-        const events = await auditLogger.query({ limit: 1 });
+        const _events = await auditLogger.query({ limit: 1 });
         this.addResult(
           "Audit Logging",
           "Event querying",
@@ -575,7 +575,7 @@ class Phase2Validator {
       );
 
       // Test rate limiting
-      const result = await rateLimiter.checkRateLimit({
+      const _result = await rateLimiter.checkRateLimit({
         identifier: "test-client",
         config: RATE_LIMIT_CONFIGS.API_GENERAL,
       });

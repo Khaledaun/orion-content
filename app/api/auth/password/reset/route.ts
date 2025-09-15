@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { /* NextRequest, */ NextResponse } from "next/server";
 import { PasswordManager } from "@/lib/auth/password";
 import { TokenManager } from "@/lib/auth/token";
 import { prisma } from "@/app/lib/prisma";
@@ -12,7 +12,7 @@ import {
 export async function POST(request: NextRequest) {
   try {
     // Rate limiting
-    const clientId = getClientIdentifier(request);
+    const clientId = getClientIdentifier(_request);
     const rateLimitResult = await rateLimiter.checkRateLimit({
       identifier: clientId,
       config: RATE_LIMIT_CONFIGS.AUTH_PASSWORD_RESET,
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user by email
-    const user = await prisma.user.findUnique({
+    const _user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
     });
 
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
 
     // TODO: Send email with reset link
     // const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${resetData.token}`;
-    // await sendPasswordResetEmail(user.email, resetUrl);
+    // await sendPasswordResetEmail(user._email, resetUrl);
 
     // Log password reset request
     await auditLogger.logAuth({

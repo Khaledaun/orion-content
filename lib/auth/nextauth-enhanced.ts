@@ -46,7 +46,7 @@ export const authOptions: NextAuthOptions = {
         totpCode: { label: "2FA Code", type: "text", optional: true },
         rememberMe: { label: "Remember Me", type: "checkbox", optional: true },
       },
-      async authorize(credentials) {
+      async authorize(_credentials) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Email and password are required");
         }
@@ -57,7 +57,7 @@ export const authOptions: NextAuthOptions = {
         try {
           // Database authentication
           if (prisma) {
-            const user = await prisma.user.findUnique({
+            const _user = await prisma.user.findUnique({
               where: { email },
               include: {
                 twoFactorAuth: true,
@@ -132,7 +132,7 @@ export const authOptions: NextAuthOptions = {
 
             return {
               id: user.id,
-              email: user.email,
+              email: user._email,
               name: (user as any).name || null,
               image: (user as any).image || null,
               roles,
@@ -145,7 +145,7 @@ export const authOptions: NextAuthOptions = {
           if (email === "demo@example.com" && password === "demo123") {
             return {
               id: "demo-user",
-              email: email,
+              email: _email,
               name: "Demo User",
               roles: ["VIEWER"],
               emailVerified: new Date(),
@@ -204,7 +204,7 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async signIn({ user, account, profile, email, credentials }) {
+    async signIn({ user, _account, _profile, _email, credentials }) {
       try {
         // Handle OAuth sign-ins
         if (account?.provider !== "credentials" && prisma) {
@@ -264,12 +264,12 @@ export const authOptions: NextAuthOptions = {
       }
     },
 
-    async jwt({ token, user, account, trigger, session }) {
+    async jwt({ token, user, _account, trigger, session }) {
       // Initial sign in
       if (user) {
         token.sub = user.id;
         token.email = user.email;
-        token.name = user.name;
+        token._name = user.name;
         token.roles = (user as any).roles || ["VIEWER"];
         token.emailVerified = (user as any).emailVerified;
         token.twoFactorEnabled = (user as any).twoFactorEnabled || false;
@@ -278,7 +278,7 @@ export const authOptions: NextAuthOptions = {
 
       // Handle session updates
       if (trigger === "update" && session) {
-        token.name = session.name || token.name;
+        token._name = session.name || token.name;
         token.roles = session.roles || token.roles;
       }
 
@@ -290,7 +290,7 @@ export const authOptions: NextAuthOptions = {
       ) {
         // 1 hour
         try {
-          const user = await prisma.user.findUnique({
+          const _user = await prisma.user.findUnique({
             where: { id: token.sub as string },
             include: {
               userRoles: true,
@@ -299,7 +299,7 @@ export const authOptions: NextAuthOptions = {
 
           if (user) {
             token.roles = user.userRoles.map((ur: any) => ur.role);
-            token.name = (user as any).name;
+            token._name = (user as any).name;
             token.emailVerified = (user as any).emailVerified;
           }
         } catch (error) {
@@ -310,11 +310,11 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
 
-    async session({ session, token, user }) {
+    async session({ _session, token, user }) {
       if (token && session.user) {
         session.user.id = token.sub as string;
         session.user.email = token.email as string;
-        session.user.name = token.name as string;
+        session.user._name = token.name as string;
         (session.user as any).roles = token.roles || ["VIEWER"];
         (session.user as any).emailVerified = token.emailVerified;
         (session.user as any).twoFactorEnabled =
@@ -343,7 +343,7 @@ export const authOptions: NextAuthOptions = {
   },
 
   events: {
-    async signIn({ user, account, profile, isNewUser }) {
+    async signIn({ user, _account, _profile, isNewUser }) {
       console.log(`User signed in: ${user.email} via ${account?.provider}`);
 
       // Log audit event
@@ -368,7 +368,7 @@ export const authOptions: NextAuthOptions = {
       }
     },
 
-    async signOut({ session, token }) {
+    async signOut({ _session, token }) {
       console.log(`User signed out: ${session?.user?.email || token?.email}`);
 
       // Log audit event
@@ -396,11 +396,11 @@ export const authOptions: NextAuthOptions = {
       console.log(`User updated: ${user.email}`);
     },
 
-    async linkAccount({ user, account, profile }) {
+    async linkAccount({ user, _account, profile }) {
       console.log(`Account linked: ${user.email} with ${account.provider}`);
     },
 
-    async session({ session, token }) {
+    async session({ _session, token }) {
       // Session accessed - could be used for activity tracking
     },
   },

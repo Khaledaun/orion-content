@@ -18,7 +18,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { useDictionary, useLanguage } from "@/lib/i18n/language-context";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
-import { LoadingState, ErrorState } from "@/components/ui/enhanced-states";
+import { /* LoadingState, */ ErrorState } from "@/components/ui/enhanced-states";
 import { SkipLink, useFocusManagement } from "@/components/ui/accessibility";
 
 interface SiteData {
@@ -39,12 +39,12 @@ interface ConnectorData {
 }
 
 export default function SetupPage() {
-  const router = useRouter();
+  const _router = useRouter();
   const dict = useDictionary();
   const { isRTL } = useLanguage();
-  const { focusMainContent } = useFocusManagement();
+  const { _focusMainContent } = useFocusManagement();
 
-  const [loading, setLoading] = useState(false);
+  const [_loading, setLoading] = useState(false);
   const [currentTab, setCurrentTab] = useState("site");
 
   const [siteData, setSiteData] = useState<SiteData>({
@@ -203,7 +203,7 @@ export default function SetupPage() {
 
       if (!response.ok) throw new Error("Failed to write to GitHub");
 
-      const result = await response.json();
+      const _result = await response.json();
       setGithubResult(result);
       toast.success(`Wrote ${result.written} secrets to GitHub`);
     } catch (error) {

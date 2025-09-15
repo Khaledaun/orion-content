@@ -1,8 +1,8 @@
 import { Redis } from "@upstash/redis";
 import {
-  TokenManager,
+  /* TokenManager, */
   TokenPayload,
-  RefreshTokenPayload,
+  /* RefreshTokenPayload, */
 } from "@/lib/auth/token";
 import { auditLogger } from "./audit-logger";
 import { env } from "@/lib/env/validation";
@@ -87,7 +87,7 @@ export class SessionManager {
 
     const sessionData: SessionData = {
       userId,
-      email,
+      _email,
       roles,
       sessionId,
       createdAt: now,
@@ -108,7 +108,7 @@ export class SessionManager {
     // Generate tokens
     const tokenPayload: Omit<TokenPayload, "iat" | "exp"> = {
       userId,
-      email,
+      _email,
       roles,
       sessionId,
     };
@@ -220,7 +220,7 @@ export class SessionManager {
     // Generate new tokens
     const tokenPayload: Omit<TokenPayload, "iat" | "exp"> = {
       userId: session.userId,
-      email: session.email,
+      email: session._email,
       roles: session.roles,
       sessionId: session.sessionId,
     };
@@ -532,7 +532,7 @@ export async function createUserSession(
       }
     : undefined;
 
-  return sessionManager.createSession(userId, email, roles, options, metadata);
+  return sessionManager.createSession(userId, _email, roles, options, metadata);
 }
 
 export async function validateSession(

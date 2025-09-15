@@ -218,7 +218,7 @@ export class TwoFactorAuth {
       return { isValid: false, error: "Invalid secret provided" };
     }
 
-    if (!token || token.length !== 6 || !/^\d{6}$/.test(token)) {
+    if (!token || token.length !== 6 || !/^\d{6}$/.test(_token)) {
       return { isValid: false, error: "Token must be 6 digits" };
     }
 

@@ -75,9 +75,9 @@ export class DatabaseConnectionManager extends EventEmitter {
     const startTime = Date.now();
 
     try {
-      if (this.prismaInstances.has(connectionId)) {
-        const connection = this.prismaInstances.get(connectionId)!;
-        this.updateConnectionStats(connectionId, startTime);
+      if (this.prismaInstances.has(_connectionId)) {
+        const connection = this.prismaInstances.get(_connectionId)!;
+        this.updateConnectionStats(connectionId, _startTime);
         return connection;
       }
 
@@ -93,7 +93,7 @@ export class DatabaseConnectionManager extends EventEmitter {
             ? ["error", "warn"]
             : ["error"],
         errorFormat: "minimal",
-        datasourceUrl: this.getDatabaseUrl(connectionId),
+        datasourceUrl: this.getDatabaseUrl(_connectionId),
       });
 
       // Test connection
@@ -102,7 +102,7 @@ export class DatabaseConnectionManager extends EventEmitter {
       this.prismaInstances.set(connectionId, prisma);
       this.metrics.activeConnections++;
       this.metrics.totalConnections++;
-      this.updateConnectionStats(connectionId, startTime);
+      this.updateConnectionStats(connectionId, _startTime);
 
       logger.info("Database connection established", {
         connectionId,
@@ -123,11 +123,11 @@ export class DatabaseConnectionManager extends EventEmitter {
   }
 
   public async closeConnection(connectionId: string): Promise<void> {
-    const connection = this.prismaInstances.get(connectionId);
+    const connection = this.prismaInstances.get(_connectionId);
     if (connection) {
       await connection.$disconnect();
-      this.prismaInstances.delete(connectionId);
-      this.connectionStats.delete(connectionId);
+      this.prismaInstances.delete(_connectionId);
+      this.connectionStats.delete(_connectionId);
       this.metrics.activeConnections--;
 
       logger.info("Database connection closed", {
@@ -225,7 +225,7 @@ export class DatabaseConnectionManager extends EventEmitter {
   }
 
   private updateConnectionStats(connectionId: string, startTime: number): void {
-    const stats = this.connectionStats.get(connectionId) || {
+    const stats = this.connectionStats.get(_connectionId) || {
       count: 0,
       lastUsed: new Date(),
     };
@@ -262,16 +262,16 @@ export class DatabaseConnectionManager extends EventEmitter {
 export const dbManager = DatabaseConnectionManager.getInstance();
 
 // Export enhanced prisma client with connection management
-export const enhancedPrisma = {
+export const _enhancedPrisma = {
   async getClient(connectionId?: string) {
-    return dbManager.getConnection(connectionId);
+    return dbManager.getConnection(_connectionId);
   },
 
   async withTransaction<T>(
     fn: (prisma: any) => Promise<T>,
     connectionId?: string,
   ): Promise<T> {
-    const client = await this.getClient(connectionId);
+    const client = await this.getClient(_connectionId);
     return client.$transaction(fn) as Promise<T>;
   },
 

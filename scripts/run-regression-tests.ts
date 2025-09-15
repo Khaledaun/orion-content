@@ -40,7 +40,7 @@ class RegressionTestRunner {
 
     for (const suite of suites) {
       console.log(`\n🔍 Running ${suite.name}...`);
-      const result = await suite.runner.call(this);
+      const _result = await suite.runner.call(this);
       this.results.push(result);
 
       const status = result.passed ? "✅ PASSED" : "❌ FAILED";

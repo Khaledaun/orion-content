@@ -4,7 +4,7 @@
 
 export interface EncryptedData {
   data: string;
-  iv: string;
+  _iv: string;
   tag: string;
 }
 
@@ -51,22 +51,22 @@ export async function encryptData(
 ): Promise<EncryptedData> {
   if (typeof window !== "undefined") {
     // Browser environment
-    const keyBuffer = new Uint8Array(
+    const _keyBuffer = new Uint8Array(
       key.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)),
     );
     const cryptoKey = await crypto.subtle.importKey(
       "raw",
-      keyBuffer,
+      _keyBuffer,
       { name: "AES-GCM" },
       false,
       ["encrypt"],
     );
 
-    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const _iv = crypto.getRandomValues(new Uint8Array(12));
     const encodedData = new TextEncoder().encode(data);
 
     const encrypted = await crypto.subtle.encrypt(
-      { name: "AES-GCM", iv },
+      { name: "AES-GCM", _iv },
       cryptoKey,
       encodedData,
     );
@@ -79,7 +79,7 @@ export async function encryptData(
       data: Array.from(ciphertext, (byte) =>
         byte.toString(16).padStart(2, "0"),
       ).join(""),
-      iv: Array.from(iv, (byte) => byte.toString(16).padStart(2, "0")).join(""),
+      _iv: Array.from(_iv, (byte) => byte.toString(16).padStart(2, "0")).join(""),
       tag: Array.from(tag, (byte) => byte.toString(16).padStart(2, "0")).join(
         "",
       ),
@@ -87,8 +87,8 @@ export async function encryptData(
   } else {
     // Node.js environment
     const crypto = require("crypto");
-    const keyBuffer = Buffer.from(key, "hex");
-    const iv = crypto.randomBytes(12);
+    const _keyBuffer = Buffer.from(key, "hex");
+    const _iv = crypto.randomBytes(12);
 
     const cipher = crypto.createCipher("aes-256-gcm");
     cipher.setAAD(Buffer.alloc(0));
@@ -99,7 +99,7 @@ export async function encryptData(
 
     return {
       data: encrypted,
-      iv: iv.toString("hex"),
+      _iv: _iv.toString("hex"),
       tag: tag.toString("hex"),
     };
   }
@@ -114,19 +114,19 @@ export async function decryptData(
 ): Promise<string> {
   if (typeof window !== "undefined") {
     // Browser environment
-    const keyBuffer = new Uint8Array(
+    const _keyBuffer = new Uint8Array(
       key.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)),
     );
     const cryptoKey = await crypto.subtle.importKey(
       "raw",
-      keyBuffer,
+      _keyBuffer,
       { name: "AES-GCM" },
       false,
       ["decrypt"],
     );
 
-    const iv = new Uint8Array(
-      encryptedData.iv.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)),
+    const _iv = new Uint8Array(
+      encryptedData._iv.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)),
     );
     const ciphertext = new Uint8Array(
       encryptedData.data.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)),
@@ -140,7 +140,7 @@ export async function decryptData(
     combined.set(tag, ciphertext.length);
 
     const decrypted = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv },
+      { name: "AES-GCM", _iv },
       cryptoKey,
       combined,
     );
@@ -149,8 +149,8 @@ export async function decryptData(
   } else {
     // Node.js environment
     const crypto = require("crypto");
-    const keyBuffer = Buffer.from(key, "hex");
-    const iv = Buffer.from(encryptedData.iv, "hex");
+    const _keyBuffer = Buffer.from(key, "hex");
+    const _iv = Buffer.from(encryptedData._iv, "hex");
     const tag = Buffer.from(encryptedData.tag, "hex");
 
     const decipher = crypto.createDecipher("aes-256-gcm");

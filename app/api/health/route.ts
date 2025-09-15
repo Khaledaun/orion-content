@@ -3,7 +3,7 @@
  * Phase 1 Enhancement: Comprehensive health status API
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { /* NextRequest, */ NextResponse } from "next/server";
 import { healthMonitor } from "@/lib/monitoring/health-monitor";
 import { logger } from "@/lib/logger";
 

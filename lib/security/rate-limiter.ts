@@ -44,7 +44,7 @@ export class EdgeRateLimiter {
       ? config.keyGenerator(identifier)
       : `rate_limit:${identifier}`;
     const now = Date.now();
-    const windowStart = now - config.windowMs;
+    const _windowStart = now - config.windowMs;
 
     try {
       if (this.redis) {
@@ -293,9 +293,9 @@ export async function applyRateLimit(
   config: RateLimitConfig,
   identifier?: string,
 ): Promise<{ allowed: boolean; response?: Response }> {
-  const clientId = identifier || getClientIdentifier(request);
+  const clientId = identifier || getClientIdentifier(_request);
 
-  const result = await rateLimiter.checkRateLimit({
+  const _result = await rateLimiter.checkRateLimit({
     identifier: clientId,
     config,
   });
@@ -327,7 +327,7 @@ export class BruteForceProtection {
       keyGenerator: (id) => `brute_force:${id}`,
     };
 
-    const result = await rateLimiter.checkRateLimit({
+    const _result = await rateLimiter.checkRateLimit({
       identifier,
       config,
     });

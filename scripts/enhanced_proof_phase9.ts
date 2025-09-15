@@ -1,5 +1,5 @@
 import { execSync } from "child_process";
-import { writeFileSync, existsSync, readFileSync } from "fs";
+import { writeFileSync, /* existsSync, */ readFileSync } from "fs";
 import { join } from "path";
 
 interface TestResult {
@@ -172,9 +172,9 @@ class EnhancedPhase9ProofRunner {
       if (this.verbose) {
         console.log("   📝 Generated observability.json:");
         console.log("   📊 Report structure:");
-        console.log(`      - Keys: ${Object.keys(report).join(", ")}`);
+        console.log(`      - Keys: ${Object.keys(_report).join(", ")}`);
         console.log(
-          `      - Size: ${JSON.stringify(report).length} characters`,
+          `      - Size: ${JSON.stringify(_report).length} characters`,
         );
       }
 
@@ -215,7 +215,7 @@ class EnhancedPhase9ProofRunner {
 
       // Check that secrets are NOT in the redacted output
       const testLogContent = JSON.stringify(redactedData);
-      const observabilityContent = JSON.stringify(report);
+      const observabilityContent = JSON.stringify(_report);
 
       // Check test log for secrets (should find none)
       const secretsInTestLog =

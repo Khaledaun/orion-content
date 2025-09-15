@@ -2,7 +2,7 @@ import { withAuthRoute } from "@/lib/route-auth";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-import { NextRequest, NextResponse } from "next/server";
+import { /* NextRequest, */ NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 type Conn = Awaited<ReturnType<typeof prisma.connection.findMany>>[number];
 
@@ -61,7 +61,7 @@ async function handler(req: NextRequest) {
     }
 
     const { key, key_id } = await publicKeyResponse.json();
-    const publicKeyBytes = Buffer.from(key, "base64");
+    const _publicKeyBytes = Buffer.from(key, "base64");
 
     // Collect secrets to write
     const secretsToWrite: Array<{ name: string; value: string }> = [];
@@ -193,4 +193,4 @@ async function handler(req: NextRequest) {
   }
 }
 
-export const POST = withAuthRoute(async (req) => await handler(req));
+export const POST = withAuthRoute(async (_req) => await handler(_req));

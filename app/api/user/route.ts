@@ -1,12 +1,12 @@
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-import { NextRequest, NextResponse } from "next/server";
+import { /* NextRequest, */ NextResponse } from "next/server";
 // import { getSession } from '@/lib/auth' // Disabled due to missing export
 
 export async function GET(req: NextRequest) {
   try {
-    // const user = await getSession()
+    // const _user = await getSession()
     // if (!user) {
     //   return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     // }

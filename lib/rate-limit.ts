@@ -25,7 +25,7 @@ export async function rateLimit(
   reset: number;
 }> {
   const now = Date.now();
-  const windowStart = now - config.windowMs;
+  const _windowStart = now - config.windowMs;
 
   // Get client identifier (IP address)
   const clientIP = req.ip || req.headers.get("x-forwarded-for") || "unknown";

@@ -21,7 +21,7 @@ export interface MiddlewareContext {
 }
 
 interface MiddlewareDefinition {
-  name: string;
+  _name: string;
   middleware: MiddlewareFunction;
   order: number;
   enabled: boolean;
@@ -51,7 +51,7 @@ export class MiddlewareStack {
   }
 
   public use(
-    name: string,
+    _name: string,
     middleware: MiddlewareFunction,
     options: {
       order?: number;
@@ -60,17 +60,17 @@ export class MiddlewareStack {
     } = {},
   ): MiddlewareStack {
     const definition: MiddlewareDefinition = {
-      name,
+      _name,
       middleware,
       order: options.order ?? 100,
       enabled: options.enabled ?? true,
       conditions: options.conditions,
     };
 
-    this.middlewares.set(name, definition);
+    this.middlewares.set(_name, definition);
 
     logger.debug("Middleware registered", {
-      name,
+      _name,
       order: definition.order,
       enabled: definition.enabled,
       hasConditions: !!definition.conditions?.length,
@@ -84,20 +84,20 @@ export class MiddlewareStack {
     return this;
   }
 
-  public disable(name: string): MiddlewareStack {
-    const definition = this.middlewares.get(name);
+  public disable(_name: string): MiddlewareStack {
+    const definition = this.middlewares.get(_name);
     if (definition) {
       definition.enabled = false;
-      logger.debug("Middleware disabled", { name });
+      logger.debug("Middleware disabled", { _name });
     }
     return this;
   }
 
-  public enable(name: string): MiddlewareStack {
-    const definition = this.middlewares.get(name);
+  public enable(_name: string): MiddlewareStack {
+    const definition = this.middlewares.get(_name);
     if (definition) {
       definition.enabled = true;
-      logger.debug("Middleware enabled", { name });
+      logger.debug("Middleware enabled", { _name });
     }
     return this;
   }
@@ -161,14 +161,14 @@ export class MiddlewareStack {
   }
 
   public getMiddlewareInfo(): Array<{
-    name: string;
+    _name: string;
     order: number;
     enabled: boolean;
     conditionCount: number;
   }> {
     return Array.from(this.middlewares.values())
       .map((def) => ({
-        name: def.name,
+        _name: def._name,
         order: def.order,
         enabled: def.enabled,
         conditionCount: def.conditions?.length || 0,
@@ -185,7 +185,7 @@ export class MiddlewareStack {
   ): MiddlewareDefinition[] {
     const applicable: MiddlewareDefinition[] = [];
 
-    for (const [name, definition] of this.middlewares) {
+    for (const [_name, definition] of this.middlewares) {
       if (!definition.enabled) continue;
 
       if (!definition.conditions || definition.conditions.length === 0) {
@@ -270,7 +270,7 @@ export class MiddlewareStack {
         return await middleware.middleware(request, context, next);
       } catch (error) {
         logger.error("Middleware execution failed", {
-          middleware: middleware.name,
+          middleware: middleware._name,
           requestId: context.requestId,
           error: error instanceof Error ? error.message : String(error),
         });

@@ -68,8 +68,8 @@ export function LazyImage({
 // Lazy loading wrapper for heavy components
 export function LazySection({
   children,
-  threshold = 0.1,
-  rootMargin = "50px",
+  _threshold = 0.1,
+  _rootMargin = "50px",
 }: {
   children: React.ReactNode;
   threshold?: number;

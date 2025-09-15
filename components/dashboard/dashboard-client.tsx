@@ -18,7 +18,6 @@ import {
   Clock,
   DollarSign,
   CheckCircle,
-  AlertTriangle,
   BarChart3,
   Users,
   FileText,
@@ -58,7 +57,7 @@ export function DashboardClient({
 }: DashboardClientProps) {
   const dict = useDictionary();
   const { isRTL } = useLanguage();
-  const { focusMainContent } = useFocusManagement();
+  const { _focusMainContent } = useFocusManagement();
 
   const [data, setData] = useState<DashboardData>(initialData);
   const [loading, setLoading] = useState(false);

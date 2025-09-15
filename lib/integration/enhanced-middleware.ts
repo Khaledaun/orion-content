@@ -20,7 +20,7 @@ export async function enhancedMiddleware(
     );
 
     // Add request-specific services to scope
-    const requestLogger = logger.child({
+    const _requestLogger = logger.child({
       requestId: requestScope.getId(),
       path: request.nextUrl.pathname,
       method: request.method,

@@ -14,8 +14,8 @@
  *   npm run test-deploy -- --skip-build   # Skip build (for testing)
  */
 
-import { spawn, exec } from "child_process";
-import { writeFileSync, existsSync, readFileSync } from "fs";
+import { /* spawn, */ exec } from "child_process";
+import { writeFileSync, /* existsSync, */ readFileSync } from "fs";
 import { resolve } from "path";
 import { PrismaClient } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
@@ -219,7 +219,7 @@ class TestDeployScript {
 
       // Run the build
       console.log("  Running build...");
-      const buildOutput = await this.execCommand("npm run build", 300000); // 5 minute timeout
+      const _buildOutput = await this.execCommand("npm run build", 300000); // 5 minute timeout
 
       const buildTime = Date.now() - buildStartTime;
       console.log(
@@ -299,11 +299,11 @@ class TestDeployScript {
         try {
           const passwordHash = await bcrypt.hash(account.password, 12);
 
-          const user = await prisma.user.upsert({
+          const _user = await prisma.user.upsert({
             where: { email: account.email },
             update: {},
             create: {
-              email: account.email,
+              email: account._email,
               name: account.name,
               passwordHash,
               roles: {
@@ -516,7 +516,7 @@ class TestDeployScript {
     command: string,
     timeout: number = 120000,
   ): Promise<string> {
-    return new Promise((resolve, reject) => {
+    return new Promise((/* resolve, */ reject) => {
       exec(command, { timeout }, (error, stdout, stderr) => {
         if (error) {
           reject(new Error(`Command failed: ${error.message}\n${stderr}`));

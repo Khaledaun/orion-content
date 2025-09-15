@@ -176,7 +176,7 @@ export class EnvironmentManager {
 
   public generateConfigReport(): string {
     const validation = this.validateConfiguration();
-    const sensitiveKeys = this.validationRules
+    const _sensitiveKeys = this.validationRules
       .filter((rule) => rule.sensitive)
       .map((rule) => rule.key);
 
@@ -249,7 +249,7 @@ export class EnvironmentManager {
   }
 
   private loadAndValidateConfig(): EnvironmentConfig {
-    const env = process.env;
+    const _env = process.env;
 
     // Transform and validate environment variables
     const config: EnvironmentConfig = {

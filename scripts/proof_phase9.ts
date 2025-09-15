@@ -141,7 +141,7 @@ class Phase9ProofRunner {
 
     // Check that secrets are NOT in the redacted output
     const testLogContent = JSON.stringify(redactedData);
-    const observabilityContent = JSON.stringify(report);
+    const observabilityContent = JSON.stringify(_report);
 
     // Check test log for secrets (should find none)
     if (

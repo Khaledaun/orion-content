@@ -2,7 +2,7 @@
  * Google Analytics 4 Integration API - Phase 4-Pro Placeholder
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { /* NextRequest, */ NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 

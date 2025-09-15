@@ -6,7 +6,7 @@
 import { prisma } from "../lib/prisma";
 import { qaValidator } from "../lib/qa-validator";
 import {
-  integrationManager,
+  /* integrationManager, */
   IntegrationType,
   IntegrationManager,
 } from "../lib/integration-manager";
@@ -41,17 +41,17 @@ async function runTests() {
 
     // Test 3: Integration Manager - Dummy Credentials
     console.log("\n3. Testing integration manager...");
-    const dummyWpCreds = IntegrationManager.generateDummyCredentials(
+    const _dummyWpCreds = IntegrationManager.generateDummyCredentials(
       IntegrationType.WORDPRESS,
     );
     console.log("✅ Generated dummy WordPress credentials");
 
-    const dummyGscCreds = IntegrationManager.generateDummyCredentials(
+    const _dummyGscCreds = IntegrationManager.generateDummyCredentials(
       IntegrationType.GSC,
     );
     console.log("✅ Generated dummy GSC credentials");
 
-    const dummyGa4Creds = IntegrationManager.generateDummyCredentials(
+    const _dummyGa4Creds = IntegrationManager.generateDummyCredentials(
       IntegrationType.GA4,
     );
     console.log("✅ Generated dummy GA4 credentials");

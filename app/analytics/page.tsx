@@ -22,9 +22,7 @@ import {
   Users,
   Globe,
   RefreshCw,
-  Calendar,
   Target,
-  Activity,
 } from "lucide-react";
 
 interface AnalyticsData {

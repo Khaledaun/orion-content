@@ -13,7 +13,7 @@
  * - Performance targets
  */
 
-import { writeFileSync, existsSync, readFileSync } from "fs";
+import { writeFileSync, /* existsSync, */ readFileSync } from "fs";
 import { resolve } from "path";
 
 interface ValidationResult {
@@ -600,7 +600,7 @@ class Phase1Validator {
 
     tests.push(
       await this.runValidation("Test configuration", "Testing", () => {
-        const testConfigs = ["jest.config.js", "package.json"];
+        const _testConfigs = ["jest.config.js", "package.json"];
         const packageJson = JSON.parse(readFileSync("package.json", "utf-8"));
 
         if (!packageJson.scripts?.test) {
@@ -929,7 +929,7 @@ class Phase1Validator {
     console.log(`\n📄 Detailed report saved to: ${reportPath}`);
 
     // Generate recommendations
-    this.generateRecommendations(report);
+    this.generateRecommendations(_report);
   }
 
   private calculateReadinessScore(): number {
