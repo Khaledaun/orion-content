@@ -5,14 +5,11 @@ import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Target, 
   TrendingUp, 
-  Users, 
   Search, 
   Award, 
   Zap,
@@ -89,8 +86,8 @@ export function ContentFocusChart({
   onNichesChange 
 }: ContentFocusChartProps) {
   const [niches, setNiches] = useState<NicheData[]>(initialNiches);
-  const [editingNiche, setEditingNiche] = useState<string | null>(null);
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [_editingNiche, _setEditingNiche] = useState<string | null>(null);
+  const [_showAddForm, _setShowAddForm] = useState(false);
 
   const handleDragEnd = useCallback((result: any) => {
     if (!result.destination) return;
@@ -121,7 +118,7 @@ export function ContentFocusChart({
     const updatedNiches = [...niches, newNiche];
     setNiches(updatedNiches);
     onNichesChange?.(updatedNiches);
-    setEditingNiche(newNiche.id);
+    _setEditingNiche(newNiche.id);
   };
 
   const deleteNiche = (id: string) => {
@@ -308,7 +305,7 @@ export function ContentFocusChart({
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setEditingNiche(niche.id)}
+                                onClick={() => _setEditingNiche(niche.id)}
                               >
                                 <Edit3 className="h-4 w-4" />
                               </Button>

@@ -5,9 +5,7 @@ import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -17,9 +15,6 @@ import {
   Search, 
   Award, 
   Zap,
-  Plus,
-  Edit3,
-  Trash2,
   CheckCircle,
   Clock,
   BarChart3,
@@ -27,9 +22,9 @@ import {
   Target,
   ThumbsUp,
   ThumbsDown,
-  RotateCcw
+  RotateCcw,
+  Trash2
 } from 'lucide-react';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 interface TopicData {
   id: string;

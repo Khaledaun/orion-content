@@ -1,14 +1,13 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Rocket, 
   CheckCircle, 
@@ -27,8 +26,7 @@ import {
   Sparkles,
   Award,
   Target,
-  BookOpen,
-  Video
+  BookOpen
 } from 'lucide-react';
 
 interface AuditStep {
