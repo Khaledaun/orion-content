@@ -8,6 +8,11 @@
 
 import { existsSync, readFileSync } from "fs";
 import { URL } from "url";
+import { config } from "dotenv";
+
+// Load environment variables from .env.local and .env files
+config({ path: ".env.local" });
+config({ path: ".env" });
 
 interface ValidationRule {
   key: string;
