@@ -27,6 +27,22 @@ const nextConfig = {
       },
     });
 
+    // Suppress specific warnings during build
+    config.infrastructureLogging = {
+      level: "error",
+    };
+
+    // Handle Prisma edge runtime warnings
+    if (!dev && !isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+      };
+    }
+
     return config;
   },
   // Environment variables
