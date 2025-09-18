@@ -20,6 +20,7 @@
     "setup:copilot": "./scripts/setup-copilot.sh",
     "validate:deployment": "node scripts/validate-deployment.js",
     "validate:phase2": "npx tsx scripts/validate-phase2.ts",
+    "validate:pr39": "npx tsx scripts/validate-pr39.ts",
     "check:env": "npx tsx scripts/check-env.ts",
     "verify:endpoints": "npx tsx scripts/verify-endpoints.ts",
     "setup:vercel": "npx tsx scripts/setup-vercel-env.ts",
