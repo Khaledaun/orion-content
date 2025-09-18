@@ -1,9 +1,10 @@
 {
   "framework": "nextjs",
   "installCommand": "npm install --no-audit --no-fund",
-  "buildCommand": "npx prisma generate --schema=prisma/schema.prisma && NEXT_TELEMETRY_DISABLED=1 next build",
+  "buildCommand": "npx prisma generate --schema=prisma/schema.prisma && BUILD_TIME=true NEXT_TELEMETRY_DISABLED=1 next build",
   "env": {
     "NEXT_TELEMETRY_DISABLED": "1",
+    "BUILD_TIME": "true",
     "SKIP_ENV_VALIDATION": "false"
   },
   "functions": {

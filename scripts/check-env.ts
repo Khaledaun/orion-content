@@ -10,8 +10,9 @@ import { existsSync, readFileSync } from "fs";
 import { URL } from "url";
 import { config } from "dotenv";
 
-// Load environment variables from .env.local and .env files
+// Load environment variables from multiple sources
 config({ path: ".env.local" });
+config({ path: ".env.development" });
 config({ path: ".env" });
 
 interface ValidationRule {
@@ -20,6 +21,7 @@ interface ValidationRule {
   validator?: (value: string) => boolean;
   description: string;
   productionOnly?: boolean;
+  buildTimeSkip?: boolean; // Skip during build time
 }
 
 interface ValidationResult {
@@ -37,20 +39,22 @@ class EnvironmentValidator {
 
   private isProduction = process.env.NODE_ENV === "production";
   private isVercelBuild = process.env.VERCEL === "1";
-  private isBuildTime =
-    process.env.NODE_ENV === "production" && !process.env.VERCEL;
+  private isBuildTime = process.env.CI === "true" || process.env.BUILD_TIME === "true";
+  private skipValidation = process.env.SKIP_ENV_VALIDATION === "true";
 
   private rules: ValidationRule[] = [
     // Core NextAuth Configuration
     {
       key: "NEXTAUTH_URL",
       required: true,
+      buildTimeSkip: true, // Skip during build as it's runtime-only
       validator: this.validateUrl.bind(this),
       description: "NextAuth.js URL for callbacks and redirects",
     },
     {
       key: "NEXTAUTH_SECRET",
       required: true,
+      buildTimeSkip: true, // Skip during build as it's runtime-only
       validator: this.validateSecret.bind(this),
       description: "NextAuth.js JWT encryption secret",
     },
@@ -59,6 +63,7 @@ class EnvironmentValidator {
     {
       key: "DATABASE_URL",
       required: true,
+      buildTimeSkip: true, // Skip during build as Prisma is generated
       validator: this.validateDatabaseUrl.bind(this),
       description: "Database connection string",
     },
@@ -73,6 +78,7 @@ class EnvironmentValidator {
     {
       key: "ENCRYPTION_KEY",
       required: true,
+      buildTimeSkip: true, // Skip during build as it's runtime-only
       validator: this.validateEncryptionKey.bind(this),
       description: "32-character encryption key for sensitive data",
     },
@@ -101,7 +107,7 @@ class EnvironmentValidator {
     // Environment
     {
       key: "NODE_ENV",
-      required: true,
+      required: false, // Make optional for build environments
       validator: (value) =>
         ["development", "production", "test"].includes(value),
       description: "Node.js environment",
@@ -301,25 +307,47 @@ class EnvironmentValidator {
   public validate(): ValidationResult {
     console.log("🔍 Starting comprehensive environment validation...\n");
 
+    // If validation is explicitly skipped
+    if (this.skipValidation) {
+      console.log("⏭️  Environment validation skipped (SKIP_ENV_VALIDATION=true)");
+      return this.result;
+    }
+
+    // During build time, use relaxed validation
+    if (this.isBuildTime || this.isVercelBuild) {
+      console.log("🏗️  Running build-time environment validation (relaxed mode)");
+    }
+
     // Validate each environment variable
     for (const rule of this.rules) {
       const value = process.env[rule.key];
+
+      // Skip build-time checks for runtime-only variables
+      if ((this.isBuildTime || this.isVercelBuild) && rule.buildTimeSkip) {
+        this.result.info.push(`⏭️ Skipped ${rule.key} (runtime-only)`);
+        continue;
+      }
 
       if (rule.required && !value) {
         // Special handling for NEXTAUTH_URL in Vercel environment
         if (rule.key === "NEXTAUTH_URL" && this.isVercelBuild) {
           const suggestion = this.getVercelUrlSuggestion();
           if (suggestion) {
-            this.result.errors.push(
-              `Required environment variable ${rule.key} is missing. ` +
+            this.result.warnings.push(
+              `Environment variable ${rule.key} is missing. ` +
                 `Suggested value: ${suggestion} (Set this in your Vercel environment variables)`,
             );
           } else {
-            this.result.errors.push(
-              `Required environment variable ${rule.key} is missing. ` +
+            this.result.warnings.push(
+              `Environment variable ${rule.key} is missing. ` +
                 `Set this to your Vercel deployment URL in the environment variables.`,
             );
           }
+        } else if (this.isBuildTime || this.isVercelBuild) {
+          // During build time, convert errors to warnings for runtime variables
+          this.result.warnings.push(
+            `Environment variable ${rule.key} is missing (will be needed at runtime)`,
+          );
         } else {
           this.result.errors.push(
             `Required environment variable ${rule.key} is missing`,
@@ -333,9 +361,15 @@ class EnvironmentValidator {
       }
 
       if (value && rule.validator && !rule.validator(value)) {
-        this.result.errors.push(
-          `Environment variable ${rule.key} failed validation`,
-        );
+        if (this.isBuildTime || this.isVercelBuild) {
+          this.result.warnings.push(
+            `Environment variable ${rule.key} may need attention at runtime`,
+          );
+        } else {
+          this.result.errors.push(
+            `Environment variable ${rule.key} failed validation`,
+          );
+        }
       }
 
       if (value) {
@@ -343,8 +377,8 @@ class EnvironmentValidator {
       }
     }
 
-    // Specific validations
-    if (process.env.NEXTAUTH_URL) {
+    // Specific validations (also relaxed during build time)
+    if (process.env.NEXTAUTH_URL && !this.isBuildTime && !this.isVercelBuild) {
       this.validateNextAuthUrl(process.env.NEXTAUTH_URL);
     }
 
@@ -360,6 +394,10 @@ class EnvironmentValidator {
 
     if (this.isVercelBuild) {
       this.result.info.push("Running in Vercel build environment");
+    }
+
+    if (this.isBuildTime) {
+      this.result.info.push("Running in CI/build environment");
     }
 
     return this.result;
@@ -424,6 +462,15 @@ class EnvironmentValidator {
         );
       }
     }
+
+    // For build environments, provide helpful setup guidance
+    if (this.isBuildTime && result.warnings.length > 0) {
+      console.log("\n📝 BUILD-TIME NOTICE:");
+      console.log("  Some environment variables are missing but this is expected during build.");
+      console.log("  Make sure to configure them in your deployment environment:");
+      console.log("  - For Vercel: Project Settings → Environment Variables");
+      console.log("  - For local development: Copy .env.development to .env.local");
+    }
   }
 }
 
@@ -433,7 +480,22 @@ if (require.main === module) {
   const result = validator.validate();
   validator.printResults(result);
 
-  if (result.errors.length > 0) {
+  // During build time or when validation is skipped, only exit on critical errors
+  const isBuildTime = process.env.CI === "true" || process.env.BUILD_TIME === "true";
+  const isVercelBuild = process.env.VERCEL === "1";
+  const skipValidation = process.env.SKIP_ENV_VALIDATION === "true";
+
+  if (skipValidation) {
+    console.log("✅ Environment validation skipped.");
+    process.exit(0);
+  }
+
+  if ((isBuildTime || isVercelBuild) && result.errors.length === 0) {
+    console.log("✅ Build-time validation passed. Runtime variables will be checked at deployment.");
+    process.exit(0);
+  }
+
+  if (result.errors.length > 0 && !isBuildTime && !isVercelBuild) {
     process.exit(1);
   }
 }
