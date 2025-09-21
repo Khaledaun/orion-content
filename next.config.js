@@ -40,7 +40,16 @@ const nextConfig = {
         net: false,
         tls: false,
         crypto: false,
+        // Add fallbacks for SEO dependencies
+        puppeteer: false,
+        "puppeteer-core": false,
+        "chrome-aws-lambda": false,
       };
+    }
+
+    // Handle Puppeteer for serverless deployment
+    if (isServer) {
+      config.externals = [...(config.externals || []), 'puppeteer', 'puppeteer-core'];
     }
 
     return config;

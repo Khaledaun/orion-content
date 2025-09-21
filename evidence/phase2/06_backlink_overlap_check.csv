@@ -1,0 +1,52 @@
+opportunity_rank,domain,url,domain_rating,traffic,relevance,opportunity_type,difficulty,estimated_value,ahrefs_present,semrush_present,overlap_status,test_status
+1,example-blog.com,https://example-blog.com/guest-posts,65,5000,0.85,guest_post,medium,75,NOT_CHECKED,NOT_CHECKED,UNKNOWN,NOT_TESTED
+2,resource-hub.com,https://resource-hub.com/resources,70,8000,0.90,resource_page,easy,80,NOT_CHECKED,NOT_CHECKED,UNKNOWN,NOT_TESTED
+3,tech-news.com,https://tech-news.com/broken-link,55,3000,0.75,broken_link,easy,65,NOT_CHECKED,NOT_CHECKED,UNKNOWN,NOT_TESTED
+4,competitor-site.com,https://competitor-site.com/page,80,12000,0.95,competitor_gap,hard,90,NOT_CHECKED,NOT_CHECKED,UNKNOWN,NOT_TESTED
+5,mention-blog.com,https://mention-blog.com/article,60,4000,0.80,unlinked_mention,easy,70,NOT_CHECKED,NOT_CHECKED,UNKNOWN,NOT_TESTED
+6,industry-forum.com,https://industry-forum.com/discussion,45,2000,0.70,guest_post,medium,60,NOT_CHECKED,NOT_CHECKED,UNKNOWN,NOT_TESTED
+7,news-site.com,https://news-site.com/tech-news,75,9000,0.85,resource_page,medium,85,NOT_CHECKED,NOT_CHECKED,UNKNOWN,NOT_TESTED
+8,blog-network.com,https://blog-network.com/guest-writers,50,3500,0.75,guest_post,easy,65,NOT_CHECKED,NOT_CHECKED,UNKNOWN,NOT_TESTED
+9,content-hub.com,https://content-hub.com/resources,65,6000,0.80,resource_page,medium,75,NOT_CHECKED,NOT_CHECKED,UNKNOWN,NOT_TESTED
+10,tech-blog.com,https://tech-blog.com/contributors,70,7000,0.85,guest_post,medium,80,NOT_CHECKED,NOT_CHECKED,UNKNOWN,NOT_TESTED
+11,industry-site.com,https://industry-site.com/links,55,4500,0.75,resource_page,easy,70,NOT_CHECKED,NOT_CHECKED,UNKNOWN,NOT_TESTED
+12,news-blog.com,https://news-blog.com/guest-posts,60,5000,0.80,guest_post,medium,75,NOT_CHECKED,NOT_CHECKED,UNKNOWN,NOT_TESTED
+13,content-site.com,https://content-site.com/resources,65,5500,0.80,resource_page,medium,75,NOT_CHECKED,NOT_CHECKED,UNKNOWN,NOT_TESTED
+14,tech-forum.com,https://tech-forum.com/discussions,50,3000,0.70,guest_post,easy,65,NOT_CHECKED,NOT_CHECKED,UNKNOWN,NOT_TESTED
+15,industry-blog.com,https://industry-blog.com/contributors,70,6500,0.85,guest_post,medium,80,NOT_CHECKED,NOT_CHECKED,UNKNOWN,NOT_TESTED
+16,news-hub.com,https://news-hub.com/resources,60,4000,0.75,resource_page,easy,70,NOT_CHECKED,NOT_CHECKED,UNKNOWN,NOT_TESTED
+17,content-blog.com,https://content-blog.com/guest-posts,55,3500,0.75,guest_post,medium,65,NOT_CHECKED,NOT_CHECKED,UNKNOWN,NOT_TESTED
+18,tech-site.com,https://tech-site.com/resources,65,5000,0.80,resource_page,medium,75,NOT_CHECKED,NOT_CHECKED,UNKNOWN,NOT_TESTED
+19,industry-news.com,https://industry-news.com/contributors,70,6000,0.85,guest_post,medium,80,NOT_CHECKED,NOT_CHECKED,UNKNOWN,NOT_TESTED
+20,blog-hub.com,https://blog-hub.com/resources,60,4500,0.75,resource_page,easy,70,NOT_CHECKED,NOT_CHECKED,UNKNOWN,NOT_TESTED
+
+# Analysis Results:
+# Expected: ≥75% overlap in top-20 opportunities with external tools
+# Actual: NOT_TESTED - External API integrations not configured
+# Status: FAILED - Cannot validate backlink intelligence accuracy
+
+# Test Description:
+# - Top 20 backlink opportunities from Orion system
+# - Cross-reference with Ahrefs and SEMrush data
+# - Measure overlap percentage for validation
+# - Target: 75% overlap with external tools
+
+# Implementation Status:
+# - Backlink Analyzer: lib/seo/backlink-analyzer.ts (EXISTS)
+# - API Endpoint: app/api/seo/backlinks/route.ts (EXISTS)
+# - External API Integration: lib/seo/external-apis.ts (EXISTS)
+# - Test Environment: NOT CONFIGURED
+
+# Blockers:
+# 1. Ahrefs API key not configured
+# 2. SEMrush API key not configured
+# 3. Development server not running
+# 4. No external API testing possible
+# 5. Cannot validate opportunity accuracy
+
+# Recommendations:
+# 1. Configure Ahrefs and SEMrush API keys
+# 2. Start development server
+# 3. Implement external API integration tests
+# 4. Create opportunity validation framework
+# 5. Measure accuracy against external tools

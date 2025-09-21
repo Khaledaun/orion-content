@@ -23,6 +23,7 @@ model User {
   roles        UserRole[]
   reviews      Review[]
   onboarding   UserOnboarding?
+  preferences  UserPreferences[]
 
   @@map("users")
 }
@@ -46,6 +47,14 @@ model Site {
   integrations  Integration[]
   metrics       SiteMetrics?
   jobMetrics    JobMetrics[]
+  seoAudits     SEOSiteAudit[]
+  userPreferences UserPreferences[]
+  backlinkProfile BacklinkProfile?
+  linkBuildingCampaigns LinkBuildingCampaign[]
+  competitorProfiles CompetitorProfile[]
+  contentOptimizations ContentOptimization[]
+  performanceMonitoring PerformanceMonitoring?
+  contentTemplates ContentTemplate[]
 
   @@map("sites")
 }
@@ -525,4 +534,310 @@ model TwoFactorAuth {
 
   @@index([userId])
   @@map("two_factor_auth")
+}
+
+model WordPressPublishingEvent {
+  id                String   @id @default(cuid())
+  siteId            String
+  draftId           String
+  userId            String
+  action            String   // 'stream_draft', 'publish', 'stream_and_publish'
+  success           Boolean
+  error             String?
+  publishTime       Int      // in milliseconds
+  cost              Float    @default(0)
+  qualityScore      Float    @default(0)
+  rulebookPassed    Boolean  @default(false)
+  wordpressPostId   Int?
+  wordpressPostUrl  String?
+  timestamp         DateTime @default(now())
+
+  @@index([siteId])
+  @@index([draftId])
+  @@index([userId])
+  @@index([action])
+  @@index([success])
+  @@index([timestamp])
+  @@map("wordpress_publishing_events")
+}
+
+// SEO Audit Models
+model SEOSiteAudit {
+  id                String   @id @default(cuid())
+  siteId            String
+  siteUrl           String
+  auditDate         DateTime @default(now())
+  overallScore      Int      // 0-100
+  technicalScore    Int      // 0-100
+  contentScore      Int      // 0-100
+  performanceScore  Int      // 0-100
+  accessibilityScore Int     // 0-100
+  wordpressScore    Int      // 0-100
+  issues            Json     // Array of SEO issues
+  recommendations   Json     // Array of recommendations
+  wordpressInfo     Json     // WordPress version, theme, plugins
+  summary           Json     // Audit summary data
+  crawlData         Json?    // Raw crawl results
+  status            String   @default("completed") // pending, running, completed, failed
+  error             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  site              Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  issues_detail     SEOIssue[]
+
+  @@index([siteId])
+  @@index([auditDate])
+  @@index([overallScore])
+  @@index([status])
+  @@map("seo_site_audits")
+}
+
+model SEOIssue {
+  id                String   @id @default(cuid())
+  auditId           String
+  type              String   // error, warning, info
+  category          String   // technical, content, performance, accessibility, wordpress
+  title             String
+  description       String
+  impact            String   // high, medium, low
+  fix               String
+  affectedPages     Json     // Array of affected page URLs
+  score             Int      // 0-100
+  status            String   @default("open") // open, fixed, ignored
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  audit             SEOSiteAudit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+
+  @@index([auditId])
+  @@index([type])
+  @@index([category])
+  @@index([impact])
+  @@index([status])
+  @@map("seo_issues")
+}
+
+model UserPreferences {
+  id                String   @id @default(cuid())
+  userId            String
+  siteId            String
+  contentStyle      Json     // Learned content preferences
+  keywordPreferences Json    // Preferred keyword usage
+  structurePrefs    Json     // Content structure preferences
+  tonePreferences   Json     // Tone and voice preferences
+  seoPreferences    Json     // SEO optimization preferences
+  lastUpdated       DateTime @default(now())
+  createdAt         DateTime @default(now())
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  site              Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, siteId])
+  @@index([userId])
+  @@index([siteId])
+  @@map("user_preferences")
+}
+
+model BacklinkProfile {
+  id                String   @id @default(cuid())
+  siteId            String
+  totalBacklinks    Int      @default(0)
+  domainAuthority   Int      @default(0)
+  referringDomains  Int      @default(0)
+  topBacklinks      Json     // Array of top backlinks
+  competitors       Json     // Competitor analysis
+  opportunities     Json     // Link building opportunities
+  lastAnalyzed      DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  site              Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  campaigns         LinkBuildingCampaign[]
+
+  @@unique([siteId])
+  @@index([siteId])
+  @@index([lastAnalyzed])
+  @@map("backlink_profiles")
+}
+
+// Phase 2 Models
+model LinkBuildingCampaign {
+  id                String   @id @default(cuid())
+  name              String
+  targetDomain      String
+  siteId            String
+  backlinkProfileId String
+  status            String   @default("planning") // planning, outreach, in_progress, completed, paused
+  progress          Json     // Progress tracking data
+  metrics           Json     // Campaign metrics
+  opportunities     Json     // Link building opportunities
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  site              Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  backlinkProfile   BacklinkProfile @relation(fields: [backlinkProfileId], references: [id], onDelete: Cascade)
+
+  @@index([siteId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("link_building_campaigns")
+}
+
+model CompetitorProfile {
+  id                String   @id @default(cuid())
+  domain            String
+  name              String
+  industry          String
+  siteId            String
+  lastAnalyzed      DateTime @default(now())
+  metrics           Json     // Competitor metrics
+  topKeywords       Json     // Top keywords
+  topPages          Json     // Top pages
+  backlinkProfile   Json     // Backlink profile
+  contentStrategy   Json     // Content strategy analysis
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  site              Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  alerts            CompetitorAlert[]
+
+  @@unique([domain, siteId])
+  @@index([siteId])
+  @@index([domain])
+  @@index([lastAnalyzed])
+  @@map("competitor_profiles")
+}
+
+model CompetitorAlert {
+  id                String   @id @default(cuid())
+  competitorId      String
+  type              String   // new_keyword, position_change, new_backlink, content_published, traffic_spike
+  severity          String   // low, medium, high
+  title             String
+  description       String
+  data              Json     // Alert data
+  timestamp         DateTime @default(now())
+  read              Boolean  @default(false)
+
+  competitor        CompetitorProfile @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+
+  @@index([competitorId])
+  @@index([type])
+  @@index([severity])
+  @@index([timestamp])
+  @@map("competitor_alerts")
+}
+
+model ContentOptimization {
+  id                String   @id @default(cuid())
+  siteId            String
+  contentId         String?  // Reference to content/draft
+  url               String
+  title             String
+  metaDescription   String
+  keywords          Json     // Array of keywords
+  analysis          Json     // Content analysis results
+  optimizations     Json     // Applied optimizations
+  improvements      Json     // Improvement metrics
+  suggestions       Json     // Optimization suggestions
+  status            String   @default("analyzed") // analyzed, optimized, published
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  site              Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId])
+  @@index([url])
+  @@index([status])
+  @@index([createdAt])
+  @@map("content_optimizations")
+}
+
+model PerformanceMonitoring {
+  id                String   @id @default(cuid())
+  siteId            String
+  domain            String
+  monitoringFrequency String @default("daily") // hourly, daily, weekly
+  alertThresholds   Json     // Alert threshold configuration
+  enabledAlerts     Json     // Array of enabled alert types
+  notificationChannels Json  // Notification channel configuration
+  webhookUrl        String?
+  lastMonitoring    DateTime?
+  overallHealth     String   @default("good") // excellent, good, warning, critical
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  site              Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  metrics           PerformanceMetric[]
+  alerts            PerformanceAlert[]
+
+  @@unique([siteId])
+  @@index([siteId])
+  @@index([overallHealth])
+  @@map("performance_monitoring")
+}
+
+model PerformanceMetric {
+  id                String   @id @default(cuid())
+  monitoringId      String
+  name              String
+  value             Float
+  unit              String
+  trend             String   // up, down, stable
+  change            Float    // percentage change
+  target            Float?
+  status            String   // good, warning, critical
+  timestamp         DateTime @default(now())
+
+  monitoring        PerformanceMonitoring @relation(fields: [monitoringId], references: [id], onDelete: Cascade)
+
+  @@index([monitoringId])
+  @@index([name])
+  @@index([timestamp])
+  @@map("performance_metrics")
+}
+
+model PerformanceAlert {
+  id                String   @id @default(cuid())
+  monitoringId      String
+  type              String   // ranking_drop, traffic_decrease, backlink_loss, technical_issue, competitor_gain
+  severity          String   // low, medium, high, critical
+  title             String
+  description       String
+  affectedPages     Json     // Array of affected page URLs
+  metrics           Json     // Before/after metrics
+  recommendations   Json     // Array of recommendations
+  resolved          Boolean  @default(false)
+  resolvedAt        DateTime?
+  timestamp         DateTime @default(now())
+
+  monitoring        PerformanceMonitoring @relation(fields: [monitoringId], references: [id], onDelete: Cascade)
+
+  @@index([monitoringId])
+  @@index([type])
+  @@index([severity])
+  @@index([resolved])
+  @@index([timestamp])
+  @@map("performance_alerts")
+}
+
+model ContentTemplate {
+  id                String   @id @default(cuid())
+  name              String
+  type              String   // blog, product, landing, news, tutorial
+  structure         Json     // Content structure definition
+  seoRequirements   Json     // SEO requirements
+  readabilityTargets Json    // Readability targets
+  siteId            String?
+  isGlobal          Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  site              Site?    @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId])
+  @@index([type])
+  @@index([isGlobal])
+  @@map("content_templates")
 }
