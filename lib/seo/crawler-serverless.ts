@@ -246,8 +246,10 @@ export class ServerlessSEOCrawler {
   }
 
   private extractHeadings(html: string): CrawlResult['headings'] {
-    const headings = { h1: [], h2: [], h3: [], h4: [], h5: [], h6: [] };
-    
+    const headings: { h1: string[]; h2: string[]; h3: string[]; h4: string[]; h5: string[]; h6: string[] } = {
+      h1: [], h2: [], h3: [], h4: [], h5: [], h6: []
+    };
+
     for (let i = 1; i <= 6; i++) {
       const regex = new RegExp(`<h${i}[^>]*>([^<]*)</h${i}>`, 'gi');
       let match;
@@ -255,7 +257,7 @@ export class ServerlessSEOCrawler {
         headings[`h${i}` as keyof typeof headings].push(match[1].trim());
       }
     }
-    
+
     return headings;
   }
 
@@ -331,7 +333,7 @@ export class ServerlessSEOCrawler {
   } {
     const plugins: string[] = [];
     const theme = '';
-    const version = '';
+    let version = '';
 
     // Extract WordPress version from generator meta tag
     const generatorMatch = html.match(/<meta[^>]*name=["']generator["'][^>]*content=["']([^"']*)["']/i);
