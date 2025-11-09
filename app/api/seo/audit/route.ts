@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
               message: progress.message,
             },
           },
-        }).catch(error => {
+        }).catch((error: any) => {
           logger.warn({ error: redactSensitive(error) }, 'Failed to update audit progress');
         });
       }

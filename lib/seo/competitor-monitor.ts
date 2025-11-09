@@ -88,6 +88,12 @@ export interface CompetitorMonitoringConfig {
     newKeywords: number; // count
   };
   enabledAlerts: string[];
+  notificationChannels?: {
+    email: boolean;
+    slack: boolean;
+    webhook: boolean;
+  };
+  webhookUrl?: string;
 }
 
 export class CompetitorMonitor {

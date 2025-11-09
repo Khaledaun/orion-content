@@ -46,7 +46,7 @@ export async function GET(
     }
 
     // Group issues by category and type
-    const issuesByCategory = audit.issues_detail.reduce((acc, issue) => {
+    const issuesByCategory = audit.issues_detail.reduce((acc: Record<string, { error: any[]; warning: any[]; info: any[] }>, issue: any) => {
       if (!acc[issue.category]) {
         acc[issue.category] = { error: [], warning: [], info: [] };
       }
@@ -57,9 +57,9 @@ export async function GET(
     // Calculate issue statistics
     const issueStats = {
       total: audit.issues_detail.length,
-      critical: audit.issues_detail.filter(i => i.impact === 'high').length,
-      warnings: audit.issues_detail.filter(i => i.impact === 'medium').length,
-      info: audit.issues_detail.filter(i => i.impact === 'low').length,
+      critical: audit.issues_detail.filter((i: any) => i.impact === 'high').length,
+      warnings: audit.issues_detail.filter((i: any) => i.impact === 'medium').length,
+      info: audit.issues_detail.filter((i: any) => i.impact === 'low').length,
       byCategory: Object.keys(issuesByCategory).reduce((acc, category) => {
         acc[category] = {
           total: issuesByCategory[category].error.length + 

@@ -186,7 +186,12 @@ export class AIPreferenceLearner {
     keywordChanges: string[];
     styleChanges: string[];
   } {
-    const patterns = {
+    const patterns: {
+      toneChanges: string[];
+      structureChanges: string[];
+      keywordChanges: string[];
+      styleChanges: string[];
+    } = {
       toneChanges: [],
       structureChanges: [],
       keywordChanges: [],
