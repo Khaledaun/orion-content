@@ -15,18 +15,13 @@ export async function POST(request: NextRequest) {
   try {
     const { userId } = await requireEditAccess(request);
     const body = await request.json();
-    
-    const { 
-      siteId, 
-      action, 
-      postId, 
-      draft 
-    } = body;
+
+    const { siteId, action, postId, draft } = body;
 
     if (!siteId || !action) {
       return NextResponse.json(
         { error: "Missing required fields: siteId, action" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -37,10 +32,10 @@ export async function POST(request: NextRequest) {
         if (!draft) {
           return NextResponse.json(
             { error: "Draft data is required for stream_draft action" },
-            { status: 400 }
+            { status: 400 },
           );
         }
-        
+
         result = await wpManager.streamDraftToWordPress(siteId, draft);
         break;
 
@@ -48,10 +43,10 @@ export async function POST(request: NextRequest) {
         if (!postId) {
           return NextResponse.json(
             { error: "Post ID is required for publish action" },
-            { status: 400 }
+            { status: 400 },
           );
         }
-        
+
         result = await wpManager.publishWordPressPost(siteId, postId);
         break;
 
@@ -59,17 +54,20 @@ export async function POST(request: NextRequest) {
         if (!postId || !draft) {
           return NextResponse.json(
             { error: "Post ID and draft data are required for update action" },
-            { status: 400 }
+            { status: 400 },
           );
         }
-        
+
         result = await wpManager.updateWordPressPost(siteId, postId, draft);
         break;
 
       default:
         return NextResponse.json(
-          { error: "Invalid action. Supported actions: stream_draft, publish, update" },
-          { status: 400 }
+          {
+            error:
+              "Invalid action. Supported actions: stream_draft, publish, update",
+          },
+          { status: 400 },
         );
     }
 
@@ -81,7 +79,7 @@ export async function POST(request: NextRequest) {
         postId,
         success: result.success,
       },
-      `WordPress ${action} action completed`
+      `WordPress ${action} action completed`,
     );
 
     return NextResponse.json(result);
@@ -91,26 +89,20 @@ export async function POST(request: NextRequest) {
         error: redactSensitive(error),
         action: "wordpress_publish",
       },
-      "Failed to process WordPress publishing action"
+      "Failed to process WordPress publishing action",
     );
 
     if (error instanceof Error && error.message === "unauthorized") {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     if (error instanceof Error && error.message === "forbidden") {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

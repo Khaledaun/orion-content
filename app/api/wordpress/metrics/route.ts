@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     if (type === "site" && !siteId) {
       return NextResponse.json(
         { error: "Site ID is required for site metrics" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       default:
         return NextResponse.json(
           { error: "Invalid type. Supported types: global, site, trends" },
-          { status: 400 }
+          { status: 400 },
         );
     }
 
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
         type,
         days,
       },
-      "WordPress metrics retrieved successfully"
+      "WordPress metrics retrieved successfully",
     );
 
     return NextResponse.json(result);
@@ -62,26 +62,20 @@ export async function GET(request: NextRequest) {
         error: redactSensitive(error),
         action: "get_wordpress_metrics",
       },
-      "Failed to get WordPress metrics"
+      "Failed to get WordPress metrics",
     );
 
     if (error instanceof Error && error.message === "unauthorized") {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     if (error instanceof Error && error.message === "forbidden") {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

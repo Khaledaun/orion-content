@@ -319,7 +319,7 @@ export class MigrationManager {
         SELECT * FROM _prisma_migrations ORDER BY applied_at DESC
       `;
 
-      return migrations.map((m) => ({
+      return migrations.map((m: any) => ({
         id: m.migration_name,
         name: m.migration_name,
         checksum: m.checksum,

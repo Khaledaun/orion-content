@@ -5,7 +5,7 @@
     "summary": "FinOps cost tracking not functional - development server not running"
   },
   "cost_analysis": {
-    "target_cost_per_article": 2.00,
+    "target_cost_per_article": 2.0,
     "actual_cost_per_article": "N/A",
     "cost_status": "NOT_MEASURABLE",
     "budget_compliance": "UNKNOWN"
@@ -72,9 +72,9 @@
     },
     "external_apis": {
       "ahrefs_api": {
-        "cost_per_request": 0.10,
+        "cost_per_request": 0.1,
         "requests_per_article": 5,
-        "cost_per_article": 0.50,
+        "cost_per_article": 0.5,
         "status": "NOT_CONFIGURED"
       },
       "semrush_api": {
@@ -98,7 +98,7 @@
         "status": "NOT_MEASURED"
       },
       "database": {
-        "cost_per_gb_month": 0.10,
+        "cost_per_gb_month": 0.1,
         "estimated_gb_per_article": 0.001,
         "cost_per_article": 0.0001,
         "status": "NOT_MEASURED"

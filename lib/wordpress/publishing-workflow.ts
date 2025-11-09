@@ -41,13 +41,21 @@ export class WordPressPublishingWorkflow {
   /**
    * Main workflow: Stream draft to WordPress and optionally publish
    */
-  async executeWorkflow(options: WordPressPublishingOptions): Promise<WordPressPublishingResult> {
-    const { siteId, draftId, userId, publishImmediately = false, skipRulebookCheck = false } = options;
-    
+  async executeWorkflow(
+    options: WordPressPublishingOptions,
+  ): Promise<WordPressPublishingResult> {
+    const {
+      siteId,
+      draftId,
+      userId,
+      publishImmediately = false,
+      skipRulebookCheck = false,
+    } = options;
+
     const observability = new ProductionObservabilityTracker(
       `wp-publish-${draftId}`,
       siteId,
-      `WordPress Publishing: ${draftId}`
+      `WordPress Publishing: ${draftId}`,
     );
 
     try {
@@ -68,7 +76,11 @@ export class WordPressPublishingWorkflow {
       integrationStage.complete("internal", 0, 0, 0, true);
 
       // Stage 3: Rulebook QA check (unless skipped)
-      let rulebookResult = { passed: true, score: 100, violations: [] };
+      let rulebookResult: {
+        passed: boolean;
+        score: number;
+        violations: any[];
+      } = { passed: true, score: 100, violations: [] };
       if (!skipRulebookCheck) {
         const qaStage = observability.startStage("rulebook_qa");
         rulebookResult = await this.performRulebookCheck(draft);
@@ -84,10 +96,12 @@ export class WordPressPublishingWorkflow {
         slug: draft.slug || undefined,
         categories: draft.categories || [],
         tags: draft.tags || [],
-        featuredImage: draft.featuredImage ? {
-          url: draft.featuredImage.url,
-          altText: draft.featuredImage.altText,
-        } : undefined,
+        featuredImage: draft.featuredImage
+          ? {
+              url: draft.featuredImage.url,
+              altText: draft.featuredImage.altText,
+            }
+          : undefined,
         meta: {
           ...draft.meta,
           orion_draft_id: draftId,
@@ -100,19 +114,32 @@ export class WordPressPublishingWorkflow {
       streamStage.complete("internal", 0, 0, 0, streamResult.success);
 
       if (!streamResult.success) {
-        throw new Error(`Failed to stream draft to WordPress: ${streamResult.error}`);
+        throw new Error(
+          `Failed to stream draft to WordPress: ${streamResult.error}`,
+        );
       }
 
       // Stage 5: Update draft with WordPress post ID
       const updateStage = observability.startStage("update_draft");
-      await this.updateDraftWithWordPressInfo(draftId, streamResult.postId!, streamResult.postUrl!);
+      await this.updateDraftWithWordPressInfo(
+        draftId,
+        streamResult.postId!,
+        streamResult.postUrl!,
+      );
       updateStage.complete("internal", 0, 0, 0, true);
 
       // Stage 6: Publish if requested and rulebook passed
-      let publishResult = { success: true, postUrl: streamResult.postUrl };
+      let publishResult: {
+        success: boolean;
+        postUrl?: string;
+        error?: string;
+      } = { success: true, postUrl: streamResult.postUrl };
       if (publishImmediately && rulebookResult.passed) {
         const publishStage = observability.startStage("publish_wordpress");
-        publishResult = await this.wpManager.publishWordPressPost(siteId, streamResult.postId!);
+        publishResult = await this.wpManager.publishWordPressPost(
+          siteId,
+          streamResult.postId!,
+        );
         publishStage.complete("internal", 0, 0, 0, publishResult.success);
 
         if (!publishResult.success) {
@@ -124,7 +151,7 @@ export class WordPressPublishingWorkflow {
               postId: streamResult.postId,
               error: redactSensitive(publishResult.error),
             },
-            "Failed to publish WordPress post, but draft was created successfully"
+            "Failed to publish WordPress post, but draft was created successfully",
           );
         }
       }
@@ -146,7 +173,7 @@ export class WordPressPublishingWorkflow {
           rulebookPassed: rulebookResult.passed,
           publishedImmediately: publishImmediately,
         },
-        "WordPress publishing workflow completed successfully"
+        "WordPress publishing workflow completed successfully",
       );
 
       return {
@@ -158,7 +185,6 @@ export class WordPressPublishingWorkflow {
         qualityScore: rulebookResult.score,
         violations: rulebookResult.violations,
       };
-
     } catch (error) {
       logger.error(
         {
@@ -167,7 +193,7 @@ export class WordPressPublishingWorkflow {
           siteId,
           userId,
         },
-        "WordPress publishing workflow failed"
+        "WordPress publishing workflow failed",
       );
 
       await observability.finalize(0, {
@@ -203,7 +229,9 @@ export class WordPressPublishingWorkflow {
     }
 
     if (draft.status !== "APPROVED") {
-      throw new Error(`Draft is not approved for publishing. Current status: ${draft.status}`);
+      throw new Error(
+        `Draft is not approved for publishing. Current status: ${draft.status}`,
+      );
     }
 
     return draft;
@@ -221,10 +249,9 @@ export class WordPressPublishingWorkflow {
       const qaReport = await this.qaValidator.validate({
         title: draft.title,
         content: draft.content,
-        excerpt: draft.excerpt,
         meta: draft.meta,
         images: draft.images || [],
-      });
+      } as any);
 
       return {
         passed: qaReport.status !== "FAILED",
@@ -237,18 +264,20 @@ export class WordPressPublishingWorkflow {
           error: redactSensitive(error),
           draftId: draft.id,
         },
-        "Rulebook QA check failed"
+        "Rulebook QA check failed",
       );
 
       return {
         passed: false,
         score: 0,
-        violations: [{
-          rule: "rulebook_error",
-          severity: "error",
-          message: "Rulebook QA check failed",
-          suggestions: ["Contact system administrator"],
-        }],
+        violations: [
+          {
+            rule: "rulebook_error",
+            severity: "error",
+            message: "Rulebook QA check failed",
+            suggestions: ["Contact system administrator"],
+          },
+        ],
       };
     }
   }
@@ -256,14 +285,19 @@ export class WordPressPublishingWorkflow {
   /**
    * Update draft with WordPress post information
    */
-  private async updateDraftWithWordPressInfo(draftId: string, postId: number, postUrl: string) {
+  private async updateDraftWithWordPressInfo(
+    draftId: string,
+    postId: number,
+    postUrl: string,
+  ) {
     await prisma.draft.update({
       where: { id: draftId },
       data: {
         externalId: postId.toString(),
         meta: {
           // Preserve existing meta and add WordPress info
-          ...(await prisma.draft.findUnique({ where: { id: draftId } }))?.meta as any || {},
+          ...(((await prisma.draft.findUnique({ where: { id: draftId } }))
+            ?.meta as any) || {}),
           wordpress_post_id: postId,
           wordpress_post_url: postUrl,
           wordpress_updated_at: new Date().toISOString(),
@@ -275,16 +309,23 @@ export class WordPressPublishingWorkflow {
   /**
    * Publish a WordPress post (separate from workflow)
    */
-  async publishWordPressPost(siteId: string, draftId: string, userId: string): Promise<WordPressPublishingResult> {
+  async publishWordPressPost(
+    siteId: string,
+    draftId: string,
+    userId: string,
+  ): Promise<WordPressPublishingResult> {
     try {
       const draft = await this.getDraftWithValidation(draftId, siteId);
-      
+
       if (!draft.externalId) {
         throw new Error("Draft has not been streamed to WordPress yet");
       }
 
       const postId = parseInt(draft.externalId);
-      const publishResult = await this.wpManager.publishWordPressPost(siteId, postId);
+      const publishResult = await this.wpManager.publishWordPressPost(
+        siteId,
+        postId,
+      );
 
       if (publishResult.success) {
         // Update draft status to published
@@ -293,7 +334,7 @@ export class WordPressPublishingWorkflow {
           data: {
             status: "PUBLISHED",
             meta: {
-              ...(draft.meta as any || {}),
+              ...((draft.meta as any) || {}),
               wordpress_published_at: new Date().toISOString(),
               wordpress_published_by: userId,
             },
@@ -307,7 +348,7 @@ export class WordPressPublishingWorkflow {
             postId,
             userId,
           },
-          "WordPress post published successfully"
+          "WordPress post published successfully",
         );
       }
 
@@ -317,7 +358,6 @@ export class WordPressPublishingWorkflow {
         postUrl: publishResult.postUrl,
         error: publishResult.error,
       };
-
     } catch (error) {
       logger.error(
         {
@@ -326,7 +366,7 @@ export class WordPressPublishingWorkflow {
           siteId,
           userId,
         },
-        "Failed to publish WordPress post"
+        "Failed to publish WordPress post",
       );
 
       return {
@@ -339,7 +379,10 @@ export class WordPressPublishingWorkflow {
   /**
    * Get WordPress post status for a draft
    */
-  async getWordPressPostStatus(siteId: string, draftId: string): Promise<{
+  async getWordPressPostStatus(
+    siteId: string,
+    draftId: string,
+  ): Promise<{
     connected: boolean;
     postId?: number;
     postUrl?: string;
@@ -372,7 +415,6 @@ export class WordPressPublishingWorkflow {
         status: post.status,
         lastUpdated: new Date(post.date),
       };
-
     } catch (error) {
       logger.error(
         {
@@ -380,7 +422,7 @@ export class WordPressPublishingWorkflow {
           draftId,
           siteId,
         },
-        "Failed to get WordPress post status"
+        "Failed to get WordPress post status",
       );
 
       return { connected: false };

@@ -20,16 +20,16 @@ export async function GET(request: NextRequest) {
     if (!siteId) {
       return NextResponse.json(
         { error: "Site ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const integration = await wpManager.getWordPressIntegration(siteId);
-    
+
     if (!integration) {
       return NextResponse.json(
         { error: "No WordPress integration found for this site" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -40,26 +40,20 @@ export async function GET(request: NextRequest) {
         error: redactSensitive(error),
         action: "get_wordpress_integration",
       },
-      "Failed to get WordPress integration"
+      "Failed to get WordPress integration",
     );
 
     if (error instanceof Error && error.message === "unauthorized") {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     if (error instanceof Error && error.message === "forbidden") {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -68,13 +62,16 @@ export async function POST(request: NextRequest) {
   try {
     const { userId } = await requireEditAccess(request);
     const body = await request.json();
-    
+
     const { siteId, siteUrl, username, appPassword } = body;
 
     if (!siteId || !siteUrl || !username || !appPassword) {
       return NextResponse.json(
-        { error: "Missing required fields: siteId, siteUrl, username, appPassword" },
-        { status: 400 }
+        {
+          error:
+            "Missing required fields: siteId, siteUrl, username, appPassword",
+        },
+        { status: 400 },
       );
     }
 
@@ -84,7 +81,7 @@ export async function POST(request: NextRequest) {
     } catch {
       return NextResponse.json(
         { error: "Invalid site URL format" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -101,7 +98,7 @@ export async function POST(request: NextRequest) {
         siteUrl: redactSensitive(siteUrl),
         integrationId: integration.id,
       },
-      "WordPress credentials saved successfully"
+      "WordPress credentials saved successfully",
     );
 
     return NextResponse.json(integration);
@@ -111,26 +108,20 @@ export async function POST(request: NextRequest) {
         error: redactSensitive(error),
         action: "save_wordpress_credentials",
       },
-      "Failed to save WordPress credentials"
+      "Failed to save WordPress credentials",
     );
 
     if (error instanceof Error && error.message === "unauthorized") {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     if (error instanceof Error && error.message === "forbidden") {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -144,16 +135,16 @@ export async function DELETE(request: NextRequest) {
     if (!siteId) {
       return NextResponse.json(
         { error: "Site ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const success = await wpManager.deleteWordPressCredentials(siteId);
-    
+
     if (!success) {
       return NextResponse.json(
         { error: "Failed to delete WordPress credentials" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -162,7 +153,7 @@ export async function DELETE(request: NextRequest) {
         userId,
         siteId,
       },
-      "WordPress credentials deleted successfully"
+      "WordPress credentials deleted successfully",
     );
 
     return NextResponse.json({ success: true });
@@ -172,26 +163,20 @@ export async function DELETE(request: NextRequest) {
         error: redactSensitive(error),
         action: "delete_wordpress_credentials",
       },
-      "Failed to delete WordPress credentials"
+      "Failed to delete WordPress credentials",
     );
 
     if (error instanceof Error && error.message === "unauthorized") {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     if (error instanceof Error && error.message === "forbidden") {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

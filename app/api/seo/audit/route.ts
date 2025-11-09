@@ -3,28 +3,24 @@
  * Handles comprehensive SEO audits for WordPress sites
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { SEOAuditEngine, SEOAuditOptions } from '@/lib/seo/audit-engine';
-import { requireEditAccess } from '@/app/lib/rbac';
-import { prisma } from '@/lib/prisma';
-import { logger } from '@/lib/logger';
-import { redactSensitive } from '@/lib/redact';
+import { NextRequest, NextResponse } from "next/server";
+import { SEOAuditEngine, SEOAuditOptions } from "@/lib/seo/audit-engine";
+import { requireEditAccess } from "@/app/lib/rbac";
+import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
+import { redactSensitive } from "@/lib/redact";
 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await requireEditAccess(request);
     const body = await request.json();
-    
-    const { 
-      siteId, 
-      siteUrl, 
-      options = {} 
-    } = body;
+
+    const { siteId, siteUrl, options = {} } = body;
 
     if (!siteId || !siteUrl) {
       return NextResponse.json(
-        { error: 'Missing required fields: siteId, siteUrl' },
-        { status: 400 }
+        { error: "Missing required fields: siteId, siteUrl" },
+        { status: 400 },
       );
     }
 
@@ -34,10 +30,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!site) {
-      return NextResponse.json(
-        { error: 'Site not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Site not found" }, { status: 404 });
     }
 
     logger.info(
@@ -46,7 +39,7 @@ export async function POST(request: NextRequest) {
         siteId,
         siteUrl: redactSensitive(siteUrl),
       },
-      'Starting SEO audit'
+      "Starting SEO audit",
     );
 
     // Create audit record
@@ -54,7 +47,7 @@ export async function POST(request: NextRequest) {
       data: {
         siteId,
         siteUrl,
-        status: 'running',
+        status: "running",
         overallScore: 0,
         technicalScore: 0,
         contentScore: 0,
@@ -84,27 +77,32 @@ export async function POST(request: NextRequest) {
       auditOptions,
       (progress) => {
         // Update progress in database
-        prisma.seoSiteAudit.update({
-          where: { id: auditRecord.id },
-          data: {
-            summary: {
-              ...auditRecord.summary,
-              progress: progress.progress,
-              stage: progress.stage,
-              message: progress.message,
+        prisma.seoSiteAudit
+          .update({
+            where: { id: auditRecord.id },
+            data: {
+              summary: {
+                ...auditRecord.summary,
+                progress: progress.progress,
+                stage: progress.stage,
+                message: progress.message,
+              },
             },
-          },
-        }).catch(error => {
-          logger.warn({ error: redactSensitive(error) }, 'Failed to update audit progress');
-        });
-      }
+          })
+          .catch((error: any) => {
+            logger.warn(
+              { error: redactSensitive(error) },
+              "Failed to update audit progress",
+            );
+          });
+      },
     );
 
     // Save audit results
     const updatedAudit = await prisma.seoSiteAudit.update({
       where: { id: auditRecord.id },
       data: {
-        status: 'completed',
+        status: "completed",
         overallScore: auditResult.score.overall,
         technicalScore: auditResult.score.technical,
         contentScore: auditResult.score.content,
@@ -132,7 +130,7 @@ export async function POST(request: NextRequest) {
           fix: issue.fix,
           affectedPages: issue.affectedPages,
           score: issue.score,
-          status: 'open',
+          status: "open",
         },
       });
     }
@@ -145,7 +143,7 @@ export async function POST(request: NextRequest) {
         overallScore: auditResult.score.overall,
         totalIssues: auditResult.issues.length,
       },
-      'SEO audit completed successfully'
+      "SEO audit completed successfully",
     );
 
     return NextResponse.json({
@@ -154,21 +152,17 @@ export async function POST(request: NextRequest) {
       score: auditResult.score,
       totalIssues: auditResult.issues.length,
       recommendations: auditResult.recommendations,
-      message: 'SEO audit completed successfully',
+      message: "SEO audit completed successfully",
     });
-
   } catch (error) {
-    logger.error(
-      { error: redactSensitive(error) },
-      'SEO audit failed'
-    );
+    logger.error({ error: redactSensitive(error) }, "SEO audit failed");
 
     return NextResponse.json(
-      { 
-        error: 'SEO audit failed', 
-        message: error instanceof Error ? error.message : 'Unknown error' 
+      {
+        error: "SEO audit failed",
+        message: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -177,28 +171,28 @@ export async function GET(request: NextRequest) {
   try {
     const { userId } = await requireEditAccess(request);
     const { searchParams } = new URL(request.url);
-    
-    const siteId = searchParams.get('siteId');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const offset = parseInt(searchParams.get('offset') || '0');
+
+    const siteId = searchParams.get("siteId");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const offset = parseInt(searchParams.get("offset") || "0");
 
     if (!siteId) {
       return NextResponse.json(
-        { error: 'Missing siteId parameter' },
-        { status: 400 }
+        { error: "Missing siteId parameter" },
+        { status: 400 },
       );
     }
 
     // Get audit history for the site
     const audits = await prisma.seoSiteAudit.findMany({
       where: { siteId },
-      orderBy: { auditDate: 'desc' },
+      orderBy: { auditDate: "desc" },
       take: limit,
       skip: offset,
       include: {
         issues_detail: {
-          where: { status: 'open' },
-          orderBy: { impact: 'desc' },
+          where: { status: "open" },
+          orderBy: { impact: "desc" },
         },
       },
     });
@@ -212,16 +206,15 @@ export async function GET(request: NextRequest) {
       totalAudits,
       hasMore: offset + limit < totalAudits,
     });
-
   } catch (error) {
     logger.error(
       { error: redactSensitive(error) },
-      'Failed to retrieve SEO audits'
+      "Failed to retrieve SEO audits",
     );
 
     return NextResponse.json(
-      { error: 'Failed to retrieve SEO audits' },
-      { status: 500 }
+      { error: "Failed to retrieve SEO audits" },
+      { status: 500 },
     );
   }
 }

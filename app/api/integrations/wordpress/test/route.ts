@@ -15,17 +15,17 @@ export async function POST(request: NextRequest) {
   try {
     const { userId } = await requireEditAccess(request);
     const body = await request.json();
-    
+
     const { siteId } = body;
 
     if (!siteId) {
       return NextResponse.json(
         { error: "Site ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const testResult = await wpManager.testWordPressConnection(siteId);
+    const testResult = await wpManager.testWordPressConnectionBySite(siteId);
 
     logger.info(
       {
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         success: testResult.success,
         message: redactSensitive(testResult.message),
       },
-      "WordPress connection test completed"
+      "WordPress connection test completed",
     );
 
     return NextResponse.json(testResult);
@@ -44,26 +44,20 @@ export async function POST(request: NextRequest) {
         error: redactSensitive(error),
         action: "test_wordpress_connection",
       },
-      "Failed to test WordPress connection"
+      "Failed to test WordPress connection",
     );
 
     if (error instanceof Error && error.message === "unauthorized") {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     if (error instanceof Error && error.message === "forbidden") {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

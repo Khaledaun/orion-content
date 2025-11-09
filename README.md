@@ -64,6 +64,7 @@ A Next.js 14 content management console for editorial workflows.
 Orion provides enterprise-grade WordPress integration for seamless content publishing:
 
 ### **Features**
+
 - **One-Click Publishing**: Stream drafts to WordPress and publish with quality guardrails
 - **Rulebook Integration**: Prevent low-quality content from publishing
 - **Real-time Monitoring**: Track publishing success, costs, and performance
@@ -72,6 +73,7 @@ Orion provides enterprise-grade WordPress integration for seamless content publi
 - **Audit Logging**: Complete audit trail for all WordPress actions
 
 ### **Setup**
+
 1. **Connect WordPress Site**:
    - Go to Settings → WordPress Integration
    - Add your WordPress site URL and credentials
@@ -85,7 +87,9 @@ Orion provides enterprise-grade WordPress integration for seamless content publi
    - Track performance in real-time dashboard
 
 ### **Pilot Program**
+
 Join our WordPress Agency Pilot Program to experience:
+
 - **10-minute onboarding** to first connected WordPress site
 - **5-minute time-to-first-draft** after topic approval
 - **90%+ publishing success rate** with quality guardrails

@@ -9,11 +9,13 @@ When a client signs into Orion and enters their WordPress username and password,
 ## 🔐 **Step 1: User Authentication (Orion Login)**
 
 ### What the user does:
+
 1. **Signs into Orion** using their Orion account credentials (email/password)
 2. **Navigates to WordPress Integration** in their site settings
 3. **Enters WordPress credentials** in the connection manager form
 
 ### What happens behind the scenes:
+
 ```typescript
 // User authenticates with Orion first
 const { userId } = await requireEditAccess(request); // RBAC check
@@ -25,16 +27,18 @@ const { userId } = await requireEditAccess(request); // RBAC check
 ## 🔗 **Step 2: WordPress Credentials Entry**
 
 ### User Interface:
+
 ```typescript
 // components/wordpress/connection-manager.tsx
 const [formData, setFormData] = useState({
   siteUrl: "https://their-wordpress-site.com",
-  username: "their-wp-username", 
-  appPassword: "their-application-password" // NOT their regular WP password
+  username: "their-wp-username",
+  appPassword: "their-application-password", // NOT their regular WP password
 });
 ```
 
 ### Important Note:
+
 - **NOT their regular WordPress password**
 - **Application Password** - a special WordPress feature for API access
 - Generated in WordPress Admin → Users → Profile → Application Passwords
@@ -72,17 +76,20 @@ const response = await fetch("/api/integrations/wordpress", {
 export async function POST(request: NextRequest) {
   // 1. RBAC Authorization
   const { userId } = await requireEditAccess(request);
-  
+
   // 2. Input validation
   const { siteId, siteUrl, username, appPassword } = body;
-  
+
   // 3. URL validation
   try {
     new URL(siteUrl);
   } catch {
-    return NextResponse.json({ error: "Invalid site URL format" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid site URL format" },
+      { status: 400 },
+    );
   }
-  
+
   // 4. Save encrypted credentials
   const integration = await wpManager.saveWordPressCredentials(siteId, {
     siteUrl,
@@ -99,7 +106,7 @@ export async function POST(request: NextRequest) {
 async saveCredentials(type: IntegrationType, credentials: IntegrationCredentials, siteId?: string) {
   // 1. Encrypt credentials using AES-256-GCM
   const credentialsEnc = encryptJson(credentials);
-  
+
   // 2. Store in database
   const integration = await prisma.integration.upsert({
     where: { siteId_type: { siteId: siteId || "", type: type } },
@@ -129,10 +136,10 @@ async saveCredentials(type: IntegrationType, credentials: IntegrationCredentials
 async saveWordPressCredentials(siteId: string, credentials: WordPressCredentials) {
   // 1. Save credentials
   const integration = await this.saveCredentials(IntegrationType.WORDPRESS, credentials, siteId);
-  
+
   // 2. Test connection immediately
   const testResult = await this.testWordPressConnection(siteId);
-  
+
   return {
     id: integration.id,
     siteId: integration.siteId,
@@ -153,7 +160,7 @@ async testConnection(): Promise<WordPressConnectionTest> {
     // 1. Create Basic Auth header
     const authString = `${this.credentials.username}:${this.credentials.appPassword}`;
     const authHeader = `Basic ${Buffer.from(authString).toString("base64")}`;
-    
+
     // 2. Test WordPress REST API
     const response = await fetch(`${this.baseUrl}/wp-json/wp/v2/`, {
       method: "GET",
@@ -162,14 +169,14 @@ async testConnection(): Promise<WordPressConnectionTest> {
         "Content-Type": "application/json",
       },
     });
-    
+
     if (!response.ok) {
       throw new Error(`WordPress API error: ${response.status}`);
     }
-    
+
     // 3. Get site information
     const siteInfo = await response.json();
-    
+
     return {
       success: true,
       message: "WordPress connection successful",
@@ -194,17 +201,22 @@ async testConnection(): Promise<WordPressConnectionTest> {
 ## 🔒 **Step 5: Security & Audit Logging**
 
 ### Data Redaction:
+
 ```typescript
 // All sensitive data is redacted in logs
-logger.info({
-  userId,
-  siteId,
-  siteUrl: redactSensitive(siteUrl),  // "https://[REDACTED]"
-  integrationId: integration.id,
-}, "WordPress credentials saved successfully");
+logger.info(
+  {
+    userId,
+    siteId,
+    siteUrl: redactSensitive(siteUrl), // "https://[REDACTED]"
+    integrationId: integration.id,
+  },
+  "WordPress credentials saved successfully",
+);
 ```
 
 ### Audit Trail:
+
 ```typescript
 // Complete audit log entry
 await this.auditLogManager.recordLog(
@@ -216,7 +228,7 @@ await this.auditLogManager.recordLog(
     siteId,
     siteUrl: redactSensitive(siteUrl),
     verified: testResult.success,
-  }
+  },
 );
 ```
 
@@ -237,17 +249,18 @@ model Integration {
   lastTestAt    DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  
+
   @@unique([siteId, type])
   @@map("integrations")
 }
 ```
 
 ### Encrypted Credentials Structure:
+
 ```json
 {
   "siteUrl": "https://their-wordpress-site.com",
-  "username": "their-wp-username", 
+  "username": "their-wp-username",
   "appPassword": "their-application-password"
 }
 ```
@@ -264,6 +277,7 @@ model Integration {
 4. **Content streams** to WordPress as draft or published
 
 ### Publishing Flow:
+
 ```typescript
 // When user clicks "Publish to WordPress"
 const result = await workflow.executeWorkflow({
@@ -295,6 +309,7 @@ const result = await workflow.executeWorkflow({
 6. **Update audit trail** with publishing results
 
 ### Credential Management:
+
 - **Credentials are never stored in plain text**
 - **All API calls use Basic Auth** with username:appPassword
 - **Connection health is monitored** and can be re-tested
@@ -315,12 +330,14 @@ const result = await workflow.executeWorkflow({
 7. **Input Validation**: URL format and required field validation
 
 ### What the user sees:
+
 - ✅ "WordPress credentials saved successfully!"
 - ✅ Connection status: "Connected" or "Error"
 - ✅ Last tested timestamp
 - ✅ Site information (name, version, etc.)
 
 ### What the user never sees:
+
 - ❌ Their actual credentials in any logs
 - ❌ Raw API responses with sensitive data
 - ❌ Internal error details that could leak information

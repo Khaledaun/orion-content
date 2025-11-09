@@ -3,10 +3,10 @@
  * Production-ready web crawler for WordPress site analysis
  */
 
-import puppeteer, { Browser, Page } from 'puppeteer';
-import * as cheerio from 'cheerio';
-import { logger } from '@/lib/logger';
-import { redactSensitive } from '@/lib/redact';
+import puppeteer, { Browser, Page } from "puppeteer";
+import * as cheerio from "cheerio";
+import { logger } from "@/lib/logger";
+import { redactSensitive } from "@/lib/redact";
 
 export interface CrawlResult {
   url: string;
@@ -71,15 +71,15 @@ export class SEOCrawler {
   async initialize(): Promise<void> {
     if (!this.browser) {
       this.browser = await puppeteer.launch({
-        headless: 'new',
+        headless: true,
         args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--disable-gpu',
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage",
+          "--disable-accelerated-2d-canvas",
+          "--no-first-run",
+          "--no-zygote",
+          "--disable-gpu",
         ],
       });
     }
@@ -87,7 +87,7 @@ export class SEOCrawler {
 
   async crawlSite(baseUrl: string): Promise<SiteStructure> {
     await this.initialize();
-    
+
     const startTime = Date.now();
     const visitedUrls = new Set<string>();
     const pages: CrawlResult[] = [];
@@ -97,7 +97,7 @@ export class SEOCrawler {
     const slowPages: string[] = [];
 
     try {
-      logger.info({ baseUrl: redactSensitive(baseUrl) }, 'Starting SEO crawl');
+      logger.info({ baseUrl: redactSensitive(baseUrl) }, "Starting SEO crawl");
 
       // Start with homepage
       const homepageResult = await this.crawlPage(baseUrl, 0);
@@ -117,7 +117,13 @@ export class SEOCrawler {
 
       // Analyze results
       const sitemap = await this.parseSitemap(baseUrl);
-      this.analyzeResults(pages, brokenLinks, duplicateContent, missingMeta, slowPages);
+      this.analyzeResults(
+        pages,
+        brokenLinks,
+        duplicateContent,
+        missingMeta,
+        slowPages,
+      );
 
       const crawlTime = Date.now() - startTime;
       logger.info(
@@ -126,7 +132,7 @@ export class SEOCrawler {
           pagesFound: pages.length,
           crawlTime,
         },
-        'SEO crawl completed'
+        "SEO crawl completed",
       );
 
       return {
@@ -140,13 +146,16 @@ export class SEOCrawler {
     } catch (error) {
       logger.error(
         { error: redactSensitive(error), baseUrl: redactSensitive(baseUrl) },
-        'SEO crawl failed'
+        "SEO crawl failed",
       );
       throw error;
     }
   }
 
-  private async crawlPage(url: string, depth: number): Promise<CrawlResult | null> {
+  private async crawlPage(
+    url: string,
+    depth: number,
+  ): Promise<CrawlResult | null> {
     if (!this.browser || depth > this.maxDepth) {
       return null;
     }
@@ -158,7 +167,7 @@ export class SEOCrawler {
       page = await this.browser.newPage();
       await page.setViewport({ width: 1920, height: 1080 });
       await page.setUserAgent(
-        'Mozilla/5.0 (compatible; OrionSEO/1.0; +https://orion-content.com/bot)'
+        "Mozilla/5.0 (compatible; OrionSEO/1.0; +https://orion-content.com/bot)",
       );
 
       // Set timeout
@@ -166,7 +175,7 @@ export class SEOCrawler {
 
       // Navigate to page
       const response = await page.goto(url, {
-        waitUntil: 'networkidle2',
+        waitUntil: "networkidle2",
         timeout: this.timeout,
       });
 
@@ -174,19 +183,22 @@ export class SEOCrawler {
       const loadTime = Date.now() - startTime;
 
       if (statusCode >= 400) {
-        logger.warn({ url: redactSensitive(url), statusCode }, 'Page returned error status');
+        logger.warn(
+          { url: redactSensitive(url), statusCode },
+          "Page returned error status",
+        );
         return {
           url,
-          title: '',
-          metaDescription: '',
+          title: "",
+          metaDescription: "",
           headings: { h1: [], h2: [], h3: [], h4: [], h5: [], h6: [] },
           images: [],
           links: [],
           scripts: [],
           stylesheets: [],
           wordpressPlugins: [],
-          wordpressTheme: '',
-          wordpressVersion: '',
+          wordpressTheme: "",
+          wordpressVersion: "",
           loadTime,
           statusCode,
           error: `HTTP ${statusCode}`,
@@ -201,32 +213,45 @@ export class SEOCrawler {
       const wordpressInfo = this.extractWordPressInfo($, content);
 
       // Extract SEO elements
-      const title = $('title').text().trim();
-      const metaDescription = $('meta[name="description"]').attr('content') || '';
+      const title = $("title").text().trim();
+      const metaDescription =
+        $('meta[name="description"]').attr("content") || "";
 
       // Extract headings
       const headings = {
-        h1: $('h1').map((_, el) => $(el).text().trim()).get(),
-        h2: $('h2').map((_, el) => $(el).text().trim()).get(),
-        h3: $('h3').map((_, el) => $(el).text().trim()).get(),
-        h4: $('h4').map((_, el) => $(el).text().trim()).get(),
-        h5: $('h5').map((_, el) => $(el).text().trim()).get(),
-        h6: $('h6').map((_, el) => $(el).text().trim()).get(),
+        h1: $("h1")
+          .map((_, el) => $(el).text().trim())
+          .get(),
+        h2: $("h2")
+          .map((_, el) => $(el).text().trim())
+          .get(),
+        h3: $("h3")
+          .map((_, el) => $(el).text().trim())
+          .get(),
+        h4: $("h4")
+          .map((_, el) => $(el).text().trim())
+          .get(),
+        h5: $("h5")
+          .map((_, el) => $(el).text().trim())
+          .get(),
+        h6: $("h6")
+          .map((_, el) => $(el).text().trim())
+          .get(),
       };
 
       // Extract images
-      const images = $('img')
+      const images = $("img")
         .map((_, el) => ({
-          src: $(el).attr('src') || '',
-          alt: $(el).attr('alt') || '',
-          title: $(el).attr('title') || undefined,
+          src: $(el).attr("src") || "",
+          alt: $(el).attr("alt") || "",
+          title: $(el).attr("title") || undefined,
         }))
         .get();
 
       // Extract links
-      const links = $('a[href]')
+      const links = $("a[href]")
         .map((_, el) => {
-          const href = $(el).attr('href') || '';
+          const href = $(el).attr("href") || "";
           const text = $(el).text().trim();
           const isInternal = this.isInternalLink(href, url);
           return { href, text, isInternal };
@@ -234,11 +259,11 @@ export class SEOCrawler {
         .get();
 
       // Extract scripts and stylesheets
-      const scripts = $('script[src]')
-        .map((_, el) => $(el).attr('src') || '')
+      const scripts = $("script[src]")
+        .map((_, el) => $(el).attr("src") || "")
         .get();
       const stylesheets = $('link[rel="stylesheet"]')
-        .map((_, el) => $(el).attr('href') || '')
+        .map((_, el) => $(el).attr("href") || "")
         .get();
 
       return {
@@ -259,23 +284,23 @@ export class SEOCrawler {
     } catch (error) {
       logger.error(
         { error: redactSensitive(error), url: redactSensitive(url) },
-        'Failed to crawl page'
+        "Failed to crawl page",
       );
       return {
         url,
-        title: '',
-        metaDescription: '',
+        title: "",
+        metaDescription: "",
         headings: { h1: [], h2: [], h3: [], h4: [], h5: [], h6: [] },
         images: [],
         links: [],
         scripts: [],
         stylesheets: [],
         wordpressPlugins: [],
-        wordpressTheme: '',
-        wordpressVersion: '',
+        wordpressTheme: "",
+        wordpressVersion: "",
         loadTime: Date.now() - startTime,
         statusCode: 0,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     } finally {
       if (page) {
@@ -288,14 +313,14 @@ export class SEOCrawler {
     homepageResult: CrawlResult,
     pages: CrawlResult[],
     visitedUrls: Set<string>,
-    depth: number
+    depth: number,
   ): Promise<void> {
     if (depth > this.maxDepth || pages.length >= this.maxPages) {
       return;
     }
 
     const internalLinks = homepageResult.links
-      .filter(link => link.isInternal && !visitedUrls.has(link.href))
+      .filter((link) => link.isInternal && !visitedUrls.has(link.href))
       .slice(0, 10); // Limit to 10 links per page
 
     for (const link of internalLinks) {
@@ -306,34 +331,42 @@ export class SEOCrawler {
 
       visitedUrls.add(fullUrl);
       const pageResult = await this.crawlPage(fullUrl, depth);
-      
+
       if (pageResult) {
         pages.push(pageResult);
-        
+
         // Recursively crawl more pages
-        await this.crawlAdditionalPages(pageResult, pages, visitedUrls, depth + 1);
+        await this.crawlAdditionalPages(
+          pageResult,
+          pages,
+          visitedUrls,
+          depth + 1,
+        );
       }
     }
   }
 
-  private extractWordPressInfo($: cheerio.CheerioAPI, content: string): {
+  private extractWordPressInfo(
+    $: ReturnType<typeof cheerio.load>,
+    content: string,
+  ): {
     plugins: string[];
     theme: string;
     version: string;
   } {
     const plugins: string[] = [];
-    const theme = '';
-    const version = '';
+    const theme = "";
+    const version = "";
 
     // Extract WordPress version from generator meta tag
-    const generator = $('meta[name="generator"]').attr('content') || '';
-    const wpVersion = generator.match(/WordPress\s+([\d.]+)/)?.[1] || '';
+    const generator = $('meta[name="generator"]').attr("content") || "";
+    const wpVersion = generator.match(/WordPress\s+([\d.]+)/)?.[1] || "";
 
     // Extract plugins from HTML comments and script sources
     const pluginMatches = content.match(/wp-content\/plugins\/([^\/]+)/g);
     if (pluginMatches) {
-      pluginMatches.forEach(match => {
-        const plugin = match.split('/')[2];
+      pluginMatches.forEach((match) => {
+        const plugin = match.split("/")[2];
         if (plugin && !plugins.includes(plugin)) {
           plugins.push(plugin);
         }
@@ -342,7 +375,7 @@ export class SEOCrawler {
 
     // Extract theme from stylesheet URLs
     const themeMatches = content.match(/wp-content\/themes\/([^\/]+)/g);
-    const wpTheme = themeMatches?.[0]?.split('/')[2] || '';
+    const wpTheme = themeMatches?.[0]?.split("/")[2] || "";
 
     return {
       plugins,
@@ -385,12 +418,12 @@ export class SEOCrawler {
 
       const sitemapXml = await response.text();
       const urls: string[] = [];
-      
+
       // Simple XML parsing for URLs
       const urlMatches = sitemapXml.match(/<loc>(.*?)<\/loc>/g);
       if (urlMatches) {
-        urlMatches.forEach(match => {
-          const url = match.replace(/<\/?loc>/g, '');
+        urlMatches.forEach((match) => {
+          const url = match.replace(/<\/?loc>/g, "");
           if (url && url.startsWith(baseUrl)) {
             urls.push(url);
           }
@@ -399,7 +432,7 @@ export class SEOCrawler {
 
       return urls.slice(0, 100); // Limit to 100 URLs
     } catch (error) {
-      logger.warn({ error: redactSensitive(error) }, 'Failed to parse sitemap');
+      logger.warn({ error: redactSensitive(error) }, "Failed to parse sitemap");
       return [];
     }
   }
@@ -427,12 +460,12 @@ export class SEOCrawler {
     brokenLinks: string[],
     duplicateContent: string[],
     missingMeta: string[],
-    slowPages: string[]
+    slowPages: string[],
   ): void {
     const titleMap = new Map<string, string[]>();
     const descriptionMap = new Map<string, string[]>();
 
-    pages.forEach(page => {
+    pages.forEach((page) => {
       // Check for slow pages
       if (page.loadTime > 3000) {
         slowPages.push(page.url);
@@ -460,8 +493,8 @@ export class SEOCrawler {
       }
 
       // Check for broken links
-      page.links.forEach(link => {
-        if (link.isInternal && link.href.includes('#')) {
+      page.links.forEach((link) => {
+        if (link.isInternal && link.href.includes("#")) {
           // Skip anchor links for now
           return;
         }

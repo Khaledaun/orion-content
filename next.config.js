@@ -49,7 +49,11 @@ const nextConfig = {
 
     // Handle Puppeteer for serverless deployment
     if (isServer) {
-      config.externals = [...(config.externals || []), 'puppeteer', 'puppeteer-core'];
+      config.externals = [
+        ...(config.externals || []),
+        "puppeteer",
+        "puppeteer-core",
+      ];
     }
 
     return config;

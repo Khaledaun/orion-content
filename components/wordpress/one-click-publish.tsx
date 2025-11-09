@@ -7,20 +7,26 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
-import { 
-  CheckCircle, 
-  XCircle, 
-  AlertTriangle, 
-  ExternalLink, 
-  Eye, 
+import {
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  ExternalLink,
+  Eye,
   Send,
   Loader2,
   Shield,
-  Clock
+  Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -65,11 +71,12 @@ export function WordPressOneClickPublish({
 
   const canPublish = userRole === "ADMIN" || userRole === "EDITOR";
   const canStream = userRole === "ADMIN" || userRole === "EDITOR";
-  const canView = userRole === "ADMIN" || userRole === "EDITOR" || userRole === "VIEWER";
+  const canView =
+    userRole === "ADMIN" || userRole === "EDITOR" || userRole === "VIEWER";
 
-  const criticalViolations = violations.filter(v => v.severity === "error");
-  const warningViolations = violations.filter(v => v.severity === "warning");
-  const infoViolations = violations.filter(v => v.severity === "info");
+  const criticalViolations = violations.filter((v) => v.severity === "error");
+  const warningViolations = violations.filter((v) => v.severity === "warning");
+  const infoViolations = violations.filter((v) => v.severity === "info");
 
   const isPublishBlocked = criticalViolations.length > 0 || !rulebookPassed;
   const hasWarnings = warningViolations.length > 0;
@@ -111,11 +118,11 @@ export function WordPressOneClickPublish({
 
       if (result.success) {
         toast.success(
-          publishImmediately 
-            ? "Content published to WordPress successfully!" 
-            : "Content streamed to WordPress successfully!"
+          publishImmediately
+            ? "Content published to WordPress successfully!"
+            : "Content streamed to WordPress successfully!",
         );
-        
+
         if (onPublish) {
           onPublish(result);
         }
@@ -127,10 +134,11 @@ export function WordPressOneClickPublish({
       if (onStatusUpdate) {
         onStatusUpdate(result);
       }
-
     } catch (error) {
       console.error("WordPress action failed:", error);
-      toast.error(error instanceof Error ? error.message : "An unexpected error occurred");
+      toast.error(
+        error instanceof Error ? error.message : "An unexpected error occurred",
+      );
     } finally {
       setIsLoading(false);
       setCurrentAction(null);
@@ -139,11 +147,23 @@ export function WordPressOneClickPublish({
 
   const getQualityBadge = () => {
     if (qualityScore >= 90) {
-      return <Badge variant="default" className="bg-green-100 text-green-800">Excellent ({qualityScore})</Badge>;
+      return (
+        <Badge variant="default" className="bg-green-100 text-green-800">
+          Excellent ({qualityScore})
+        </Badge>
+      );
     } else if (qualityScore >= 80) {
-      return <Badge variant="default" className="bg-blue-100 text-blue-800">Good ({qualityScore})</Badge>;
+      return (
+        <Badge variant="default" className="bg-blue-100 text-blue-800">
+          Good ({qualityScore})
+        </Badge>
+      );
     } else if (qualityScore >= 70) {
-      return <Badge variant="default" className="bg-yellow-100 text-yellow-800">Fair ({qualityScore})</Badge>;
+      return (
+        <Badge variant="default" className="bg-yellow-100 text-yellow-800">
+          Fair ({qualityScore})
+        </Badge>
+      );
     } else {
       return <Badge variant="destructive">Poor ({qualityScore})</Badge>;
     }
@@ -189,7 +209,12 @@ export function WordPressOneClickPublish({
         <CheckCircle className="h-4 w-4 text-green-600" />
         <span className="text-sm font-medium">Connected to WordPress</span>
         {wordpressStatus.status && (
-          <Badge variant="outline" className={statusColors[wordpressStatus.status as keyof typeof statusColors]}>
+          <Badge
+            variant="outline"
+            className={
+              statusColors[wordpressStatus.status as keyof typeof statusColors]
+            }
+          >
             {wordpressStatus.status}
           </Badge>
         )}
@@ -208,7 +233,7 @@ export function WordPressOneClickPublish({
           Publish "{draftTitle}" to WordPress with quality guardrails
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent className="space-y-6">
         {/* Quality Status */}
         <div className="space-y-3">
@@ -216,12 +241,12 @@ export function WordPressOneClickPublish({
             <span className="text-sm font-medium">Quality Score</span>
             {getQualityBadge()}
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">Rulebook Status</span>
             {getRulebookStatus()}
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">WordPress Status</span>
             {getWordPressStatus()}
@@ -237,12 +262,15 @@ export function WordPressOneClickPublish({
               <Shield className="h-4 w-4" />
               Quality Issues
             </h4>
-            
+
             {criticalViolations.length > 0 && (
               <Alert variant="destructive">
                 <XCircle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Critical Issues ({criticalViolations.length}):</strong> These must be fixed before publishing.
+                  <strong>
+                    Critical Issues ({criticalViolations.length}):
+                  </strong>{" "}
+                  These must be fixed before publishing.
                   <ul className="mt-2 space-y-1">
                     {criticalViolations.map((violation, index) => (
                       <li key={index} className="text-sm">
@@ -258,7 +286,8 @@ export function WordPressOneClickPublish({
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Warnings ({warningViolations.length}):</strong> Consider addressing these issues.
+                  <strong>Warnings ({warningViolations.length}):</strong>{" "}
+                  Consider addressing these issues.
                   <ul className="mt-2 space-y-1">
                     {warningViolations.slice(0, 3).map((violation, index) => (
                       <li key={index} className="text-sm">
@@ -300,7 +329,12 @@ export function WordPressOneClickPublish({
             {/* Publish Button */}
             <Button
               onClick={() => handleAction("publish")}
-              disabled={!canPublish || isLoading || isPublishBlocked || !wordpressStatus?.connected}
+              disabled={
+                !canPublish ||
+                isLoading ||
+                isPublishBlocked ||
+                !wordpressStatus?.connected
+              }
               variant="default"
               className="flex-1"
             >
@@ -316,7 +350,12 @@ export function WordPressOneClickPublish({
           {/* One-Click Publish Button */}
           <Button
             onClick={() => handleAction("stream_and_publish", true)}
-            disabled={!canPublish || isLoading || isPublishBlocked || !wordpressStatus?.connected}
+            disabled={
+              !canPublish ||
+              isLoading ||
+              isPublishBlocked ||
+              !wordpressStatus?.connected
+            }
             variant="default"
             className="w-full"
             size="lg"
@@ -344,12 +383,17 @@ export function WordPressOneClickPublish({
                 <ExternalLink className="h-4 w-4 mr-2" />
                 View Post
               </Button>
-              
+
               {wordpressStatus.status === "draft" && (
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => window.open(`${wordpressStatus.postUrl}?preview=true`, "_blank")}
+                  onClick={() =>
+                    window.open(
+                      `${wordpressStatus.postUrl}?preview=true`,
+                      "_blank",
+                    )
+                  }
                   className="flex-1"
                 >
                   <Eye className="h-4 w-4 mr-2" />
@@ -365,7 +409,8 @@ export function WordPressOneClickPublish({
           <Alert>
             <Shield className="h-4 w-4" />
             <AlertDescription>
-              You need Editor or Admin permissions to publish content to WordPress.
+              You need Editor or Admin permissions to publish content to
+              WordPress.
             </AlertDescription>
           </Alert>
         )}

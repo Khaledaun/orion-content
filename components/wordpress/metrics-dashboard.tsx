@@ -6,34 +6,46 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   LineChart,
   Line,
   PieChart,
   Pie,
-  Cell
+  Cell,
 } from "recharts";
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Clock, 
-  DollarSign, 
-  CheckCircle, 
+import {
+  TrendingUp,
+  TrendingDown,
+  Clock,
+  DollarSign,
+  CheckCircle,
   XCircle,
   Target,
   Loader2,
-  RefreshCw
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -84,7 +96,9 @@ export function WordPressMetricsDashboard({
   siteId,
   showSiteSelector = false,
 }: WordPressMetricsDashboardProps) {
-  const [globalMetrics, setGlobalMetrics] = useState<GlobalMetrics | null>(null);
+  const [globalMetrics, setGlobalMetrics] = useState<GlobalMetrics | null>(
+    null,
+  );
   const [siteMetrics, setSiteMetrics] = useState<SiteMetrics | null>(null);
   const [trends, setTrends] = useState<TrendData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -97,12 +111,14 @@ export function WordPressMetricsDashboard({
 
   const loadMetrics = async () => {
     setIsLoading(true);
-    
+
     try {
       const days = parseInt(selectedDays);
-      
+
       // Load global metrics
-      const globalResponse = await fetch(`/api/wordpress/metrics?type=global&days=${days}`);
+      const globalResponse = await fetch(
+        `/api/wordpress/metrics?type=global&days=${days}`,
+      );
       if (globalResponse.ok) {
         const globalData = await globalResponse.json();
         setGlobalMetrics(globalData);
@@ -110,7 +126,9 @@ export function WordPressMetricsDashboard({
 
       // Load site metrics if site is selected
       if (selectedSite) {
-        const siteResponse = await fetch(`/api/wordpress/metrics?type=site&siteId=${selectedSite}&days=${days}`);
+        const siteResponse = await fetch(
+          `/api/wordpress/metrics?type=site&siteId=${selectedSite}&days=${days}`,
+        );
         if (siteResponse.ok) {
           const siteData = await siteResponse.json();
           setSiteMetrics(siteData);
@@ -118,12 +136,13 @@ export function WordPressMetricsDashboard({
       }
 
       // Load trends
-      const trendsResponse = await fetch(`/api/wordpress/metrics?type=trends&days=${days}`);
+      const trendsResponse = await fetch(
+        `/api/wordpress/metrics?type=trends&days=${days}`,
+      );
       if (trendsResponse.ok) {
         const trendsData = await trendsResponse.json();
         setTrends(trendsData);
       }
-
     } catch (error) {
       console.error("Failed to load WordPress metrics:", error);
       toast.error("Failed to load metrics");
@@ -133,9 +152,9 @@ export function WordPressMetricsDashboard({
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
       minimumFractionDigits: 2,
     }).format(amount);
   };
@@ -184,7 +203,7 @@ export function WordPressMetricsDashboard({
             Track publishing performance, costs, and quality metrics
           </p>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Select value={selectedDays} onValueChange={setSelectedDays}>
             <SelectTrigger className="w-32">
@@ -196,12 +215,8 @@ export function WordPressMetricsDashboard({
               <SelectItem value="90">Last 90 days</SelectItem>
             </SelectContent>
           </Select>
-          
-          <Button
-            onClick={loadMetrics}
-            variant="outline"
-            size="sm"
-          >
+
+          <Button onClick={loadMetrics} variant="outline" size="sm">
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
@@ -212,24 +227,33 @@ export function WordPressMetricsDashboard({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Publishes</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Publishes
+              </CardTitle>
               <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{globalMetrics.totalPublishes}</div>
+              <div className="text-2xl font-bold">
+                {globalMetrics.totalPublishes}
+              </div>
               <p className="text-xs text-muted-foreground">
-                {globalMetrics.successfulPublishes} successful, {globalMetrics.failedPublishes} failed
+                {globalMetrics.successfulPublishes} successful,{" "}
+                {globalMetrics.failedPublishes} failed
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Success Rate
+              </CardTitle>
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${getSuccessRateColor(globalMetrics.successRate)}`}>
+              <div
+                className={`text-2xl font-bold ${getSuccessRateColor(globalMetrics.successRate)}`}
+              >
                 {formatPercentage(globalMetrics.successRate)}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -240,11 +264,15 @@ export function WordPressMetricsDashboard({
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Average Publish Time</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Average Publish Time
+              </CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatDuration(globalMetrics.averagePublishTime)}</div>
+              <div className="text-2xl font-bold">
+                {formatDuration(globalMetrics.averagePublishTime)}
+              </div>
               <p className="text-xs text-muted-foreground">
                 {globalMetrics.wordpressApiCalls} API calls made
               </p>
@@ -253,11 +281,15 @@ export function WordPressMetricsDashboard({
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Cost per Publish</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Cost per Publish
+              </CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(globalMetrics.costPerPublish)}</div>
+              <div className="text-2xl font-bold">
+                {formatCurrency(globalMetrics.costPerPublish)}
+              </div>
               <p className="text-xs text-muted-foreground">
                 Total: {formatCurrency(globalMetrics.totalCost)}
               </p>
@@ -278,18 +310,28 @@ export function WordPressMetricsDashboard({
           <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                <div className={`text-3xl font-bold ${getQualityScoreColor(globalMetrics.qualityScoreAverage)}`}>
+                <div
+                  className={`text-3xl font-bold ${getQualityScoreColor(globalMetrics.qualityScoreAverage)}`}
+                >
                   {globalMetrics.qualityScoreAverage.toFixed(1)}
                 </div>
-                <p className="text-sm text-muted-foreground">Average Quality Score</p>
+                <p className="text-sm text-muted-foreground">
+                  Average Quality Score
+                </p>
               </div>
               <div className="text-right">
                 <div className="text-sm text-muted-foreground">Target: 80+</div>
-                <Badge 
-                  variant={globalMetrics.qualityScoreAverage >= 80 ? "default" : "destructive"}
+                <Badge
+                  variant={
+                    globalMetrics.qualityScoreAverage >= 80
+                      ? "default"
+                      : "destructive"
+                  }
                   className="mt-1"
                 >
-                  {globalMetrics.qualityScoreAverage >= 80 ? "Meeting Target" : "Below Target"}
+                  {globalMetrics.qualityScoreAverage >= 80
+                    ? "Meeting Target"
+                    : "Below Target"}
                 </Badge>
               </div>
             </div>
@@ -310,23 +352,42 @@ export function WordPressMetricsDashboard({
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={trends}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="date" 
-                  tickFormatter={(value) => new Date(value).toLocaleDateString()}
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={(value) =>
+                    new Date(value).toLocaleDateString()
+                  }
                 />
                 <YAxis />
-                <Tooltip 
-                  labelFormatter={(value) => new Date(value).toLocaleDateString()}
+                <Tooltip
+                  labelFormatter={(value) =>
+                    new Date(value).toLocaleDateString()
+                  }
                   formatter={(value, name) => [
-                    name === "totalCost" ? formatCurrency(Number(value)) : value,
-                    name === "publishes" ? "Total Publishes" :
-                    name === "successfulPublishes" ? "Successful" :
-                    name === "failedPublishes" ? "Failed" :
-                    name === "totalCost" ? "Cost" : name
+                    name === "totalCost"
+                      ? formatCurrency(Number(value))
+                      : value,
+                    name === "publishes"
+                      ? "Total Publishes"
+                      : name === "successfulPublishes"
+                        ? "Successful"
+                        : name === "failedPublishes"
+                          ? "Failed"
+                          : name === "totalCost"
+                            ? "Cost"
+                            : name,
                   ]}
                 />
-                <Bar dataKey="publishes" fill="#8884d8" name="Total Publishes" />
-                <Bar dataKey="successfulPublishes" fill="#82ca9d" name="Successful" />
+                <Bar
+                  dataKey="publishes"
+                  fill="#8884d8"
+                  name="Total Publishes"
+                />
+                <Bar
+                  dataKey="successfulPublishes"
+                  fill="#82ca9d"
+                  name="Successful"
+                />
                 <Bar dataKey="failedPublishes" fill="#ffc658" name="Failed" />
               </BarChart>
             </ResponsiveContainer>
@@ -347,19 +408,23 @@ export function WordPressMetricsDashboard({
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={trends}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="date" 
-                  tickFormatter={(value) => new Date(value).toLocaleDateString()}
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={(value) =>
+                    new Date(value).toLocaleDateString()
+                  }
                 />
                 <YAxis tickFormatter={(value) => `$${value}`} />
-                <Tooltip 
-                  labelFormatter={(value) => new Date(value).toLocaleDateString()}
+                <Tooltip
+                  labelFormatter={(value) =>
+                    new Date(value).toLocaleDateString()
+                  }
                   formatter={(value) => [formatCurrency(Number(value)), "Cost"]}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="totalCost" 
-                  stroke="#8884d8" 
+                <Line
+                  type="monotone"
+                  dataKey="totalCost"
+                  stroke="#8884d8"
                   strokeWidth={2}
                   dot={{ fill: "#8884d8" }}
                 />
@@ -374,32 +439,37 @@ export function WordPressMetricsDashboard({
         <Card>
           <CardHeader>
             <CardTitle>Site-Specific Metrics</CardTitle>
-            <CardDescription>
-              Metrics for {siteMetrics.siteUrl}
-            </CardDescription>
+            <CardDescription>Metrics for {siteMetrics.siteUrl}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <div className="text-2xl font-bold">{siteMetrics.totalPublishes}</div>
+                <div className="text-2xl font-bold">
+                  {siteMetrics.totalPublishes}
+                </div>
                 <p className="text-sm text-muted-foreground">Total Publishes</p>
               </div>
               <div>
-                <div className={`text-2xl font-bold ${getSuccessRateColor(siteMetrics.successRate)}`}>
+                <div
+                  className={`text-2xl font-bold ${getSuccessRateColor(siteMetrics.successRate)}`}
+                >
                   {formatPercentage(siteMetrics.successRate)}
                 </div>
                 <p className="text-sm text-muted-foreground">Success Rate</p>
               </div>
               <div>
-                <div className="text-2xl font-bold">{formatCurrency(siteMetrics.totalCost)}</div>
+                <div className="text-2xl font-bold">
+                  {formatCurrency(siteMetrics.totalCost)}
+                </div>
                 <p className="text-sm text-muted-foreground">Total Cost</p>
               </div>
             </div>
-            
+
             {siteMetrics.lastPublishAt && (
               <div className="mt-4 pt-4 border-t">
                 <p className="text-sm text-muted-foreground">
-                  Last publish: {new Date(siteMetrics.lastPublishAt).toLocaleString()}
+                  Last publish:{" "}
+                  {new Date(siteMetrics.lastPublishAt).toLocaleString()}
                 </p>
               </div>
             )}

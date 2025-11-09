@@ -7,22 +7,28 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Settings, 
-  CheckCircle, 
-  XCircle, 
-  AlertTriangle, 
+import {
+  Settings,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
   Loader2,
   ExternalLink,
   Eye,
   EyeOff,
-  TestTube
+  TestTube,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -51,7 +57,9 @@ export function WordPressConnectionManager({
   siteId,
   onConnectionUpdate,
 }: WordPressConnectionManagerProps) {
-  const [integration, setIntegration] = useState<WordPressIntegration | null>(null);
+  const [integration, setIntegration] = useState<WordPressIntegration | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -68,8 +76,10 @@ export function WordPressConnectionManager({
 
   const loadIntegration = async () => {
     try {
-      const response = await fetch(`/api/integrations/wordpress?siteId=${siteId}`);
-      
+      const response = await fetch(
+        `/api/integrations/wordpress?siteId=${siteId}`,
+      );
+
       if (response.ok) {
         const data = await response.json();
         setIntegration(data);
@@ -114,17 +124,20 @@ export function WordPressConnectionManager({
       }
 
       setIntegration(result);
-      setFormData(prev => ({ ...prev, appPassword: "" })); // Clear password
-      
+      setFormData((prev) => ({ ...prev, appPassword: "" })); // Clear password
+
       toast.success("WordPress credentials saved successfully!");
-      
+
       if (onConnectionUpdate) {
         onConnectionUpdate(result);
       }
-
     } catch (error) {
       console.error("Failed to save WordPress credentials:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to save WordPress credentials");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to save WordPress credentials",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -157,48 +170,63 @@ export function WordPressConnectionManager({
 
       if (result.success) {
         toast.success("WordPress connection test successful!");
-        setIntegration(prev => prev ? { ...prev, verified: true, siteInfo: result.siteInfo } : null);
+        setIntegration((prev) =>
+          prev ? { ...prev, verified: true, siteInfo: result.siteInfo } : null,
+        );
       } else {
         toast.error(result.message || "Connection test failed");
       }
-
     } catch (error) {
       console.error("WordPress connection test failed:", error);
-      toast.error(error instanceof Error ? error.message : "Connection test failed");
+      toast.error(
+        error instanceof Error ? error.message : "Connection test failed",
+      );
     } finally {
       setIsTesting(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete the WordPress connection? This action cannot be undone.")) {
+    if (
+      !confirm(
+        "Are you sure you want to delete the WordPress connection? This action cannot be undone.",
+      )
+    ) {
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const response = await fetch(`/api/integrations/wordpress?siteId=${siteId}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `/api/integrations/wordpress?siteId=${siteId}`,
+        {
+          method: "DELETE",
+        },
+      );
 
       if (!response.ok) {
         const result = await response.json();
-        throw new Error(result.error || "Failed to delete WordPress connection");
+        throw new Error(
+          result.error || "Failed to delete WordPress connection",
+        );
       }
 
       setIntegration(null);
       setFormData({ siteUrl: "", username: "", appPassword: "" });
-      
+
       toast.success("WordPress connection deleted successfully!");
-      
+
       if (onConnectionUpdate) {
         onConnectionUpdate(null);
       }
-
     } catch (error) {
       console.error("Failed to delete WordPress connection:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to delete WordPress connection");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to delete WordPress connection",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -225,7 +253,9 @@ export function WordPressConnectionManager({
       return (
         <div className="flex items-center gap-2 text-yellow-600">
           <AlertTriangle className="h-4 w-4" />
-          <span className="text-sm font-medium">Connected (Needs Verification)</span>
+          <span className="text-sm font-medium">
+            Connected (Needs Verification)
+          </span>
         </div>
       );
     }
@@ -242,7 +272,7 @@ export function WordPressConnectionManager({
           Connect your WordPress site to enable content publishing
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent className="space-y-6">
         {/* Connection Status */}
         <div className="flex items-center justify-between">
@@ -256,23 +286,28 @@ export function WordPressConnectionManager({
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="font-medium">Site Name:</span>
-                <p className="text-muted-foreground">{integration.siteInfo.name}</p>
+                <p className="text-muted-foreground">
+                  {integration.siteInfo.name}
+                </p>
               </div>
               <div>
                 <span className="font-medium">WordPress Version:</span>
-                <p className="text-muted-foreground">{integration.siteInfo.version}</p>
+                <p className="text-muted-foreground">
+                  {integration.siteInfo.version}
+                </p>
               </div>
               <div>
                 <span className="font-medium">Site URL:</span>
-                <p className="text-muted-foreground">{integration.siteInfo.url}</p>
+                <p className="text-muted-foreground">
+                  {integration.siteInfo.url}
+                </p>
               </div>
               <div>
                 <span className="font-medium">Last Tested:</span>
                 <p className="text-muted-foreground">
-                  {integration.lastTestAt 
+                  {integration.lastTestAt
                     ? new Date(integration.lastTestAt).toLocaleString()
-                    : "Never"
-                  }
+                    : "Never"}
                 </p>
               </div>
             </div>
@@ -290,11 +325,14 @@ export function WordPressConnectionManager({
               type="url"
               placeholder="https://yoursite.com"
               value={formData.siteUrl}
-              onChange={(e) => setFormData(prev => ({ ...prev, siteUrl: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, siteUrl: e.target.value }))
+              }
               disabled={isLoading}
             />
             <p className="text-xs text-muted-foreground">
-              Enter the full URL of your WordPress site (e.g., https://yoursite.com)
+              Enter the full URL of your WordPress site (e.g.,
+              https://yoursite.com)
             </p>
           </div>
 
@@ -305,7 +343,9 @@ export function WordPressConnectionManager({
               type="text"
               placeholder="your_username"
               value={formData.username}
-              onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, username: e.target.value }))
+              }
               disabled={isLoading}
             />
             <p className="text-xs text-muted-foreground">
@@ -321,7 +361,12 @@ export function WordPressConnectionManager({
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your WordPress application password"
                 value={formData.appPassword}
-                onChange={(e) => setFormData(prev => ({ ...prev, appPassword: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    appPassword: e.target.value,
+                  }))
+                }
                 disabled={isLoading}
               />
               <Button
@@ -340,7 +385,8 @@ export function WordPressConnectionManager({
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Generate an application password in your WordPress admin under Users → Profile
+              Generate an application password in your WordPress admin under
+              Users → Profile
             </p>
           </div>
         </div>
@@ -349,7 +395,12 @@ export function WordPressConnectionManager({
         <div className="flex gap-2">
           <Button
             onClick={handleSave}
-            disabled={isLoading || !formData.siteUrl || !formData.username || !formData.appPassword}
+            disabled={
+              isLoading ||
+              !formData.siteUrl ||
+              !formData.username ||
+              !formData.appPassword
+            }
             className="flex-1"
           >
             {isLoading ? (
