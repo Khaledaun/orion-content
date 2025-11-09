@@ -178,19 +178,17 @@ export class WordPressFormAutoFill {
       }
 
       // Update the post
-      const result = await this.connector.updatePost(
-        postId,
-        updateData.title || "",
-        updateData.content || "",
-        "draft",
-        {
-          slug: updateData.slug,
-          categories: updateData.categories,
-          tags: updateData.tags,
-          featuredMediaId: updateData.featured_media,
-          meta: updateData.meta,
-        },
-      );
+      const result = await this.connector.updatePost({
+        id: postId,
+        title: updateData.title || "",
+        content: updateData.content || "",
+        status: "draft",
+        slug: updateData.slug,
+        categories: updateData.categories,
+        tags: updateData.tags,
+        featured_media: updateData.featured_media,
+        meta: updateData.meta,
+      });
 
       logger.info(
         { postId, updatedFields },

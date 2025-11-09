@@ -3,7 +3,7 @@
  * Extends the existing IntegrationManager with WordPress-specific functionality
  */
 
-import { IntegrationManager, IntegrationType } from "../integration-manager";
+import { IntegrationManager, IntegrationType, IntegrationCredentials } from "../integration-manager";
 import { WordPressConnector, WordPressCredentials, WordPressPost, WordPressPostCreate } from "./connector";
 import { prisma } from "../prisma";
 import { logger } from "../logger";
@@ -52,16 +52,16 @@ export class WordPressIntegrationManager extends IntegrationManager {
     try {
       const integration = await this.saveCredentials(
         IntegrationType.WORDPRESS,
-        credentials,
+        credentials as unknown as IntegrationCredentials,
         siteId
       );
 
       // Test the connection immediately
-      const testResult = await this.testWordPressConnection(siteId);
+      const testResult = await this.testWordPressConnectionBySite(siteId);
       
       return {
         id: integration.id,
-        siteId: integration.siteId,
+        siteId: integration.siteId || siteId,
         siteUrl: credentials.siteUrl,
         verified: testResult.success,
         lastTestAt: testResult.success ? new Date() : null,
@@ -87,17 +87,17 @@ export class WordPressIntegrationManager extends IntegrationManager {
    */
   async getWordPressIntegration(siteId: string): Promise<WordPressIntegrationInfo | null> {
     try {
-      const integration = await this.getCredentials(IntegrationType.WORDPRESS, siteId);
-      
+      const integration: any = await this.getCredentials(IntegrationType.WORDPRESS, siteId);
+
       if (!integration) {
         return null;
       }
 
       const credentials = integration.credentials as WordPressCredentials;
-      
+
       return {
         id: integration.id,
-        siteId: integration.siteId,
+        siteId: integration.siteId || siteId,
         siteUrl: credentials.siteUrl,
         verified: integration.verified,
         lastTestAt: integration.lastTestAt,
@@ -118,8 +118,9 @@ export class WordPressIntegrationManager extends IntegrationManager {
 
   /**
    * Test WordPress connection for a site
+   * Site-specific override that fetches credentials internally
    */
-  async testWordPressConnection(siteId: string): Promise<{
+  async testWordPressConnectionBySite(siteId: string): Promise<{
     success: boolean;
     message: string;
     siteInfo?: {
@@ -139,7 +140,7 @@ export class WordPressIntegrationManager extends IntegrationManager {
         };
       }
 
-      const wpCredentials = credentials.credentials as WordPressCredentials;
+      const wpCredentials = credentials as unknown as WordPressCredentials;
       const connector = new WordPressConnector(wpCredentials);
       
       const testResult = await connector.testConnection();
@@ -187,7 +188,7 @@ export class WordPressIntegrationManager extends IntegrationManager {
       throw new Error("No WordPress credentials found for this site");
     }
 
-    const wpCredentials = credentials.credentials as WordPressCredentials;
+    const wpCredentials = credentials as unknown as WordPressCredentials;
     return new WordPressConnector(wpCredentials);
   }
 
@@ -520,7 +521,13 @@ export class WordPressIntegrationManager extends IntegrationManager {
    */
   async deleteWordPressCredentials(siteId: string): Promise<boolean> {
     try {
-      await this.deleteCredentials(IntegrationType.WORDPRESS, siteId);
+      // TODO: Implement deleteCredentials in base IntegrationManager class
+      await prisma.integration.deleteMany({
+        where: {
+          siteId: siteId,
+          type: IntegrationType.WORDPRESS,
+        },
+      });
       
       logger.info(
         {

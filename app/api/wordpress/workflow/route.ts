@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
         siteId,
         draftId,
         action,
-        success: result.success,
+        success: (result as any).success,
       },
       `WordPress workflow ${action} completed`
     );

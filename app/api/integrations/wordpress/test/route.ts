@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const testResult = await wpManager.testWordPressConnection(siteId);
+    const testResult = await wpManager.testWordPressConnectionBySite(siteId);
 
     logger.info(
       {

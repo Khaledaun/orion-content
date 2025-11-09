@@ -68,7 +68,7 @@ export class WordPressPublishingWorkflow {
       integrationStage.complete("internal", 0, 0, 0, true);
 
       // Stage 3: Rulebook QA check (unless skipped)
-      let rulebookResult = { passed: true, score: 100, violations: [] };
+      let rulebookResult: { passed: boolean; score: number; violations: any[] } = { passed: true, score: 100, violations: [] };
       if (!skipRulebookCheck) {
         const qaStage = observability.startStage("rulebook_qa");
         rulebookResult = await this.performRulebookCheck(draft);
@@ -109,7 +109,7 @@ export class WordPressPublishingWorkflow {
       updateStage.complete("internal", 0, 0, 0, true);
 
       // Stage 6: Publish if requested and rulebook passed
-      let publishResult = { success: true, postUrl: streamResult.postUrl };
+      let publishResult: { success: boolean; postUrl?: string; error?: string } = { success: true, postUrl: streamResult.postUrl };
       if (publishImmediately && rulebookResult.passed) {
         const publishStage = observability.startStage("publish_wordpress");
         publishResult = await this.wpManager.publishWordPressPost(siteId, streamResult.postId!);
@@ -221,10 +221,9 @@ export class WordPressPublishingWorkflow {
       const qaReport = await this.qaValidator.validate({
         title: draft.title,
         content: draft.content,
-        excerpt: draft.excerpt,
         meta: draft.meta,
         images: draft.images || [],
-      });
+      } as any);
 
       return {
         passed: qaReport.status !== "FAILED",

@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireEditAccess } from '@/app/lib/rbac';
 import { WordPressSEOAnalyzer } from '@/lib/wordpress/seo-analyzer';
 import { WordPressFormAutoFill } from '@/lib/wordpress/form-auto-fill';
-import { WordPressConnector } from '@/lib/wordpress/connector';
+import { WordPressConnector, WordPressCredentials } from '@/lib/wordpress/connector';
 import { IntegrationManager } from '@/lib/integration-manager';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const connector = new WordPressConnector(credentials);
+    const connector = new WordPressConnector(credentials as unknown as WordPressCredentials);
     const formAutoFill = new WordPressFormAutoFill(connector);
 
     switch (action) {
@@ -319,7 +319,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const connector = new WordPressConnector(credentials);
+    const connector = new WordPressConnector(credentials as unknown as WordPressCredentials);
     const formAutoFill = new WordPressFormAutoFill(connector);
 
     switch (action) {
