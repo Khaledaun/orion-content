@@ -71,7 +71,7 @@ export class SEOCrawler {
   async initialize(): Promise<void> {
     if (!this.browser) {
       this.browser = await puppeteer.launch({
-        headless: 'new',
+        headless: true,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -316,7 +316,7 @@ export class SEOCrawler {
     }
   }
 
-  private extractWordPressInfo($: cheerio.CheerioAPI, content: string): {
+  private extractWordPressInfo($: ReturnType<typeof cheerio.load>, content: string): {
     plugins: string[];
     theme: string;
     version: string;

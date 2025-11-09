@@ -125,12 +125,12 @@ export class WordPressTelemetry {
         return null;
       }
 
-      const successfulEvents = events.filter(e => e.success);
-      const failedEvents = events.filter(e => !e.success);
+      const successfulEvents = events.filter((e: any) => e.success);
+      const failedEvents = events.filter((e: any) => !e.success);
 
-      const totalPublishTime = events.reduce((sum, e) => sum + e.publishTime, 0);
-      const totalCost = events.reduce((sum, e) => sum + e.cost, 0);
-      const totalQualityScore = events.reduce((sum, e) => sum + e.qualityScore, 0);
+      const totalPublishTime = events.reduce((sum: number, e: any) => sum + e.publishTime, 0);
+      const totalCost = events.reduce((sum: number, e: any) => sum + e.cost, 0);
+      const totalQualityScore = events.reduce((sum: number, e: any) => sum + e.qualityScore, 0);
 
       // Get site info
       const site = await prisma.site.findUnique({
@@ -199,13 +199,13 @@ export class WordPressTelemetry {
         };
       }
 
-      const successfulEvents = events.filter(e => e.success);
-      const failedEvents = events.filter(e => !e.success);
-      const rulebookBlockedEvents = events.filter(e => !e.rulebookPassed);
+      const successfulEvents = events.filter((e: any) => e.success);
+      const failedEvents = events.filter((e: any) => !e.success);
+      const rulebookBlockedEvents = events.filter((e: any) => !e.rulebookPassed);
 
-      const totalPublishTime = events.reduce((sum, e) => sum + e.publishTime, 0);
-      const totalCost = events.reduce((sum, e) => sum + e.cost, 0);
-      const totalQualityScore = events.reduce((sum, e) => sum + e.qualityScore, 0);
+      const totalPublishTime = events.reduce((sum: number, e: any) => sum + e.publishTime, 0);
+      const totalCost = events.reduce((sum: number, e: any) => sum + e.cost, 0);
+      const totalQualityScore = events.reduce((sum: number, e: any) => sum + e.qualityScore, 0);
 
       return {
         totalPublishes: events.length,
@@ -276,7 +276,7 @@ export class WordPressTelemetry {
       // Group events by date
       const eventsByDate = new Map<string, typeof events>();
       
-      events.forEach(event => {
+      events.forEach((event: any) => {
         const date = event.timestamp.toISOString().split('T')[0];
         if (!eventsByDate.has(date)) {
           eventsByDate.set(date, []);
@@ -286,9 +286,9 @@ export class WordPressTelemetry {
 
       // Calculate metrics for each date
       const trends = Array.from(eventsByDate.entries()).map(([date, dayEvents]) => {
-        const successfulEvents = dayEvents.filter(e => e.success);
-        const totalCost = dayEvents.reduce((sum, e) => sum + e.cost, 0);
-        const totalQualityScore = dayEvents.reduce((sum, e) => sum + e.qualityScore, 0);
+        const successfulEvents = dayEvents.filter((e: any) => e.success);
+        const totalCost = dayEvents.reduce((sum: number, e: any) => sum + e.cost, 0);
+        const totalQualityScore = dayEvents.reduce((sum: number, e: any) => sum + e.qualityScore, 0);
 
         return {
           date,
