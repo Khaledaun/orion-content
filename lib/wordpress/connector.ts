@@ -85,7 +85,7 @@ export class WordPressConnector {
   constructor(credentials: WordPressCredentials) {
     this.credentials = credentials;
     this.baseUrl = credentials.siteUrl.replace(/\/$/, ""); // Remove trailing slash
-    
+
     // Create Basic Auth header
     const authString = `${credentials.username}:${credentials.appPassword}`;
     this.authHeader = `Basic ${Buffer.from(authString).toString("base64")}`;
@@ -99,7 +99,7 @@ export class WordPressConnector {
       const response = await fetch(`${this.baseUrl}/wp-json/wp/v2/`, {
         method: "GET",
         headers: {
-          "Authorization": this.authHeader,
+          Authorization: this.authHeader,
           "Content-Type": "application/json",
         },
         signal: AbortSignal.timeout(10000), // 10 second timeout
@@ -114,7 +114,7 @@ export class WordPressConnector {
       }
 
       const siteInfo = await response.json();
-      
+
       return {
         success: true,
         message: "Connection successful",
@@ -131,9 +131,9 @@ export class WordPressConnector {
           error: redactSensitive(error),
           siteUrl: redactSensitive(this.baseUrl),
         },
-        "WordPress connection test failed"
+        "WordPress connection test failed",
       );
-      
+
       return {
         success: false,
         message: `Connection failed: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -149,7 +149,7 @@ export class WordPressConnector {
       const response = await fetch(`${this.baseUrl}/wp-json/wp/v2/posts`, {
         method: "POST",
         headers: {
-          "Authorization": this.authHeader,
+          Authorization: this.authHeader,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(post),
@@ -158,18 +158,20 @@ export class WordPressConnector {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`WordPress API error: ${response.status} ${response.statusText} - ${errorText}`);
+        throw new Error(
+          `WordPress API error: ${response.status} ${response.statusText} - ${errorText}`,
+        );
       }
 
       const result = await response.json();
-      
+
       logger.info(
         {
           postId: result.id,
           title: redactSensitive(post.title),
           status: post.status,
         },
-        "WordPress post created successfully"
+        "WordPress post created successfully",
       );
 
       return result;
@@ -180,7 +182,7 @@ export class WordPressConnector {
           title: redactSensitive(post.title),
           status: post.status,
         },
-        "Failed to create WordPress post"
+        "Failed to create WordPress post",
       );
       throw error;
     }
@@ -192,30 +194,35 @@ export class WordPressConnector {
   async updatePost(post: WordPressPostUpdate): Promise<WordPressPost> {
     try {
       const { id, ...updateData } = post;
-      
-      const response = await fetch(`${this.baseUrl}/wp-json/wp/v2/posts/${id}`, {
-        method: "POST", // WordPress uses POST for updates
-        headers: {
-          "Authorization": this.authHeader,
-          "Content-Type": "application/json",
+
+      const response = await fetch(
+        `${this.baseUrl}/wp-json/wp/v2/posts/${id}`,
+        {
+          method: "POST", // WordPress uses POST for updates
+          headers: {
+            Authorization: this.authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updateData),
+          signal: AbortSignal.timeout(30000),
         },
-        body: JSON.stringify(updateData),
-        signal: AbortSignal.timeout(30000),
-      });
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`WordPress API error: ${response.status} ${response.statusText} - ${errorText}`);
+        throw new Error(
+          `WordPress API error: ${response.status} ${response.statusText} - ${errorText}`,
+        );
       }
 
       const result = await response.json();
-      
+
       logger.info(
         {
           postId: id,
           title: redactSensitive(updateData.title),
         },
-        "WordPress post updated successfully"
+        "WordPress post updated successfully",
       );
 
       return result;
@@ -226,7 +233,7 @@ export class WordPressConnector {
           postId: post.id,
           title: redactSensitive(post.title),
         },
-        "Failed to update WordPress post"
+        "Failed to update WordPress post",
       );
       throw error;
     }
@@ -237,18 +244,23 @@ export class WordPressConnector {
    */
   async getPost(id: number): Promise<WordPressPost> {
     try {
-      const response = await fetch(`${this.baseUrl}/wp-json/wp/v2/posts/${id}`, {
-        method: "GET",
-        headers: {
-          "Authorization": this.authHeader,
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${this.baseUrl}/wp-json/wp/v2/posts/${id}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: this.authHeader,
+            "Content-Type": "application/json",
+          },
+          signal: AbortSignal.timeout(10000),
         },
-        signal: AbortSignal.timeout(10000),
-      });
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`WordPress API error: ${response.status} ${response.statusText} - ${errorText}`);
+        throw new Error(
+          `WordPress API error: ${response.status} ${response.statusText} - ${errorText}`,
+        );
       }
 
       return await response.json();
@@ -258,7 +270,7 @@ export class WordPressConnector {
           error: redactSensitive(error),
           postId: id,
         },
-        "Failed to get WordPress post"
+        "Failed to get WordPress post",
       );
       throw error;
     }
@@ -267,36 +279,45 @@ export class WordPressConnector {
   /**
    * List WordPress posts with optional filtering
    */
-  async listPosts(options: {
-    per_page?: number;
-    page?: number;
-    status?: string;
-    search?: string;
-    categories?: number[];
-    tags?: number[];
-  } = {}): Promise<WordPressPost[]> {
+  async listPosts(
+    options: {
+      per_page?: number;
+      page?: number;
+      status?: string;
+      search?: string;
+      categories?: number[];
+      tags?: number[];
+    } = {},
+  ): Promise<WordPressPost[]> {
     try {
       const params = new URLSearchParams();
-      
-      if (options.per_page) params.append("per_page", options.per_page.toString());
+
+      if (options.per_page)
+        params.append("per_page", options.per_page.toString());
       if (options.page) params.append("page", options.page.toString());
       if (options.status) params.append("status", options.status);
       if (options.search) params.append("search", options.search);
-      if (options.categories) params.append("categories", options.categories.join(","));
+      if (options.categories)
+        params.append("categories", options.categories.join(","));
       if (options.tags) params.append("tags", options.tags.join(","));
 
-      const response = await fetch(`${this.baseUrl}/wp-json/wp/v2/posts?${params}`, {
-        method: "GET",
-        headers: {
-          "Authorization": this.authHeader,
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${this.baseUrl}/wp-json/wp/v2/posts?${params}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: this.authHeader,
+            "Content-Type": "application/json",
+          },
+          signal: AbortSignal.timeout(15000),
         },
-        signal: AbortSignal.timeout(15000),
-      });
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`WordPress API error: ${response.status} ${response.statusText} - ${errorText}`);
+        throw new Error(
+          `WordPress API error: ${response.status} ${response.statusText} - ${errorText}`,
+        );
       }
 
       return await response.json();
@@ -306,7 +327,7 @@ export class WordPressConnector {
           error: redactSensitive(error),
           options,
         },
-        "Failed to list WordPress posts"
+        "Failed to list WordPress posts",
       );
       throw error;
     }
@@ -320,7 +341,7 @@ export class WordPressConnector {
       const response = await fetch(`${this.baseUrl}/wp-json/wp/v2/categories`, {
         method: "GET",
         headers: {
-          "Authorization": this.authHeader,
+          Authorization: this.authHeader,
           "Content-Type": "application/json",
         },
         signal: AbortSignal.timeout(10000),
@@ -328,7 +349,9 @@ export class WordPressConnector {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`WordPress API error: ${response.status} ${response.statusText} - ${errorText}`);
+        throw new Error(
+          `WordPress API error: ${response.status} ${response.statusText} - ${errorText}`,
+        );
       }
 
       return await response.json();
@@ -337,7 +360,7 @@ export class WordPressConnector {
         {
           error: redactSensitive(error),
         },
-        "Failed to get WordPress categories"
+        "Failed to get WordPress categories",
       );
       throw error;
     }
@@ -351,7 +374,7 @@ export class WordPressConnector {
       const response = await fetch(`${this.baseUrl}/wp-json/wp/v2/tags`, {
         method: "GET",
         headers: {
-          "Authorization": this.authHeader,
+          Authorization: this.authHeader,
           "Content-Type": "application/json",
         },
         signal: AbortSignal.timeout(10000),
@@ -359,7 +382,9 @@ export class WordPressConnector {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`WordPress API error: ${response.status} ${response.statusText} - ${errorText}`);
+        throw new Error(
+          `WordPress API error: ${response.status} ${response.statusText} - ${errorText}`,
+        );
       }
 
       return await response.json();
@@ -368,7 +393,7 @@ export class WordPressConnector {
         {
           error: redactSensitive(error),
         },
-        "Failed to get WordPress tags"
+        "Failed to get WordPress tags",
       );
       throw error;
     }
@@ -388,7 +413,7 @@ export class WordPressConnector {
       const response = await fetch(`${this.baseUrl}/wp-json/wp/v2/media`, {
         method: "POST",
         headers: {
-          "Authorization": this.authHeader,
+          Authorization: this.authHeader,
         },
         body: formData,
         signal: AbortSignal.timeout(60000), // 60 second timeout for file uploads
@@ -396,18 +421,20 @@ export class WordPressConnector {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`WordPress API error: ${response.status} ${response.statusText} - ${errorText}`);
+        throw new Error(
+          `WordPress API error: ${response.status} ${response.statusText} - ${errorText}`,
+        );
       }
 
       const result = await response.json();
-      
+
       logger.info(
         {
           mediaId: result.id,
           filename: file.name,
           mimeType: file.type,
         },
-        "WordPress media uploaded successfully"
+        "WordPress media uploaded successfully",
       );
 
       return result;
@@ -418,7 +445,7 @@ export class WordPressConnector {
           filename: file.name,
           mimeType: file.type,
         },
-        "Failed to upload WordPress media"
+        "Failed to upload WordPress media",
       );
       throw error;
     }
@@ -429,18 +456,23 @@ export class WordPressConnector {
    */
   async getMedia(id: number): Promise<WordPressMedia> {
     try {
-      const response = await fetch(`${this.baseUrl}/wp-json/wp/v2/media/${id}`, {
-        method: "GET",
-        headers: {
-          "Authorization": this.authHeader,
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${this.baseUrl}/wp-json/wp/v2/media/${id}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: this.authHeader,
+            "Content-Type": "application/json",
+          },
+          signal: AbortSignal.timeout(10000),
         },
-        signal: AbortSignal.timeout(10000),
-      });
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`WordPress API error: ${response.status} ${response.statusText} - ${errorText}`);
+        throw new Error(
+          `WordPress API error: ${response.status} ${response.statusText} - ${errorText}`,
+        );
       }
 
       return await response.json();
@@ -450,7 +482,7 @@ export class WordPressConnector {
           error: redactSensitive(error),
           mediaId: id,
         },
-        "Failed to get WordPress media"
+        "Failed to get WordPress media",
       );
       throw error;
     }
@@ -464,18 +496,23 @@ export class WordPressConnector {
       const params = new URLSearchParams();
       if (force) params.append("force", "true");
 
-      const response = await fetch(`${this.baseUrl}/wp-json/wp/v2/posts/${id}?${params}`, {
-        method: "DELETE",
-        headers: {
-          "Authorization": this.authHeader,
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${this.baseUrl}/wp-json/wp/v2/posts/${id}?${params}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: this.authHeader,
+            "Content-Type": "application/json",
+          },
+          signal: AbortSignal.timeout(15000),
         },
-        signal: AbortSignal.timeout(15000),
-      });
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`WordPress API error: ${response.status} ${response.statusText} - ${errorText}`);
+        throw new Error(
+          `WordPress API error: ${response.status} ${response.statusText} - ${errorText}`,
+        );
       }
 
       logger.info(
@@ -483,7 +520,7 @@ export class WordPressConnector {
           postId: id,
           force,
         },
-        "WordPress post deleted successfully"
+        "WordPress post deleted successfully",
       );
 
       return true;
@@ -493,7 +530,7 @@ export class WordPressConnector {
           error: redactSensitive(error),
           postId: id,
         },
-        "Failed to delete WordPress post"
+        "Failed to delete WordPress post",
       );
       throw error;
     }

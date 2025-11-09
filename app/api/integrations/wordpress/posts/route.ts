@@ -25,19 +25,16 @@ export async function GET(request: NextRequest) {
     if (!siteId) {
       return NextResponse.json(
         { error: "Site ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Get specific post by ID
     if (postId) {
       const post = await wpManager.getWordPressPost(siteId, parseInt(postId));
-      
+
       if (!post) {
-        return NextResponse.json(
-          { error: "Post not found" },
-          { status: 404 }
-        );
+        return NextResponse.json({ error: "Post not found" }, { status: 404 });
       }
 
       return NextResponse.json(post);
@@ -60,7 +57,7 @@ export async function GET(request: NextRequest) {
         postCount: posts.length,
         options,
       },
-      "WordPress posts retrieved successfully"
+      "WordPress posts retrieved successfully",
     );
 
     return NextResponse.json(posts);
@@ -70,26 +67,20 @@ export async function GET(request: NextRequest) {
         error: redactSensitive(error),
         action: "get_wordpress_posts",
       },
-      "Failed to get WordPress posts"
+      "Failed to get WordPress posts",
     );
 
     if (error instanceof Error && error.message === "unauthorized") {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     if (error instanceof Error && error.message === "forbidden") {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

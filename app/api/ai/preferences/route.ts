@@ -3,41 +3,40 @@
  * Handles user preference learning and content personalization
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { requireEditAccess } from '@/app/lib/rbac';
-import { AIPreferenceLearner, ContentComparison } from '@/lib/ai/preference-learner';
-import { prisma } from '@/lib/prisma';
-import { logger } from '@/lib/logger';
-import { redactSensitive } from '@/lib/redact';
+import { NextRequest, NextResponse } from "next/server";
+import { requireEditAccess } from "@/app/lib/rbac";
+import {
+  AIPreferenceLearner,
+  ContentComparison,
+} from "@/lib/ai/preference-learner";
+import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
+import { redactSensitive } from "@/lib/redact";
 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await requireEditAccess(request);
     const body = await request.json();
-    
-    const { 
-      siteId, 
-      action,
-      data = {}
-    } = body;
+
+    const { siteId, action, data = {} } = body;
 
     if (!siteId || !action) {
       return NextResponse.json(
-        { error: 'Missing required fields: siteId, action' },
-        { status: 400 }
+        { error: "Missing required fields: siteId, action" },
+        { status: 400 },
       );
     }
 
     const preferenceLearner = new AIPreferenceLearner();
 
     switch (action) {
-      case 'learn_from_comparison': {
+      case "learn_from_comparison": {
         const { original, edited, userRating, feedback, contentType } = data;
-        
+
         if (!original || !edited) {
           return NextResponse.json(
-            { error: 'Missing original or edited content' },
-            { status: 400 }
+            { error: "Missing original or edited content" },
+            { status: 400 },
           );
         }
 
@@ -53,7 +52,7 @@ export async function POST(request: NextRequest) {
           userId,
           siteId,
           comparison,
-          contentType || 'blog'
+          contentType || "blog",
         );
 
         if (preferences) {
@@ -82,24 +81,24 @@ export async function POST(request: NextRequest) {
 
           logger.info(
             { userId, siteId, confidence: preferences.confidence },
-            'User preferences updated from content comparison'
+            "User preferences updated from content comparison",
           );
         }
 
         return NextResponse.json({
           success: true,
           preferences,
-          message: 'Preferences learned from content comparison',
+          message: "Preferences learned from content comparison",
         });
       }
 
-      case 'generate_personalized_content': {
+      case "generate_personalized_content": {
         const { baseContent, contentType, keywords } = data;
-        
+
         if (!baseContent) {
           return NextResponse.json(
-            { error: 'Missing base content' },
-            { status: 400 }
+            { error: "Missing base content" },
+            { status: 400 },
           );
         }
 
@@ -107,28 +106,31 @@ export async function POST(request: NextRequest) {
           userId,
           siteId,
           baseContent,
-          contentType || 'blog',
-          keywords || []
+          contentType || "blog",
+          keywords || [],
         );
 
         return NextResponse.json({
           success: true,
           result,
-          message: 'Personalized content generated',
+          message: "Personalized content generated",
         });
       }
 
-      case 'get_learning_insights': {
-        const insights = await preferenceLearner.getLearningInsights(userId, siteId);
+      case "get_learning_insights": {
+        const insights = await preferenceLearner.getLearningInsights(
+          userId,
+          siteId,
+        );
 
         return NextResponse.json({
           success: true,
           insights,
-          message: 'Learning insights retrieved',
+          message: "Learning insights retrieved",
         });
       }
 
-      case 'get_user_preferences': {
+      case "get_user_preferences": {
         const preferences = await prisma.userPreferences.findUnique({
           where: {
             userId_siteId: {
@@ -141,12 +143,18 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           preferences,
-          message: 'User preferences retrieved',
+          message: "User preferences retrieved",
         });
       }
 
-      case 'update_preferences': {
-        const { contentStyle, keywordPreferences, structurePrefs, tonePreferences, seoPreferences } = data;
+      case "update_preferences": {
+        const {
+          contentStyle,
+          keywordPreferences,
+          structurePrefs,
+          tonePreferences,
+          seoPreferences,
+        } = data;
 
         const preferences = await prisma.userPreferences.upsert({
           where: {
@@ -177,29 +185,25 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           preferences,
-          message: 'User preferences updated',
+          message: "User preferences updated",
         });
       }
 
       default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
-
   } catch (error) {
     logger.error(
       { error: redactSensitive(error) },
-      'AI preferences API failed'
+      "AI preferences API failed",
     );
 
     return NextResponse.json(
-      { 
-        error: 'AI preferences operation failed', 
-        message: error instanceof Error ? error.message : 'Unknown error' 
+      {
+        error: "AI preferences operation failed",
+        message: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -208,21 +212,21 @@ export async function GET(request: NextRequest) {
   try {
     const { userId } = await requireEditAccess(request);
     const { searchParams } = new URL(request.url);
-    
-    const siteId = searchParams.get('siteId');
-    const action = searchParams.get('action');
+
+    const siteId = searchParams.get("siteId");
+    const action = searchParams.get("action");
 
     if (!siteId || !action) {
       return NextResponse.json(
-        { error: 'Missing siteId or action parameter' },
-        { status: 400 }
+        { error: "Missing siteId or action parameter" },
+        { status: 400 },
       );
     }
 
     const preferenceLearner = new AIPreferenceLearner();
 
     switch (action) {
-      case 'preferences': {
+      case "preferences": {
         const preferences = await prisma.userPreferences.findUnique({
           where: {
             userId_siteId: {
@@ -238,8 +242,11 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      case 'insights': {
-        const insights = await preferenceLearner.getLearningInsights(userId, siteId);
+      case "insights": {
+        const insights = await preferenceLearner.getLearningInsights(
+          userId,
+          siteId,
+        );
 
         return NextResponse.json({
           success: true,
@@ -248,21 +255,17 @@ export async function GET(request: NextRequest) {
       }
 
       default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
-
   } catch (error) {
     logger.error(
       { error: redactSensitive(error) },
-      'AI preferences GET API failed'
+      "AI preferences GET API failed",
     );
 
     return NextResponse.json(
-      { error: 'AI preferences operation failed' },
-      { status: 500 }
+      { error: "AI preferences operation failed" },
+      { status: 500 },
     );
   }
 }

@@ -3,24 +3,29 @@
  * Continuous monitoring and alerting for SEO performance
  */
 
-import { logger } from '@/lib/logger';
-import { redactSensitive } from '@/lib/redact';
+import { logger } from "@/lib/logger";
+import { redactSensitive } from "@/lib/redact";
 
 export interface PerformanceMetric {
   name: string;
   value: number;
   unit: string;
-  trend: 'up' | 'down' | 'stable';
+  trend: "up" | "down" | "stable";
   change: number; // percentage change
   timestamp: Date;
   target?: number;
-  status: 'good' | 'warning' | 'critical';
+  status: "good" | "warning" | "critical";
 }
 
 export interface SEOAlert {
   id: string;
-  type: 'ranking_drop' | 'traffic_decrease' | 'backlink_loss' | 'technical_issue' | 'competitor_gain';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  type:
+    | "ranking_drop"
+    | "traffic_decrease"
+    | "backlink_loss"
+    | "technical_issue"
+    | "competitor_gain";
+  severity: "low" | "medium" | "high" | "critical";
   title: string;
   description: string;
   affectedPages: string[];
@@ -39,7 +44,7 @@ export interface MonitoringDashboard {
   siteId: string;
   domain: string;
   lastUpdated: Date;
-  overallHealth: 'excellent' | 'good' | 'warning' | 'critical';
+  overallHealth: "excellent" | "good" | "warning" | "critical";
   metrics: {
     organicTraffic: PerformanceMetric;
     averageRanking: PerformanceMetric;
@@ -72,7 +77,7 @@ export interface MonitoringDashboard {
 export interface MonitoringConfig {
   siteId: string;
   domain: string;
-  monitoringFrequency: 'hourly' | 'daily' | 'weekly';
+  monitoringFrequency: "hourly" | "daily" | "weekly";
   alertThresholds: {
     trafficDrop: number; // percentage
     rankingDrop: number; // positions
@@ -89,14 +94,14 @@ export interface MonitoringConfig {
 }
 
 export class SEOPerformanceMonitor {
-  private readonly defaultMonitoringFrequency = 'daily';
+  private readonly defaultMonitoringFrequency = "daily";
   private readonly maxAlertsPerDay = 50;
 
   async setupMonitoring(config: MonitoringConfig): Promise<MonitoringConfig> {
     try {
       logger.info(
         { siteId: config.siteId, domain: redactSensitive(config.domain) },
-        'Setting up SEO performance monitoring'
+        "Setting up SEO performance monitoring",
       );
 
       // Validate configuration
@@ -113,14 +118,14 @@ export class SEOPerformanceMonitor {
 
       logger.info(
         { siteId: config.siteId, domain: redactSensitive(config.domain) },
-        'SEO performance monitoring setup completed'
+        "SEO performance monitoring setup completed",
       );
 
       return config;
     } catch (error) {
       logger.error(
         { error: redactSensitive(error), siteId: config.siteId },
-        'Failed to setup SEO performance monitoring'
+        "Failed to setup SEO performance monitoring",
       );
       throw error;
     }
@@ -128,12 +133,12 @@ export class SEOPerformanceMonitor {
 
   async runMonitoring(siteId: string): Promise<MonitoringDashboard> {
     try {
-      logger.info({ siteId }, 'Running SEO performance monitoring');
+      logger.info({ siteId }, "Running SEO performance monitoring");
 
       // Get monitoring configuration
       const config = await this.getMonitoringConfig(siteId);
       if (!config) {
-        throw new Error('Monitoring configuration not found');
+        throw new Error("Monitoring configuration not found");
       }
 
       // Collect current metrics
@@ -171,18 +176,21 @@ export class SEOPerformanceMonitor {
       await this.saveDashboardData(dashboard);
 
       // Send notifications for critical alerts
-      await this.sendNotifications(config, alerts.filter(a => a.severity === 'critical'));
+      await this.sendNotifications(
+        config,
+        alerts.filter((a) => a.severity === "critical"),
+      );
 
       logger.info(
         { siteId, overallHealth, alertsCount: alerts.length },
-        'SEO performance monitoring completed'
+        "SEO performance monitoring completed",
       );
 
       return dashboard;
     } catch (error) {
       logger.error(
         { error: redactSensitive(error), siteId },
-        'SEO performance monitoring failed'
+        "SEO performance monitoring failed",
       );
       throw error;
     }
@@ -201,81 +209,87 @@ export class SEOPerformanceMonitor {
         siteId,
         domain: config.domain,
         lastUpdated: new Date(),
-        overallHealth: 'good',
+        overallHealth: "good",
         metrics: {
           organicTraffic: {
-            name: 'Organic Traffic',
+            name: "Organic Traffic",
             value: 15000,
-            unit: 'visitors/month',
-            trend: 'up',
+            unit: "visitors/month",
+            trend: "up",
             change: 12.5,
             timestamp: new Date(),
             target: 20000,
-            status: 'good',
+            status: "good",
           },
           averageRanking: {
-            name: 'Average Ranking',
+            name: "Average Ranking",
             value: 8.5,
-            unit: 'position',
-            trend: 'up',
+            unit: "position",
+            trend: "up",
             change: -1.2,
             timestamp: new Date(),
             target: 5,
-            status: 'warning',
+            status: "warning",
           },
           backlinks: {
-            name: 'Backlinks',
+            name: "Backlinks",
             value: 1250,
-            unit: 'links',
-            trend: 'up',
+            unit: "links",
+            trend: "up",
             change: 5.2,
             timestamp: new Date(),
             target: 2000,
-            status: 'good',
+            status: "good",
           },
           domainRating: {
-            name: 'Domain Rating',
+            name: "Domain Rating",
             value: 65,
-            unit: 'score',
-            trend: 'stable',
+            unit: "score",
+            trend: "stable",
             change: 0,
             timestamp: new Date(),
             target: 80,
-            status: 'warning',
+            status: "warning",
           },
           pageSpeed: {
-            name: 'Page Speed',
+            name: "Page Speed",
             value: 2.8,
-            unit: 'seconds',
-            trend: 'down',
+            unit: "seconds",
+            trend: "down",
             change: 0.3,
             timestamp: new Date(),
             target: 2.0,
-            status: 'warning',
+            status: "warning",
           },
           crawlErrors: {
-            name: 'Crawl Errors',
+            name: "Crawl Errors",
             value: 5,
-            unit: 'errors',
-            trend: 'down',
+            unit: "errors",
+            trend: "down",
             change: -2,
             timestamp: new Date(),
             target: 0,
-            status: 'good',
+            status: "good",
           },
         },
         alerts: [],
         trends: {
           traffic: Array.from({ length: 30 }, (_, i) => ({
-            date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000)
+              .toISOString()
+              .split("T")[0],
             value: Math.floor(Math.random() * 2000) + 10000,
           })),
           rankings: Array.from({ length: 30 }, (_, i) => ({
-            date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000)
+              .toISOString()
+              .split("T")[0],
             value: Math.random() * 5 + 5,
           })),
           backlinks: Array.from({ length: 30 }, (_, i) => ({
-            date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000)
+              .toISOString()
+              .split("T")[0],
             value: Math.floor(Math.random() * 50) + 1200,
           })),
         },
@@ -296,7 +310,7 @@ export class SEOPerformanceMonitor {
     } catch (error) {
       logger.error(
         { error: redactSensitive(error), siteId },
-        'Failed to get monitoring dashboard'
+        "Failed to get monitoring dashboard",
       );
       return null;
     }
@@ -305,23 +319,35 @@ export class SEOPerformanceMonitor {
   async resolveAlert(alertId: string, resolution: string): Promise<void> {
     try {
       // This would typically update the database
-      logger.info({ alertId, resolution: redactSensitive(resolution) }, 'Resolving SEO alert');
+      logger.info(
+        { alertId, resolution: redactSensitive(resolution) },
+        "Resolving SEO alert",
+      );
     } catch (error) {
       logger.error(
         { error: redactSensitive(error), alertId },
-        'Failed to resolve alert'
+        "Failed to resolve alert",
       );
     }
   }
 
-  async getAlertHistory(siteId: string, days: number = 30): Promise<SEOAlert[]> {
+  async getAlertHistory(
+    siteId: string,
+    days: number = 30,
+  ): Promise<SEOAlert[]> {
     try {
       // This would typically query the database
       // For now, return mock data
       return Array.from({ length: 20 }, (_, i) => ({
         id: `alert_${i}`,
-        type: ['ranking_drop', 'traffic_decrease', 'backlink_loss', 'technical_issue', 'competitor_gain'][i % 5] as any,
-        severity: ['low', 'medium', 'high', 'critical'][i % 4] as any,
+        type: [
+          "ranking_drop",
+          "traffic_decrease",
+          "backlink_loss",
+          "technical_issue",
+          "competitor_gain",
+        ][i % 5] as any,
+        severity: ["low", "medium", "high", "critical"][i % 4] as any,
         title: `SEO Alert ${i + 1}`,
         description: `Description for SEO alert ${i + 1}`,
         affectedPages: [`/page-${i + 1}`, `/page-${i + 2}`],
@@ -331,113 +357,127 @@ export class SEOPerformanceMonitor {
           change: Math.random() * 20 - 10,
         },
         recommendations: [
-          'Check page content quality',
-          'Improve page loading speed',
-          'Build more backlinks',
+          "Check page content quality",
+          "Improve page loading speed",
+          "Build more backlinks",
         ],
         timestamp: new Date(Date.now() - i * 24 * 60 * 60 * 1000),
         resolved: i > 10,
-        resolvedAt: i > 10 ? new Date(Date.now() - (i - 5) * 24 * 60 * 60 * 1000) : undefined,
+        resolvedAt:
+          i > 10
+            ? new Date(Date.now() - (i - 5) * 24 * 60 * 60 * 1000)
+            : undefined,
       }));
     } catch (error) {
       logger.error(
         { error: redactSensitive(error), siteId },
-        'Failed to get alert history'
+        "Failed to get alert history",
       );
       return [];
     }
   }
 
-  private async collectMetrics(domain: string): Promise<MonitoringDashboard['metrics']> {
+  private async collectMetrics(
+    domain: string,
+  ): Promise<MonitoringDashboard["metrics"]> {
     // This would typically call external APIs (Google Analytics, Search Console, Ahrefs, etc.)
     // For now, return mock data
     return {
       organicTraffic: {
-        name: 'Organic Traffic',
+        name: "Organic Traffic",
         value: Math.floor(Math.random() * 20000) + 10000,
-        unit: 'visitors/month',
-        trend: 'up',
+        unit: "visitors/month",
+        trend: "up",
         change: Math.random() * 20 - 5,
         timestamp: new Date(),
         target: 25000,
-        status: 'good',
+        status: "good",
       },
       averageRanking: {
-        name: 'Average Ranking',
+        name: "Average Ranking",
         value: Math.random() * 10 + 5,
-        unit: 'position',
-        trend: 'up',
+        unit: "position",
+        trend: "up",
         change: Math.random() * 2 - 1,
         timestamp: new Date(),
         target: 5,
-        status: 'warning',
+        status: "warning",
       },
       backlinks: {
-        name: 'Backlinks',
+        name: "Backlinks",
         value: Math.floor(Math.random() * 2000) + 1000,
-        unit: 'links',
-        trend: 'up',
+        unit: "links",
+        trend: "up",
         change: Math.random() * 10 - 2,
         timestamp: new Date(),
         target: 3000,
-        status: 'good',
+        status: "good",
       },
       domainRating: {
-        name: 'Domain Rating',
+        name: "Domain Rating",
         value: Math.floor(Math.random() * 40) + 40,
-        unit: 'score',
-        trend: 'stable',
+        unit: "score",
+        trend: "stable",
         change: Math.random() * 2 - 1,
         timestamp: new Date(),
         target: 80,
-        status: 'warning',
+        status: "warning",
       },
       pageSpeed: {
-        name: 'Page Speed',
+        name: "Page Speed",
         value: Math.random() * 3 + 1,
-        unit: 'seconds',
-        trend: 'down',
+        unit: "seconds",
+        trend: "down",
         change: Math.random() * 0.5,
         timestamp: new Date(),
         target: 2.0,
-        status: 'warning',
+        status: "warning",
       },
       crawlErrors: {
-        name: 'Crawl Errors',
+        name: "Crawl Errors",
         value: Math.floor(Math.random() * 20),
-        unit: 'errors',
-        trend: 'down',
+        unit: "errors",
+        trend: "down",
         change: Math.random() * 5 - 2,
         timestamp: new Date(),
         target: 0,
-        status: 'good',
+        status: "good",
       },
     };
   }
 
-  private async getHistoricalData(siteId: string, days: number): Promise<any[]> {
+  private async getHistoricalData(
+    siteId: string,
+    days: number,
+  ): Promise<any[]> {
     // This would typically query the database for historical metrics
     // For now, return empty array
     return [];
   }
 
   private calculateTrends(
-    currentMetrics: MonitoringDashboard['metrics'],
-    historicalData: any[]
-  ): MonitoringDashboard['trends'] {
+    currentMetrics: MonitoringDashboard["metrics"],
+    historicalData: any[],
+  ): MonitoringDashboard["trends"] {
     // This would calculate actual trends from historical data
     // For now, return mock trends
     return {
       traffic: Array.from({ length: 30 }, (_, i) => ({
-        date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .split("T")[0],
         value: Math.floor(Math.random() * 2000) + 10000,
       })),
       rankings: Array.from({ length: 30 }, (_, i) => ({
-        date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .split("T")[0],
         value: Math.random() * 5 + 5,
       })),
       backlinks: Array.from({ length: 30 }, (_, i) => ({
-        date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .split("T")[0],
         value: Math.floor(Math.random() * 50) + 1200,
       })),
     };
@@ -445,8 +485,8 @@ export class SEOPerformanceMonitor {
 
   private async checkForAlerts(
     config: MonitoringConfig,
-    metrics: MonitoringDashboard['metrics'],
-    historicalData: any[]
+    metrics: MonitoringDashboard["metrics"],
+    historicalData: any[],
   ): Promise<SEOAlert[]> {
     const alerts: SEOAlert[] = [];
 
@@ -454,21 +494,23 @@ export class SEOPerformanceMonitor {
     if (metrics.organicTraffic.change < -config.alertThresholds.trafficDrop) {
       alerts.push({
         id: this.generateAlertId(),
-        type: 'traffic_decrease',
-        severity: metrics.organicTraffic.change < -20 ? 'critical' : 'high',
-        title: 'Significant Traffic Drop Detected',
+        type: "traffic_decrease",
+        severity: metrics.organicTraffic.change < -20 ? "critical" : "high",
+        title: "Significant Traffic Drop Detected",
         description: `Organic traffic decreased by ${Math.abs(metrics.organicTraffic.change).toFixed(1)}%`,
-        affectedPages: ['/home', '/blog'],
+        affectedPages: ["/home", "/blog"],
         metrics: {
-          before: metrics.organicTraffic.value / (1 + metrics.organicTraffic.change / 100),
+          before:
+            metrics.organicTraffic.value /
+            (1 + metrics.organicTraffic.change / 100),
           after: metrics.organicTraffic.value,
           change: metrics.organicTraffic.change,
         },
         recommendations: [
-          'Check for technical issues',
-          'Review recent content changes',
-          'Analyze competitor activity',
-          'Check for Google algorithm updates',
+          "Check for technical issues",
+          "Review recent content changes",
+          "Analyze competitor activity",
+          "Check for Google algorithm updates",
         ],
         timestamp: new Date(),
         resolved: false,
@@ -479,21 +521,21 @@ export class SEOPerformanceMonitor {
     if (metrics.averageRanking.change > config.alertThresholds.rankingDrop) {
       alerts.push({
         id: this.generateAlertId(),
-        type: 'ranking_drop',
-        severity: metrics.averageRanking.change > 5 ? 'critical' : 'high',
-        title: 'Average Ranking Dropped',
+        type: "ranking_drop",
+        severity: metrics.averageRanking.change > 5 ? "critical" : "high",
+        title: "Average Ranking Dropped",
         description: `Average ranking dropped by ${metrics.averageRanking.change.toFixed(1)} positions`,
-        affectedPages: ['/blog', '/products'],
+        affectedPages: ["/blog", "/products"],
         metrics: {
           before: metrics.averageRanking.value - metrics.averageRanking.change,
           after: metrics.averageRanking.value,
           change: metrics.averageRanking.change,
         },
         recommendations: [
-          'Review keyword strategy',
-          'Improve content quality',
-          'Check for technical SEO issues',
-          'Build more relevant backlinks',
+          "Review keyword strategy",
+          "Improve content quality",
+          "Check for technical SEO issues",
+          "Build more relevant backlinks",
         ],
         timestamp: new Date(),
         resolved: false,
@@ -504,21 +546,21 @@ export class SEOPerformanceMonitor {
     if (metrics.backlinks.change < -config.alertThresholds.backlinkLoss) {
       alerts.push({
         id: this.generateAlertId(),
-        type: 'backlink_loss',
-        severity: metrics.backlinks.change < -10 ? 'critical' : 'medium',
-        title: 'Backlinks Lost',
+        type: "backlink_loss",
+        severity: metrics.backlinks.change < -10 ? "critical" : "medium",
+        title: "Backlinks Lost",
         description: `Lost ${Math.abs(metrics.backlinks.change)} backlinks`,
-        affectedPages: ['/'],
+        affectedPages: ["/"],
         metrics: {
           before: metrics.backlinks.value - metrics.backlinks.change,
           after: metrics.backlinks.value,
           change: metrics.backlinks.change,
         },
         recommendations: [
-          'Check for broken links',
-          'Reach out to lost link sources',
-          'Create link-worthy content',
-          'Monitor competitor backlink strategies',
+          "Check for broken links",
+          "Reach out to lost link sources",
+          "Create link-worthy content",
+          "Monitor competitor backlink strategies",
         ],
         timestamp: new Date(),
         resolved: false,
@@ -529,21 +571,21 @@ export class SEOPerformanceMonitor {
     if (metrics.pageSpeed.change > config.alertThresholds.pageSpeedDrop) {
       alerts.push({
         id: this.generateAlertId(),
-        type: 'technical_issue',
-        severity: 'medium',
-        title: 'Page Speed Degraded',
+        type: "technical_issue",
+        severity: "medium",
+        title: "Page Speed Degraded",
         description: `Page speed increased by ${metrics.pageSpeed.change.toFixed(1)} seconds`,
-        affectedPages: ['/home', '/products'],
+        affectedPages: ["/home", "/products"],
         metrics: {
           before: metrics.pageSpeed.value - metrics.pageSpeed.change,
           after: metrics.pageSpeed.value,
           change: metrics.pageSpeed.change,
         },
         recommendations: [
-          'Optimize images',
-          'Minify CSS and JavaScript',
-          'Enable browser caching',
-          'Use a CDN',
+          "Optimize images",
+          "Minify CSS and JavaScript",
+          "Enable browser caching",
+          "Use a CDN",
         ],
         timestamp: new Date(),
         resolved: false,
@@ -553,7 +595,9 @@ export class SEOPerformanceMonitor {
     return alerts;
   }
 
-  private async getTopPages(domain: string): Promise<MonitoringDashboard['topPages']> {
+  private async getTopPages(
+    domain: string,
+  ): Promise<MonitoringDashboard["topPages"]> {
     // This would typically query Google Analytics or Search Console
     // For now, return mock data
     return Array.from({ length: 10 }, (_, i) => ({
@@ -565,7 +609,9 @@ export class SEOPerformanceMonitor {
     }));
   }
 
-  private async getTopKeywords(domain: string): Promise<MonitoringDashboard['topKeywords']> {
+  private async getTopKeywords(
+    domain: string,
+  ): Promise<MonitoringDashboard["topKeywords"]> {
     // This would typically query Google Search Console
     // For now, return mock data
     return Array.from({ length: 10 }, (_, i) => ({
@@ -577,25 +623,32 @@ export class SEOPerformanceMonitor {
   }
 
   private calculateOverallHealth(
-    metrics: MonitoringDashboard['metrics'],
-    alerts: SEOAlert[]
-  ): MonitoringDashboard['overallHealth'] {
-    const criticalAlerts = alerts.filter(a => a.severity === 'critical').length;
-    const highAlerts = alerts.filter(a => a.severity === 'high').length;
-    const warningMetrics = Object.values(metrics).filter(m => m.status === 'warning').length;
+    metrics: MonitoringDashboard["metrics"],
+    alerts: SEOAlert[],
+  ): MonitoringDashboard["overallHealth"] {
+    const criticalAlerts = alerts.filter(
+      (a) => a.severity === "critical",
+    ).length;
+    const highAlerts = alerts.filter((a) => a.severity === "high").length;
+    const warningMetrics = Object.values(metrics).filter(
+      (m) => m.status === "warning",
+    ).length;
 
     if (criticalAlerts > 0) {
-      return 'critical';
+      return "critical";
     } else if (highAlerts > 2 || warningMetrics > 3) {
-      return 'warning';
+      return "warning";
     } else if (highAlerts > 0 || warningMetrics > 1) {
-      return 'good';
+      return "good";
     } else {
-      return 'excellent';
+      return "excellent";
     }
   }
 
-  private async sendNotifications(config: MonitoringConfig, alerts: SEOAlert[]): Promise<void> {
+  private async sendNotifications(
+    config: MonitoringConfig,
+    alerts: SEOAlert[],
+  ): Promise<void> {
     if (alerts.length === 0) return;
 
     try {
@@ -616,51 +669,60 @@ export class SEOPerformanceMonitor {
 
       logger.info(
         { siteId: config.siteId, alertsCount: alerts.length },
-        'Notifications sent for critical alerts'
+        "Notifications sent for critical alerts",
       );
     } catch (error) {
       logger.error(
         { error: redactSensitive(error), siteId: config.siteId },
-        'Failed to send notifications'
+        "Failed to send notifications",
       );
     }
   }
 
-  private async sendEmailNotifications(config: MonitoringConfig, alerts: SEOAlert[]): Promise<void> {
+  private async sendEmailNotifications(
+    config: MonitoringConfig,
+    alerts: SEOAlert[],
+  ): Promise<void> {
     // This would typically send emails via a service like SendGrid or AWS SES
     logger.info(
       { siteId: config.siteId, alertsCount: alerts.length },
-      'Sending email notifications'
+      "Sending email notifications",
     );
   }
 
-  private async sendSlackNotifications(config: MonitoringConfig, alerts: SEOAlert[]): Promise<void> {
+  private async sendSlackNotifications(
+    config: MonitoringConfig,
+    alerts: SEOAlert[],
+  ): Promise<void> {
     // This would typically send messages to Slack
     logger.info(
       { siteId: config.siteId, alertsCount: alerts.length },
-      'Sending Slack notifications'
+      "Sending Slack notifications",
     );
   }
 
-  private async sendWebhookNotifications(config: MonitoringConfig, alerts: SEOAlert[]): Promise<void> {
+  private async sendWebhookNotifications(
+    config: MonitoringConfig,
+    alerts: SEOAlert[],
+  ): Promise<void> {
     // This would typically send webhook notifications
     logger.info(
       { siteId: config.siteId, alertsCount: alerts.length },
-      'Sending webhook notifications'
+      "Sending webhook notifications",
     );
   }
 
   private validateConfig(config: MonitoringConfig): void {
     if (!config.siteId) {
-      throw new Error('Site ID is required');
+      throw new Error("Site ID is required");
     }
-    
+
     if (!config.domain) {
-      throw new Error('Domain is required');
+      throw new Error("Domain is required");
     }
-    
+
     if (!config.alertThresholds) {
-      throw new Error('Alert thresholds are required');
+      throw new Error("Alert thresholds are required");
     }
   }
 
@@ -668,7 +730,7 @@ export class SEOPerformanceMonitor {
     // This would typically save to the database
     logger.info(
       { siteId: config.siteId, domain: redactSensitive(config.domain) },
-      'Saving monitoring configuration'
+      "Saving monitoring configuration",
     );
   }
 
@@ -676,24 +738,31 @@ export class SEOPerformanceMonitor {
     // This would typically schedule a cron job or queue task
     logger.info(
       { siteId: config.siteId, frequency: config.monitoringFrequency },
-      'Scheduling monitoring'
+      "Scheduling monitoring",
     );
   }
 
-  private async getMonitoringConfig(siteId: string): Promise<MonitoringConfig | null> {
+  private async getMonitoringConfig(
+    siteId: string,
+  ): Promise<MonitoringConfig | null> {
     // This would typically query the database
     // For now, return mock config
     return {
       siteId,
-      domain: 'example.com',
-      monitoringFrequency: 'daily',
+      domain: "example.com",
+      monitoringFrequency: "daily",
       alertThresholds: {
         trafficDrop: 15,
         rankingDrop: 3,
         backlinkLoss: 5,
         pageSpeedDrop: 1,
       },
-      enabledAlerts: ['traffic_decrease', 'ranking_drop', 'backlink_loss', 'technical_issue'],
+      enabledAlerts: [
+        "traffic_decrease",
+        "ranking_drop",
+        "backlink_loss",
+        "technical_issue",
+      ],
       notificationChannels: {
         email: true,
         slack: false,
@@ -702,11 +771,13 @@ export class SEOPerformanceMonitor {
     };
   }
 
-  private async saveDashboardData(dashboard: MonitoringDashboard): Promise<void> {
+  private async saveDashboardData(
+    dashboard: MonitoringDashboard,
+  ): Promise<void> {
     // This would typically save to the database
     logger.info(
       { siteId: dashboard.siteId, overallHealth: dashboard.overallHealth },
-      'Saving dashboard data'
+      "Saving dashboard data",
     );
   }
 

@@ -3,55 +3,51 @@
  * Handles content analysis and optimization
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { requireEditAccess } from '@/app/lib/rbac';
-import { ContentOptimizer } from '@/lib/ai/content-optimizer';
-import { prisma } from '@/lib/prisma';
-import { logger } from '@/lib/logger';
-import { redactSensitive } from '@/lib/redact';
+import { NextRequest, NextResponse } from "next/server";
+import { requireEditAccess } from "@/app/lib/rbac";
+import { ContentOptimizer } from "@/lib/ai/content-optimizer";
+import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
+import { redactSensitive } from "@/lib/redact";
 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await requireEditAccess(request);
     const body = await request.json();
-    
-    const { 
-      siteId, 
-      action,
-      data = {}
-    } = body;
+
+    const { siteId, action, data = {} } = body;
 
     if (!siteId || !action) {
       return NextResponse.json(
-        { error: 'Missing required fields: siteId, action' },
-        { status: 400 }
+        { error: "Missing required fields: siteId, action" },
+        { status: 400 },
       );
     }
 
     const contentOptimizer = new ContentOptimizer();
 
     switch (action) {
-      case 'analyze_content': {
+      case "analyze_content": {
         const { content, url, title, metaDescription, keywords } = data;
-        
+
         if (!content || !url || !title) {
           return NextResponse.json(
-            { error: 'Missing required fields: content, url, title' },
-            { status: 400 }
+            { error: "Missing required fields: content, url, title" },
+            { status: 400 },
           );
         }
 
         logger.info(
           { userId, siteId, url: redactSensitive(url) },
-          'Starting content analysis'
+          "Starting content analysis",
         );
 
         const analysis = await contentOptimizer.analyzeContent(
           content,
           url,
           title,
-          metaDescription || '',
-          keywords || []
+          metaDescription || "",
+          keywords || [],
         );
 
         // Save analysis to database
@@ -60,27 +56,34 @@ export async function POST(request: NextRequest) {
             siteId,
             url,
             title,
-            metaDescription: metaDescription || '',
+            metaDescription: metaDescription || "",
             keywords: keywords || [],
             analysis: analysis,
-            status: 'analyzed',
+            status: "analyzed",
           },
         });
 
         return NextResponse.json({
           success: true,
           analysis,
-          message: 'Content analysis completed',
+          message: "Content analysis completed",
         });
       }
 
-      case 'optimize_content': {
-        const { content, url, title, metaDescription, keywords, targetKeywords } = data;
-        
+      case "optimize_content": {
+        const {
+          content,
+          url,
+          title,
+          metaDescription,
+          keywords,
+          targetKeywords,
+        } = data;
+
         if (!content || !url || !title) {
           return NextResponse.json(
-            { error: 'Missing required fields: content, url, title' },
-            { status: 400 }
+            { error: "Missing required fields: content, url, title" },
+            { status: 400 },
           );
         }
 
@@ -89,15 +92,15 @@ export async function POST(request: NextRequest) {
           content,
           url,
           title,
-          metaDescription || '',
-          keywords || []
+          metaDescription || "",
+          keywords || [],
         );
 
         // Then optimize it
         const optimization = await contentOptimizer.optimizeContent(
           content,
           analysis,
-          targetKeywords || keywords || []
+          targetKeywords || keywords || [],
         );
 
         // Save optimization to database
@@ -113,49 +116,57 @@ export async function POST(request: NextRequest) {
             optimizations: optimization,
             improvements: optimization.improvements,
             suggestions: optimization.suggestions,
-            status: 'optimized',
+            status: "optimized",
             updatedAt: new Date(),
           },
           create: {
             siteId,
             url,
             title,
-            metaDescription: metaDescription || '',
+            metaDescription: metaDescription || "",
             keywords: keywords || [],
             analysis: analysis,
             optimizations: optimization,
             improvements: optimization.improvements,
             suggestions: optimization.suggestions,
-            status: 'optimized',
+            status: "optimized",
           },
         });
 
         logger.info(
-          { userId, siteId, url: redactSensitive(url), overallImprovement: optimization.improvements.overallImprovement },
-          'Content optimization completed'
+          {
+            userId,
+            siteId,
+            url: redactSensitive(url),
+            overallImprovement: optimization.improvements.overallImprovement,
+          },
+          "Content optimization completed",
         );
 
         return NextResponse.json({
           success: true,
           optimization,
-          message: 'Content optimization completed',
+          message: "Content optimization completed",
         });
       }
 
-      case 'generate_template': {
+      case "generate_template": {
         const { contentType, targetKeywords, contentLength } = data;
-        
+
         if (!contentType || !targetKeywords || !contentLength) {
           return NextResponse.json(
-            { error: 'Missing required fields: contentType, targetKeywords, contentLength' },
-            { status: 400 }
+            {
+              error:
+                "Missing required fields: contentType, targetKeywords, contentLength",
+            },
+            { status: 400 },
           );
         }
 
         const template = await contentOptimizer.generateContentTemplate(
           contentType,
           targetKeywords,
-          contentLength
+          contentLength,
         );
 
         // Save template to database
@@ -174,17 +185,24 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           template,
-          message: 'Content template generated',
+          message: "Content template generated",
         });
       }
 
-      case 'save_template': {
-        const { name, type, structure, seoRequirements, readabilityTargets, isGlobal } = data;
-        
+      case "save_template": {
+        const {
+          name,
+          type,
+          structure,
+          seoRequirements,
+          readabilityTargets,
+          isGlobal,
+        } = data;
+
         if (!name || !type || !structure) {
           return NextResponse.json(
-            { error: 'Missing required fields: name, type, structure' },
-            { status: 400 }
+            { error: "Missing required fields: name, type, structure" },
+            { status: 400 },
           );
         }
 
@@ -203,29 +221,25 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           template,
-          message: 'Content template saved',
+          message: "Content template saved",
         });
       }
 
       default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
-
   } catch (error) {
     logger.error(
       { error: redactSensitive(error) },
-      'Content optimization API failed'
+      "Content optimization API failed",
     );
 
     return NextResponse.json(
-      { 
-        error: 'Content optimization operation failed', 
-        message: error instanceof Error ? error.message : 'Unknown error' 
+      {
+        error: "Content optimization operation failed",
+        message: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -234,21 +248,21 @@ export async function GET(request: NextRequest) {
   try {
     const { userId } = await requireEditAccess(request);
     const { searchParams } = new URL(request.url);
-    
-    const siteId = searchParams.get('siteId');
-    const action = searchParams.get('action');
+
+    const siteId = searchParams.get("siteId");
+    const action = searchParams.get("action");
 
     if (!siteId || !action) {
       return NextResponse.json(
-        { error: 'Missing siteId or action parameter' },
-        { status: 400 }
+        { error: "Missing siteId or action parameter" },
+        { status: 400 },
       );
     }
 
     switch (action) {
-      case 'optimizations': {
-        const limit = parseInt(searchParams.get('limit') || '20');
-        const status = searchParams.get('status');
+      case "optimizations": {
+        const limit = parseInt(searchParams.get("limit") || "20");
+        const status = searchParams.get("status");
 
         const where: any = { siteId };
         if (status) {
@@ -257,7 +271,7 @@ export async function GET(request: NextRequest) {
 
         const optimizations = await prisma.contentOptimization.findMany({
           where,
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
           take: limit,
         });
 
@@ -267,13 +281,13 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      case 'optimization': {
-        const url = searchParams.get('url');
-        
+      case "optimization": {
+        const url = searchParams.get("url");
+
         if (!url) {
           return NextResponse.json(
-            { error: 'Missing url parameter' },
-            { status: 400 }
+            { error: "Missing url parameter" },
+            { status: 400 },
           );
         }
 
@@ -282,13 +296,13 @@ export async function GET(request: NextRequest) {
             siteId,
             url,
           },
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
         });
 
         if (!optimization) {
           return NextResponse.json(
-            { error: 'Content optimization not found' },
-            { status: 404 }
+            { error: "Content optimization not found" },
+            { status: 404 },
           );
         }
 
@@ -298,9 +312,9 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      case 'templates': {
-        const type = searchParams.get('type');
-        const isGlobal = searchParams.get('isGlobal') === 'true';
+      case "templates": {
+        const type = searchParams.get("type");
+        const isGlobal = searchParams.get("isGlobal") === "true";
 
         const where: any = {};
         if (isGlobal) {
@@ -314,7 +328,7 @@ export async function GET(request: NextRequest) {
 
         const templates = await prisma.contentTemplate.findMany({
           where,
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
         });
 
         return NextResponse.json({
@@ -323,13 +337,13 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      case 'template': {
-        const templateId = searchParams.get('templateId');
-        
+      case "template": {
+        const templateId = searchParams.get("templateId");
+
         if (!templateId) {
           return NextResponse.json(
-            { error: 'Missing templateId parameter' },
-            { status: 400 }
+            { error: "Missing templateId parameter" },
+            { status: 400 },
           );
         }
 
@@ -339,8 +353,8 @@ export async function GET(request: NextRequest) {
 
         if (!template) {
           return NextResponse.json(
-            { error: 'Content template not found' },
-            { status: 404 }
+            { error: "Content template not found" },
+            { status: 404 },
           );
         }
 
@@ -351,21 +365,17 @@ export async function GET(request: NextRequest) {
       }
 
       default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
-
   } catch (error) {
     logger.error(
       { error: redactSensitive(error) },
-      'Content optimization GET API failed'
+      "Content optimization GET API failed",
     );
 
     return NextResponse.json(
-      { error: 'Content optimization operation failed' },
-      { status: 500 }
+      { error: "Content optimization operation failed" },
+      { status: 500 },
     );
   }
 }

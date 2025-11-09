@@ -3,55 +3,63 @@
  * Handles performance monitoring and alerting
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { requireEditAccess } from '@/app/lib/rbac';
-import { SEOPerformanceMonitor } from '@/lib/seo/performance-monitor';
-import { prisma } from '@/lib/prisma';
-import { logger } from '@/lib/logger';
-import { redactSensitive } from '@/lib/redact';
+import { NextRequest, NextResponse } from "next/server";
+import { requireEditAccess } from "@/app/lib/rbac";
+import { SEOPerformanceMonitor } from "@/lib/seo/performance-monitor";
+import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
+import { redactSensitive } from "@/lib/redact";
 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await requireEditAccess(request);
     const body = await request.json();
-    
-    const { 
-      siteId, 
-      action,
-      data = {}
-    } = body;
+
+    const { siteId, action, data = {} } = body;
 
     if (!siteId || !action) {
       return NextResponse.json(
-        { error: 'Missing required fields: siteId, action' },
-        { status: 400 }
+        { error: "Missing required fields: siteId, action" },
+        { status: 400 },
       );
     }
 
     const performanceMonitor = new SEOPerformanceMonitor();
 
     switch (action) {
-      case 'setup_monitoring': {
-        const { domain, monitoringFrequency, alertThresholds, enabledAlerts, notificationChannels, webhookUrl } = data;
-        
+      case "setup_monitoring": {
+        const {
+          domain,
+          monitoringFrequency,
+          alertThresholds,
+          enabledAlerts,
+          notificationChannels,
+          webhookUrl,
+        } = data;
+
         if (!domain) {
           return NextResponse.json(
-            { error: 'Missing domain for monitoring setup' },
-            { status: 400 }
+            { error: "Missing domain for monitoring setup" },
+            { status: 400 },
           );
         }
 
         const config = await performanceMonitor.setupMonitoring({
           siteId,
           domain,
-          monitoringFrequency: monitoringFrequency || 'daily',
+          monitoringFrequency: monitoringFrequency || "daily",
           alertThresholds: alertThresholds || {
             trafficDrop: 15,
             rankingDrop: 3,
             backlinkLoss: 5,
             pageSpeedDrop: 1,
           },
-          enabledAlerts: enabledAlerts || ['traffic_decrease', 'ranking_drop', 'backlink_loss', 'technical_issue'],
+          enabledAlerts: enabledAlerts || [
+            "traffic_decrease",
+            "ranking_drop",
+            "backlink_loss",
+            "technical_issue",
+          ],
           notificationChannels: notificationChannels || {
             email: true,
             slack: false,
@@ -85,38 +93,35 @@ export async function POST(request: NextRequest) {
 
         logger.info(
           { userId, siteId, domain: redactSensitive(domain) },
-          'Performance monitoring setup completed'
+          "Performance monitoring setup completed",
         );
 
         return NextResponse.json({
           success: true,
           config,
-          message: 'Performance monitoring setup completed',
+          message: "Performance monitoring setup completed",
         });
       }
 
-      case 'run_monitoring': {
-        logger.info(
-          { userId, siteId },
-          'Running performance monitoring'
-        );
+      case "run_monitoring": {
+        logger.info({ userId, siteId }, "Running performance monitoring");
 
         const dashboard = await performanceMonitor.runMonitoring(siteId);
 
         return NextResponse.json({
           success: true,
           dashboard,
-          message: 'Performance monitoring completed',
+          message: "Performance monitoring completed",
         });
       }
 
-      case 'resolve_alert': {
+      case "resolve_alert": {
         const { alertId, resolution } = data;
-        
+
         if (!alertId || !resolution) {
           return NextResponse.json(
-            { error: 'Missing alertId or resolution' },
-            { status: 400 }
+            { error: "Missing alertId or resolution" },
+            { status: 400 },
           );
         }
 
@@ -133,29 +138,25 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          message: 'Alert resolved',
+          message: "Alert resolved",
         });
       }
 
       default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
-
   } catch (error) {
     logger.error(
       { error: redactSensitive(error) },
-      'Performance monitoring API failed'
+      "Performance monitoring API failed",
     );
 
     return NextResponse.json(
-      { 
-        error: 'Performance monitoring operation failed', 
-        message: error instanceof Error ? error.message : 'Unknown error' 
+      {
+        error: "Performance monitoring operation failed",
+        message: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -164,27 +165,27 @@ export async function GET(request: NextRequest) {
   try {
     const { userId } = await requireEditAccess(request);
     const { searchParams } = new URL(request.url);
-    
-    const siteId = searchParams.get('siteId');
-    const action = searchParams.get('action');
+
+    const siteId = searchParams.get("siteId");
+    const action = searchParams.get("action");
 
     if (!siteId || !action) {
       return NextResponse.json(
-        { error: 'Missing siteId or action parameter' },
-        { status: 400 }
+        { error: "Missing siteId or action parameter" },
+        { status: 400 },
       );
     }
 
     const performanceMonitor = new SEOPerformanceMonitor();
 
     switch (action) {
-      case 'dashboard': {
+      case "dashboard": {
         const dashboard = await performanceMonitor.getDashboard(siteId);
 
         if (!dashboard) {
           return NextResponse.json(
-            { error: 'Performance monitoring not set up for this site' },
-            { status: 404 }
+            { error: "Performance monitoring not set up for this site" },
+            { status: 404 },
           );
         }
 
@@ -194,8 +195,8 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      case 'alerts': {
-        const days = parseInt(searchParams.get('days') || '30');
+      case "alerts": {
+        const days = parseInt(searchParams.get("days") || "30");
         const alerts = await performanceMonitor.getAlertHistory(siteId, days);
 
         return NextResponse.json({
@@ -204,7 +205,7 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      case 'config': {
+      case "config": {
         const config = await prisma.performanceMonitoring.findUnique({
           where: { siteId },
         });
@@ -215,12 +216,12 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      case 'metrics': {
+      case "metrics": {
         const monitoring = await prisma.performanceMonitoring.findUnique({
           where: { siteId },
           include: {
             metrics: {
-              orderBy: { timestamp: 'desc' },
+              orderBy: { timestamp: "desc" },
               take: 100,
             },
           },
@@ -228,8 +229,8 @@ export async function GET(request: NextRequest) {
 
         if (!monitoring) {
           return NextResponse.json(
-            { error: 'Performance monitoring not set up for this site' },
-            { status: 404 }
+            { error: "Performance monitoring not set up for this site" },
+            { status: 404 },
           );
         }
 
@@ -240,21 +241,17 @@ export async function GET(request: NextRequest) {
       }
 
       default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
-
   } catch (error) {
     logger.error(
       { error: redactSensitive(error) },
-      'Performance monitoring GET API failed'
+      "Performance monitoring GET API failed",
     );
 
     return NextResponse.json(
-      { error: 'Performance monitoring operation failed' },
-      { status: 500 }
+      { error: "Performance monitoring operation failed" },
+      { status: 500 },
     );
   }
 }

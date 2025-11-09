@@ -3,21 +3,27 @@
  * Comprehensive SEO analysis and monitoring dashboard
  */
 
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Search, 
-  AlertTriangle, 
-  CheckCircle, 
-  Info, 
-  RefreshCw, 
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Search,
+  AlertTriangle,
+  CheckCircle,
+  Info,
+  RefreshCw,
   ExternalLink,
   TrendingUp,
   TrendingDown,
@@ -25,8 +31,8 @@ import {
   Globe,
   Zap,
   Shield,
-  Settings
-} from 'lucide-react';
+  Settings,
+} from "lucide-react";
 
 interface SEOScore {
   overall: number;
@@ -39,15 +45,15 @@ interface SEOScore {
 
 interface SEOIssue {
   id: string;
-  type: 'error' | 'warning' | 'info';
+  type: "error" | "warning" | "info";
   category: string;
   title: string;
   description: string;
-  impact: 'high' | 'medium' | 'low';
+  impact: "high" | "medium" | "low";
   fix: string;
   affectedPages: string[];
   score: number;
-  status: 'open' | 'fixed' | 'ignored';
+  status: "open" | "fixed" | "ignored";
 }
 
 interface SEOAudit {
@@ -92,7 +98,7 @@ export function SEODashboard({ siteId, siteUrl }: SEODashboardProps) {
       setLoading(true);
       const response = await fetch(`/api/seo/audit?siteId=${siteId}&limit=5`);
       const data = await response.json();
-      
+
       if (data.audits) {
         setAudits(data.audits);
         if (data.audits.length > 0) {
@@ -100,7 +106,7 @@ export function SEODashboard({ siteId, siteUrl }: SEODashboardProps) {
         }
       }
     } catch (error) {
-      console.error('Failed to load SEO audits:', error);
+      console.error("Failed to load SEO audits:", error);
     } finally {
       setLoading(false);
     }
@@ -109,9 +115,9 @@ export function SEODashboard({ siteId, siteUrl }: SEODashboardProps) {
   const runNewAudit = async () => {
     try {
       setRunningAudit(true);
-      const response = await fetch('/api/seo/audit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/seo/audit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           siteId,
           siteUrl,
@@ -126,47 +132,55 @@ export function SEODashboard({ siteId, siteUrl }: SEODashboardProps) {
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         // Reload audits to show the new one
         await loadAudits();
       } else {
-        console.error('Audit failed:', data.error);
+        console.error("Audit failed:", data.error);
       }
     } catch (error) {
-      console.error('Failed to run SEO audit:', error);
+      console.error("Failed to run SEO audit:", error);
     } finally {
       setRunningAudit(false);
     }
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-yellow-600';
-    return 'text-red-600';
+    if (score >= 80) return "text-green-600";
+    if (score >= 60) return "text-yellow-600";
+    return "text-red-600";
   };
 
   const getScoreBadgeVariant = (score: number) => {
-    if (score >= 80) return 'default';
-    if (score >= 60) return 'secondary';
-    return 'destructive';
+    if (score >= 80) return "default";
+    if (score >= 60) return "secondary";
+    return "destructive";
   };
 
   const getIssueIcon = (type: string) => {
     switch (type) {
-      case 'error': return <AlertTriangle className="h-4 w-4 text-red-500" />;
-      case 'warning': return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
-      case 'info': return <Info className="h-4 w-4 text-blue-500" />;
-      default: return <Info className="h-4 w-4 text-gray-500" />;
+      case "error":
+        return <AlertTriangle className="h-4 w-4 text-red-500" />;
+      case "warning":
+        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+      case "info":
+        return <Info className="h-4 w-4 text-blue-500" />;
+      default:
+        return <Info className="h-4 w-4 text-gray-500" />;
     }
   };
 
   const getImpactColor = (impact: string) => {
     switch (impact) {
-      case 'high': return 'text-red-600 bg-red-50';
-      case 'medium': return 'text-yellow-600 bg-yellow-50';
-      case 'low': return 'text-blue-600 bg-blue-50';
-      default: return 'text-gray-600 bg-gray-50';
+      case "high":
+        return "text-red-600 bg-red-50";
+      case "medium":
+        return "text-yellow-600 bg-yellow-50";
+      case "low":
+        return "text-blue-600 bg-blue-50";
+      default:
+        return "text-gray-600 bg-gray-50";
     }
   };
 
@@ -185,10 +199,12 @@ export function SEODashboard({ siteId, siteUrl }: SEODashboardProps) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">SEO Dashboard</h2>
-          <p className="text-gray-600">Monitor and optimize your site's SEO performance</p>
+          <p className="text-gray-600">
+            Monitor and optimize your site's SEO performance
+          </p>
         </div>
-        <Button 
-          onClick={runNewAudit} 
+        <Button
+          onClick={runNewAudit}
           disabled={runningAudit}
           className="flex items-center gap-2"
         >
@@ -197,7 +213,7 @@ export function SEODashboard({ siteId, siteUrl }: SEODashboardProps) {
           ) : (
             <Search className="h-4 w-4" />
           )}
-          {runningAudit ? 'Running Audit...' : 'Run New Audit'}
+          {runningAudit ? "Running Audit..." : "Run New Audit"}
         </Button>
       </div>
 
@@ -207,10 +223,11 @@ export function SEODashboard({ siteId, siteUrl }: SEODashboardProps) {
             <Search className="h-12 w-12 mx-auto text-gray-400 mb-4" />
             <h3 className="text-lg font-semibold mb-2">No SEO Audits Found</h3>
             <p className="text-gray-600 mb-4">
-              Run your first SEO audit to analyze your site's performance and identify optimization opportunities.
+              Run your first SEO audit to analyze your site's performance and
+              identify optimization opportunities.
             </p>
             <Button onClick={runNewAudit} disabled={runningAudit}>
-              {runningAudit ? 'Running Audit...' : 'Start SEO Audit'}
+              {runningAudit ? "Running Audit..." : "Start SEO Audit"}
             </Button>
           </CardContent>
         </Card>
@@ -220,16 +237,25 @@ export function SEODashboard({ siteId, siteUrl }: SEODashboardProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Overall Score</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Overall Score
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
-                  <div className={`text-2xl font-bold ${getScoreColor(currentAudit.score.overall)}`}>
+                  <div
+                    className={`text-2xl font-bold ${getScoreColor(currentAudit.score.overall)}`}
+                  >
                     {currentAudit.score.overall}
                   </div>
-                  <Badge variant={getScoreBadgeVariant(currentAudit.score.overall)}>
-                    {currentAudit.score.overall >= 80 ? 'Excellent' : 
-                     currentAudit.score.overall >= 60 ? 'Good' : 'Needs Work'}
+                  <Badge
+                    variant={getScoreBadgeVariant(currentAudit.score.overall)}
+                  >
+                    {currentAudit.score.overall >= 80
+                      ? "Excellent"
+                      : currentAudit.score.overall >= 60
+                        ? "Good"
+                        : "Needs Work"}
                   </Badge>
                 </div>
                 <Progress value={currentAudit.score.overall} className="mt-2" />
@@ -238,7 +264,9 @@ export function SEODashboard({ siteId, siteUrl }: SEODashboardProps) {
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Critical Issues</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Critical Issues
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
@@ -255,7 +283,9 @@ export function SEODashboard({ siteId, siteUrl }: SEODashboardProps) {
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Average Load Time</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Average Load Time
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
@@ -265,7 +295,9 @@ export function SEODashboard({ siteId, siteUrl }: SEODashboardProps) {
                   </div>
                 </div>
                 <p className="text-sm text-gray-600 mt-1">
-                  {currentAudit.summary.averageLoadTime < 3000 ? 'Good' : 'Needs optimization'}
+                  {currentAudit.summary.averageLoadTime < 3000
+                    ? "Good"
+                    : "Needs optimization"}
                 </p>
               </CardContent>
             </Card>
@@ -290,10 +322,15 @@ export function SEODashboard({ siteId, siteUrl }: SEODashboardProps) {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className={`text-xl font-bold ${getScoreColor(currentAudit.score.technical)}`}>
+                    <div
+                      className={`text-xl font-bold ${getScoreColor(currentAudit.score.technical)}`}
+                    >
                       {currentAudit.score.technical}
                     </div>
-                    <Progress value={currentAudit.score.technical} className="mt-2" />
+                    <Progress
+                      value={currentAudit.score.technical}
+                      className="mt-2"
+                    />
                   </CardContent>
                 </Card>
 
@@ -305,10 +342,15 @@ export function SEODashboard({ siteId, siteUrl }: SEODashboardProps) {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className={`text-xl font-bold ${getScoreColor(currentAudit.score.content)}`}>
+                    <div
+                      className={`text-xl font-bold ${getScoreColor(currentAudit.score.content)}`}
+                    >
                       {currentAudit.score.content}
                     </div>
-                    <Progress value={currentAudit.score.content} className="mt-2" />
+                    <Progress
+                      value={currentAudit.score.content}
+                      className="mt-2"
+                    />
                   </CardContent>
                 </Card>
 
@@ -320,10 +362,15 @@ export function SEODashboard({ siteId, siteUrl }: SEODashboardProps) {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className={`text-xl font-bold ${getScoreColor(currentAudit.score.performance)}`}>
+                    <div
+                      className={`text-xl font-bold ${getScoreColor(currentAudit.score.performance)}`}
+                    >
                       {currentAudit.score.performance}
                     </div>
-                    <Progress value={currentAudit.score.performance} className="mt-2" />
+                    <Progress
+                      value={currentAudit.score.performance}
+                      className="mt-2"
+                    />
                   </CardContent>
                 </Card>
 
@@ -335,10 +382,15 @@ export function SEODashboard({ siteId, siteUrl }: SEODashboardProps) {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className={`text-xl font-bold ${getScoreColor(currentAudit.score.accessibility)}`}>
+                    <div
+                      className={`text-xl font-bold ${getScoreColor(currentAudit.score.accessibility)}`}
+                    >
                       {currentAudit.score.accessibility}
                     </div>
-                    <Progress value={currentAudit.score.accessibility} className="mt-2" />
+                    <Progress
+                      value={currentAudit.score.accessibility}
+                      className="mt-2"
+                    />
                   </CardContent>
                 </Card>
 
@@ -350,10 +402,15 @@ export function SEODashboard({ siteId, siteUrl }: SEODashboardProps) {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className={`text-xl font-bold ${getScoreColor(currentAudit.score.wordpress)}`}>
+                    <div
+                      className={`text-xl font-bold ${getScoreColor(currentAudit.score.wordpress)}`}
+                    >
                       {currentAudit.score.wordpress}
                     </div>
-                    <Progress value={currentAudit.score.wordpress} className="mt-2" />
+                    <Progress
+                      value={currentAudit.score.wordpress}
+                      className="mt-2"
+                    />
                   </CardContent>
                 </Card>
               </div>
@@ -366,22 +423,34 @@ export function SEODashboard({ siteId, siteUrl }: SEODashboardProps) {
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                      <div className="text-2xl font-bold">{currentAudit.summary.totalPages}</div>
-                      <div className="text-sm text-gray-600">Pages Analyzed</div>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-bold">{currentAudit.summary.totalIssues}</div>
-                      <div className="text-sm text-gray-600">Total Issues</div>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-bold">{currentAudit.summary.criticalIssues}</div>
-                      <div className="text-sm text-gray-600">Critical Issues</div>
+                      <div className="text-2xl font-bold">
+                        {currentAudit.summary.totalPages}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Pages Analyzed
+                      </div>
                     </div>
                     <div>
                       <div className="text-2xl font-bold">
-                        {currentAudit.summary.mobileFriendly ? 'Yes' : 'No'}
+                        {currentAudit.summary.totalIssues}
                       </div>
-                      <div className="text-sm text-gray-600">Mobile Friendly</div>
+                      <div className="text-sm text-gray-600">Total Issues</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold">
+                        {currentAudit.summary.criticalIssues}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Critical Issues
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold">
+                        {currentAudit.summary.mobileFriendly ? "Yes" : "No"}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Mobile Friendly
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -403,20 +472,32 @@ export function SEODashboard({ siteId, siteUrl }: SEODashboardProps) {
                             </Badge>
                             <Badge variant="outline">{issue.category}</Badge>
                           </div>
-                          <p className="text-gray-600 mb-2">{issue.description}</p>
+                          <p className="text-gray-600 mb-2">
+                            {issue.description}
+                          </p>
                           <div className="bg-blue-50 p-3 rounded-md">
-                            <p className="text-sm font-medium text-blue-800 mb-1">How to fix:</p>
+                            <p className="text-sm font-medium text-blue-800 mb-1">
+                              How to fix:
+                            </p>
                             <p className="text-sm text-blue-700">{issue.fix}</p>
                           </div>
                           {issue.affectedPages.length > 0 && (
                             <div className="mt-2">
-                              <p className="text-sm font-medium text-gray-700 mb-1">Affected pages:</p>
+                              <p className="text-sm font-medium text-gray-700 mb-1">
+                                Affected pages:
+                              </p>
                               <div className="flex flex-wrap gap-1">
-                                {issue.affectedPages.slice(0, 3).map((page, index) => (
-                                  <Badge key={index} variant="outline" className="text-xs">
-                                    {page}
-                                  </Badge>
-                                ))}
+                                {issue.affectedPages
+                                  .slice(0, 3)
+                                  .map((page, index) => (
+                                    <Badge
+                                      key={index}
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      {page}
+                                    </Badge>
+                                  ))}
                                 {issue.affectedPages.length > 3 && (
                                   <Badge variant="outline" className="text-xs">
                                     +{issue.affectedPages.length - 3} more
@@ -452,16 +533,20 @@ export function SEODashboard({ siteId, siteUrl }: SEODashboardProps) {
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <div>
-                      <span className="font-medium">Version:</span> {currentAudit.wordpressInfo.version}
+                      <span className="font-medium">Version:</span>{" "}
+                      {currentAudit.wordpressInfo.version}
                     </div>
                     <div>
-                      <span className="font-medium">Theme:</span> {currentAudit.wordpressInfo.theme}
+                      <span className="font-medium">Theme:</span>{" "}
+                      {currentAudit.wordpressInfo.theme}
                     </div>
                     <div>
-                      <span className="font-medium">Total Plugins:</span> {currentAudit.wordpressInfo.plugins.length}
+                      <span className="font-medium">Total Plugins:</span>{" "}
+                      {currentAudit.wordpressInfo.plugins.length}
                     </div>
                     <div>
-                      <span className="font-medium">SEO Plugins:</span> {currentAudit.wordpressInfo.seoPlugins.length}
+                      <span className="font-medium">SEO Plugins:</span>{" "}
+                      {currentAudit.wordpressInfo.seoPlugins.length}
                     </div>
                   </CardContent>
                 </Card>
@@ -473,11 +558,13 @@ export function SEODashboard({ siteId, siteUrl }: SEODashboardProps) {
                   <CardContent>
                     {currentAudit.wordpressInfo.seoPlugins.length > 0 ? (
                       <div className="space-y-2">
-                        {currentAudit.wordpressInfo.seoPlugins.map((plugin, index) => (
-                          <Badge key={index} variant="default">
-                            {plugin}
-                          </Badge>
-                        ))}
+                        {currentAudit.wordpressInfo.seoPlugins.map(
+                          (plugin, index) => (
+                            <Badge key={index} variant="default">
+                              {plugin}
+                            </Badge>
+                          ),
+                        )}
                       </div>
                     ) : (
                       <p className="text-gray-600">No SEO plugins detected</p>

@@ -1,17 +1,30 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Progress } from '../ui/progress';
-import { Badge } from '../ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Textarea } from '../ui/textarea';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { AlertCircle, CheckCircle, TrendingUp, Brain, Target, Lightbulb } from 'lucide-react';
-import { useToast } from '../ui/use-toast';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
+import { Progress } from "../ui/progress";
+import { Badge } from "../ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { Textarea } from "../ui/textarea";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import {
+  AlertCircle,
+  CheckCircle,
+  TrendingUp,
+  Brain,
+  Target,
+  Lightbulb,
+} from "lucide-react";
+import { useToast } from "../ui/use-toast";
 
 interface PreferenceLearningDashboardProps {
   siteId: string;
@@ -51,20 +64,19 @@ interface LearningInsight {
   recommendation: string;
 }
 
-const PreferenceLearningDashboard: React.FC<PreferenceLearningDashboardProps> = ({
-  siteId,
-  userId,
-}) => {
+const PreferenceLearningDashboard: React.FC<
+  PreferenceLearningDashboardProps
+> = ({ siteId, userId }) => {
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [insights, setInsights] = useState<LearningInsight[]>([]);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [originalContent, setOriginalContent] = useState('');
-  const [editedContent, setEditedContent] = useState('');
+  const [activeTab, setActiveTab] = useState("overview");
+  const [originalContent, setOriginalContent] = useState("");
+  const [editedContent, setEditedContent] = useState("");
   const [userRating, setUserRating] = useState<number>(0);
-  const [feedback, setFeedback] = useState('');
-  const [personalizedContent, setPersonalizedContent] = useState('');
-  const [baseContent, setBaseContent] = useState('');
+  const [feedback, setFeedback] = useState("");
+  const [personalizedContent, setPersonalizedContent] = useState("");
+  const [baseContent, setBaseContent] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -74,7 +86,9 @@ const PreferenceLearningDashboard: React.FC<PreferenceLearningDashboardProps> = 
 
   const fetchPreferences = async () => {
     try {
-      const response = await fetch(`/api/ai/preferences?siteId=${siteId}&action=preferences`);
+      const response = await fetch(
+        `/api/ai/preferences?siteId=${siteId}&action=preferences`,
+      );
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.preferences) {
@@ -82,13 +96,15 @@ const PreferenceLearningDashboard: React.FC<PreferenceLearningDashboardProps> = 
         }
       }
     } catch (error) {
-      console.error('Failed to fetch preferences:', error);
+      console.error("Failed to fetch preferences:", error);
     }
   };
 
   const fetchInsights = async () => {
     try {
-      const response = await fetch(`/api/ai/preferences?siteId=${siteId}&action=insights`);
+      const response = await fetch(
+        `/api/ai/preferences?siteId=${siteId}&action=insights`,
+      );
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -96,34 +112,34 @@ const PreferenceLearningDashboard: React.FC<PreferenceLearningDashboardProps> = 
         }
       }
     } catch (error) {
-      console.error('Failed to fetch insights:', error);
+      console.error("Failed to fetch insights:", error);
     }
   };
 
   const learnFromComparison = async () => {
     if (!originalContent || !editedContent) {
       toast({
-        title: 'Error',
-        description: 'Please provide both original and edited content',
-        variant: 'destructive',
+        title: "Error",
+        description: "Please provide both original and edited content",
+        variant: "destructive",
       });
       return;
     }
 
     setLoading(true);
     try {
-      const response = await fetch('/api/ai/preferences', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/ai/preferences", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           siteId,
-          action: 'learn_from_comparison',
+          action: "learn_from_comparison",
           data: {
             original: originalContent,
             edited: editedContent,
             userRating,
             feedback,
-            contentType: 'blog',
+            contentType: "blog",
           },
         }),
       });
@@ -132,22 +148,22 @@ const PreferenceLearningDashboard: React.FC<PreferenceLearningDashboardProps> = 
         const data = await response.json();
         if (data.success) {
           toast({
-            title: 'Success',
-            description: 'AI learned from your content comparison',
+            title: "Success",
+            description: "AI learned from your content comparison",
           });
           fetchPreferences();
           fetchInsights();
-          setOriginalContent('');
-          setEditedContent('');
+          setOriginalContent("");
+          setEditedContent("");
           setUserRating(0);
-          setFeedback('');
+          setFeedback("");
         }
       }
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to learn from comparison',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to learn from comparison",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -157,25 +173,25 @@ const PreferenceLearningDashboard: React.FC<PreferenceLearningDashboardProps> = 
   const generatePersonalizedContent = async () => {
     if (!baseContent) {
       toast({
-        title: 'Error',
-        description: 'Please provide base content to personalize',
-        variant: 'destructive',
+        title: "Error",
+        description: "Please provide base content to personalize",
+        variant: "destructive",
       });
       return;
     }
 
     setLoading(true);
     try {
-      const response = await fetch('/api/ai/preferences', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/ai/preferences", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           siteId,
-          action: 'generate_personalized_content',
+          action: "generate_personalized_content",
           data: {
             baseContent,
-            contentType: 'blog',
-            keywords: ['seo', 'content', 'marketing'],
+            contentType: "blog",
+            keywords: ["seo", "content", "marketing"],
           },
         }),
       });
@@ -185,31 +201,33 @@ const PreferenceLearningDashboard: React.FC<PreferenceLearningDashboardProps> = 
         if (data.success) {
           setPersonalizedContent(data.result.optimizedContent);
           toast({
-            title: 'Success',
+            title: "Success",
             description: `Personalized content generated with ${data.result.confidence * 100}% confidence`,
           });
         }
       }
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to generate personalized content',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to generate personalized content",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const updatePreferences = async (newPreferences: Partial<UserPreferences>) => {
+  const updatePreferences = async (
+    newPreferences: Partial<UserPreferences>,
+  ) => {
     setLoading(true);
     try {
-      const response = await fetch('/api/ai/preferences', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/ai/preferences", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           siteId,
-          action: 'update_preferences',
+          action: "update_preferences",
           data: {
             contentStyle: { ...preferences, ...newPreferences },
           },
@@ -221,16 +239,16 @@ const PreferenceLearningDashboard: React.FC<PreferenceLearningDashboardProps> = 
         if (data.success) {
           setPreferences(data.preferences.contentStyle);
           toast({
-            title: 'Success',
-            description: 'Preferences updated successfully',
+            title: "Success",
+            description: "Preferences updated successfully",
           });
         }
       }
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to update preferences',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to update preferences",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -238,15 +256,15 @@ const PreferenceLearningDashboard: React.FC<PreferenceLearningDashboardProps> = 
   };
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.8) return 'text-green-600';
-    if (confidence >= 0.6) return 'text-yellow-600';
-    return 'text-red-600';
+    if (confidence >= 0.8) return "text-green-600";
+    if (confidence >= 0.6) return "text-yellow-600";
+    return "text-red-600";
   };
 
   const getConfidenceLabel = (confidence: number) => {
-    if (confidence >= 0.8) return 'High';
-    if (confidence >= 0.6) return 'Medium';
-    return 'Low';
+    if (confidence >= 0.8) return "High";
+    if (confidence >= 0.6) return "Medium";
+    return "Low";
   };
 
   return (
@@ -271,25 +289,29 @@ const PreferenceLearningDashboard: React.FC<PreferenceLearningDashboardProps> = 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Learning Confidence</CardTitle>
+                    <CardTitle className="text-sm font-medium">
+                      Learning Confidence
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {preferences ? '75%' : '0%'}
+                      {preferences ? "75%" : "0%"}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Based on {preferences ? '15' : '0'} content samples
+                      Based on {preferences ? "15" : "0"} content samples
                     </p>
                   </CardContent>
                 </Card>
 
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Preferred Tone</CardTitle>
+                    <CardTitle className="text-sm font-medium">
+                      Preferred Tone
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {preferences?.tone || 'Not learned'}
+                      {preferences?.tone || "Not learned"}
                     </div>
                     <p className="text-xs text-muted-foreground">
                       Most common writing style
@@ -299,11 +321,13 @@ const PreferenceLearningDashboard: React.FC<PreferenceLearningDashboardProps> = 
 
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Content Structure</CardTitle>
+                    <CardTitle className="text-sm font-medium">
+                      Content Structure
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {preferences?.structure || 'Not learned'}
+                      {preferences?.structure || "Not learned"}
                     </div>
                     <p className="text-xs text-muted-foreground">
                       Preferred content format
@@ -323,17 +347,25 @@ const PreferenceLearningDashboard: React.FC<PreferenceLearningDashboardProps> = 
                         <Label>Tone</Label>
                         <Select
                           value={preferences.tone}
-                          onValueChange={(value) => updatePreferences({ tone: value })}
+                          onValueChange={(value) =>
+                            updatePreferences({ tone: value })
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="professional">Professional</SelectItem>
+                            <SelectItem value="professional">
+                              Professional
+                            </SelectItem>
                             <SelectItem value="casual">Casual</SelectItem>
                             <SelectItem value="technical">Technical</SelectItem>
-                            <SelectItem value="conversational">Conversational</SelectItem>
-                            <SelectItem value="authoritative">Authoritative</SelectItem>
+                            <SelectItem value="conversational">
+                              Conversational
+                            </SelectItem>
+                            <SelectItem value="authoritative">
+                              Authoritative
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -342,7 +374,9 @@ const PreferenceLearningDashboard: React.FC<PreferenceLearningDashboardProps> = 
                         <Label>Length</Label>
                         <Select
                           value={preferences.length}
-                          onValueChange={(value) => updatePreferences({ length: value })}
+                          onValueChange={(value) =>
+                            updatePreferences({ length: value })
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue />
@@ -359,7 +393,9 @@ const PreferenceLearningDashboard: React.FC<PreferenceLearningDashboardProps> = 
                         <Label>Structure</Label>
                         <Select
                           value={preferences.structure}
-                          onValueChange={(value) => updatePreferences({ structure: value })}
+                          onValueChange={(value) =>
+                            updatePreferences({ structure: value })
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue />
@@ -368,7 +404,9 @@ const PreferenceLearningDashboard: React.FC<PreferenceLearningDashboardProps> = 
                             <SelectItem value="list">List</SelectItem>
                             <SelectItem value="narrative">Narrative</SelectItem>
                             <SelectItem value="how-to">How-to</SelectItem>
-                            <SelectItem value="comparison">Comparison</SelectItem>
+                            <SelectItem value="comparison">
+                              Comparison
+                            </SelectItem>
                             <SelectItem value="review">Review</SelectItem>
                           </SelectContent>
                         </Select>
@@ -378,9 +416,14 @@ const PreferenceLearningDashboard: React.FC<PreferenceLearningDashboardProps> = 
                         <Label>Paragraph Length</Label>
                         <Select
                           value={preferences.style.paragraphLength}
-                          onValueChange={(value) => updatePreferences({ 
-                            style: { ...preferences.style, paragraphLength: value }
-                          })}
+                          onValueChange={(value) =>
+                            updatePreferences({
+                              style: {
+                                ...preferences.style,
+                                paragraphLength: value,
+                              },
+                            })
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue />
@@ -431,7 +474,9 @@ const PreferenceLearningDashboard: React.FC<PreferenceLearningDashboardProps> = 
                       <Label htmlFor="rating">Rating (1-5)</Label>
                       <Select
                         value={userRating.toString()}
-                        onValueChange={(value) => setUserRating(parseInt(value))}
+                        onValueChange={(value) =>
+                          setUserRating(parseInt(value))
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select rating" />
@@ -458,7 +503,7 @@ const PreferenceLearningDashboard: React.FC<PreferenceLearningDashboardProps> = 
                   </div>
 
                   <Button onClick={learnFromComparison} disabled={loading}>
-                    {loading ? 'Learning...' : 'Teach AI'}
+                    {loading ? "Learning..." : "Teach AI"}
                   </Button>
                 </CardContent>
               </Card>
@@ -481,8 +526,13 @@ const PreferenceLearningDashboard: React.FC<PreferenceLearningDashboardProps> = 
                     />
                   </div>
 
-                  <Button onClick={generatePersonalizedContent} disabled={loading}>
-                    {loading ? 'Generating...' : 'Generate Personalized Content'}
+                  <Button
+                    onClick={generatePersonalizedContent}
+                    disabled={loading}
+                  >
+                    {loading
+                      ? "Generating..."
+                      : "Generate Personalized Content"}
                   </Button>
 
                   {personalizedContent && (
@@ -512,8 +562,14 @@ const PreferenceLearningDashboard: React.FC<PreferenceLearningDashboardProps> = 
                         <div key={index} className="border rounded-lg p-4">
                           <div className="flex items-start justify-between mb-2">
                             <h4 className="font-medium">{insight.pattern}</h4>
-                            <Badge 
-                              variant={insight.confidence >= 0.8 ? 'default' : insight.confidence >= 0.6 ? 'secondary' : 'destructive'}
+                            <Badge
+                              variant={
+                                insight.confidence >= 0.8
+                                  ? "default"
+                                  : insight.confidence >= 0.6
+                                    ? "secondary"
+                                    : "destructive"
+                              }
                             >
                               {getConfidenceLabel(insight.confidence)}
                             </Badge>
@@ -525,7 +581,10 @@ const PreferenceLearningDashboard: React.FC<PreferenceLearningDashboardProps> = 
                             <TrendingUp className="h-3 w-3" />
                             <span>Frequency: {insight.frequency} times</span>
                             <span>•</span>
-                            <span>Confidence: {(insight.confidence * 100).toFixed(0)}%</span>
+                            <span>
+                              Confidence:{" "}
+                              {(insight.confidence * 100).toFixed(0)}%
+                            </span>
                           </div>
                         </div>
                       ))}
@@ -534,7 +593,8 @@ const PreferenceLearningDashboard: React.FC<PreferenceLearningDashboardProps> = 
                     <div className="text-center py-8">
                       <Lightbulb className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                       <p className="text-muted-foreground">
-                        No insights yet. Start teaching the AI by comparing content in the Learning tab.
+                        No insights yet. Start teaching the AI by comparing
+                        content in the Learning tab.
                       </p>
                     </div>
                   )}

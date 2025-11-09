@@ -3,50 +3,49 @@
  * Handles backlink analysis and link building campaigns
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { requireEditAccess } from '@/app/lib/rbac';
-import { BacklinkAnalyzer } from '@/lib/seo/backlink-analyzer';
-import { prisma } from '@/lib/prisma';
-import { logger } from '@/lib/logger';
-import { redactSensitive } from '@/lib/redact';
+import { NextRequest, NextResponse } from "next/server";
+import { requireEditAccess } from "@/app/lib/rbac";
+import { BacklinkAnalyzer } from "@/lib/seo/backlink-analyzer";
+import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
+import { redactSensitive } from "@/lib/redact";
 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await requireEditAccess(request);
     const body = await request.json();
-    
-    const { 
-      siteId, 
-      action,
-      data = {}
-    } = body;
+
+    const { siteId, action, data = {} } = body;
 
     if (!siteId || !action) {
       return NextResponse.json(
-        { error: 'Missing required fields: siteId, action' },
-        { status: 400 }
+        { error: "Missing required fields: siteId, action" },
+        { status: 400 },
       );
     }
 
     const backlinkAnalyzer = new BacklinkAnalyzer();
 
     switch (action) {
-      case 'analyze_backlinks': {
+      case "analyze_backlinks": {
         const { domain, competitors = [] } = data;
-        
+
         if (!domain) {
           return NextResponse.json(
-            { error: 'Missing domain for backlink analysis' },
-            { status: 400 }
+            { error: "Missing domain for backlink analysis" },
+            { status: 400 },
           );
         }
 
         logger.info(
           { userId, siteId, domain: redactSensitive(domain) },
-          'Starting backlink analysis'
+          "Starting backlink analysis",
         );
 
-        const analysis = await backlinkAnalyzer.analyzeBacklinks(domain, competitors);
+        const analysis = await backlinkAnalyzer.analyzeBacklinks(
+          domain,
+          competitors,
+        );
 
         // Save analysis to database
         await prisma.backlinkProfile.upsert({
@@ -74,43 +73,50 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           analysis,
-          message: 'Backlink analysis completed',
+          message: "Backlink analysis completed",
         });
       }
 
-      case 'find_opportunities': {
+      case "find_opportunities": {
         const { domain, competitors = [] } = data;
-        
+
         if (!domain) {
           return NextResponse.json(
-            { error: 'Missing domain for opportunity analysis' },
-            { status: 400 }
+            { error: "Missing domain for opportunity analysis" },
+            { status: 400 },
           );
         }
 
-        const opportunities = await backlinkAnalyzer.findLinkBuildingOpportunities(domain, competitors);
+        const opportunities =
+          await backlinkAnalyzer.findLinkBuildingOpportunities(
+            domain,
+            competitors,
+          );
 
         return NextResponse.json({
           success: true,
           opportunities,
-          message: 'Link building opportunities found',
+          message: "Link building opportunities found",
         });
       }
 
-      case 'create_campaign': {
+      case "create_campaign": {
         const { name, targetDomain, opportunities } = data;
-        
+
         if (!name || !targetDomain || !opportunities) {
           return NextResponse.json(
-            { error: 'Missing required fields: name, targetDomain, opportunities' },
-            { status: 400 }
+            {
+              error:
+                "Missing required fields: name, targetDomain, opportunities",
+            },
+            { status: 400 },
           );
         }
 
         const campaign = await backlinkAnalyzer.createLinkBuildingCampaign(
           name,
           targetDomain,
-          opportunities
+          opportunities,
         );
 
         // Save campaign to database
@@ -120,8 +126,10 @@ export async function POST(request: NextRequest) {
 
         if (!backlinkProfile) {
           return NextResponse.json(
-            { error: 'Backlink profile not found. Run backlink analysis first.' },
-            { status: 404 }
+            {
+              error: "Backlink profile not found. Run backlink analysis first.",
+            },
+            { status: 404 },
           );
         }
 
@@ -140,27 +148,30 @@ export async function POST(request: NextRequest) {
 
         logger.info(
           { userId, siteId, campaignId: campaign.id },
-          'Link building campaign created'
+          "Link building campaign created",
         );
 
         return NextResponse.json({
           success: true,
           campaign,
-          message: 'Link building campaign created',
+          message: "Link building campaign created",
         });
       }
 
-      case 'update_campaign_progress': {
+      case "update_campaign_progress": {
         const { campaignId, progress } = data;
-        
+
         if (!campaignId || !progress) {
           return NextResponse.json(
-            { error: 'Missing campaignId or progress data' },
-            { status: 400 }
+            { error: "Missing campaignId or progress data" },
+            { status: 400 },
           );
         }
 
-        const campaign = await backlinkAnalyzer.updateCampaignProgress(campaignId, progress);
+        const campaign = await backlinkAnalyzer.updateCampaignProgress(
+          campaignId,
+          progress,
+        );
 
         // Update campaign in database
         await prisma.linkBuildingCampaign.update({
@@ -175,29 +186,25 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           campaign,
-          message: 'Campaign progress updated',
+          message: "Campaign progress updated",
         });
       }
 
       default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
-
   } catch (error) {
     logger.error(
       { error: redactSensitive(error) },
-      'Backlink analysis API failed'
+      "Backlink analysis API failed",
     );
 
     return NextResponse.json(
-      { 
-        error: 'Backlink analysis operation failed', 
-        message: error instanceof Error ? error.message : 'Unknown error' 
+      {
+        error: "Backlink analysis operation failed",
+        message: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -206,19 +213,19 @@ export async function GET(request: NextRequest) {
   try {
     const { userId } = await requireEditAccess(request);
     const { searchParams } = new URL(request.url);
-    
-    const siteId = searchParams.get('siteId');
-    const action = searchParams.get('action');
+
+    const siteId = searchParams.get("siteId");
+    const action = searchParams.get("action");
 
     if (!siteId || !action) {
       return NextResponse.json(
-        { error: 'Missing siteId or action parameter' },
-        { status: 400 }
+        { error: "Missing siteId or action parameter" },
+        { status: 400 },
       );
     }
 
     switch (action) {
-      case 'profile': {
+      case "profile": {
         const backlinkProfile = await prisma.backlinkProfile.findUnique({
           where: { siteId },
         });
@@ -229,10 +236,10 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      case 'campaigns': {
+      case "campaigns": {
         const campaigns = await prisma.linkBuildingCampaign.findMany({
           where: { siteId },
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
         });
 
         return NextResponse.json({
@@ -241,13 +248,13 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      case 'campaign': {
-        const campaignId = searchParams.get('campaignId');
-        
+      case "campaign": {
+        const campaignId = searchParams.get("campaignId");
+
         if (!campaignId) {
           return NextResponse.json(
-            { error: 'Missing campaignId parameter' },
-            { status: 400 }
+            { error: "Missing campaignId parameter" },
+            { status: 400 },
           );
         }
 
@@ -257,8 +264,8 @@ export async function GET(request: NextRequest) {
 
         if (!campaign) {
           return NextResponse.json(
-            { error: 'Campaign not found' },
-            { status: 404 }
+            { error: "Campaign not found" },
+            { status: 404 },
           );
         }
 
@@ -269,21 +276,17 @@ export async function GET(request: NextRequest) {
       }
 
       default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
-
   } catch (error) {
     logger.error(
       { error: redactSensitive(error) },
-      'Backlink analysis GET API failed'
+      "Backlink analysis GET API failed",
     );
 
     return NextResponse.json(
-      { error: 'Backlink analysis operation failed' },
-      { status: 500 }
+      { error: "Backlink analysis operation failed" },
+      { status: 500 },
     );
   }
 }

@@ -15,19 +15,19 @@ export async function POST(request: NextRequest) {
   try {
     const { userId } = await requireEditAccess(request);
     const body = await request.json();
-    
-    const { 
-      siteId, 
-      draftId, 
+
+    const {
+      siteId,
+      draftId,
       action,
       publishImmediately = false,
-      skipRulebookCheck = false 
+      skipRulebookCheck = false,
     } = body;
 
     if (!siteId || !draftId || !action) {
       return NextResponse.json(
         { error: "Missing required fields: siteId, draftId, action" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -64,8 +64,11 @@ export async function POST(request: NextRequest) {
 
       default:
         return NextResponse.json(
-          { error: "Invalid action. Supported actions: stream_and_publish, stream_draft, publish, get_status" },
-          { status: 400 }
+          {
+            error:
+              "Invalid action. Supported actions: stream_and_publish, stream_draft, publish, get_status",
+          },
+          { status: 400 },
         );
     }
 
@@ -77,7 +80,7 @@ export async function POST(request: NextRequest) {
         action,
         success: (result as any).success,
       },
-      `WordPress workflow ${action} completed`
+      `WordPress workflow ${action} completed`,
     );
 
     return NextResponse.json(result);
@@ -87,26 +90,20 @@ export async function POST(request: NextRequest) {
         error: redactSensitive(error),
         action: "wordpress_workflow",
       },
-      "Failed to process WordPress workflow"
+      "Failed to process WordPress workflow",
     );
 
     if (error instanceof Error && error.message === "unauthorized") {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     if (error instanceof Error && error.message === "forbidden") {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

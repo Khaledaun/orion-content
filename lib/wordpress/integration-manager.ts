@@ -3,8 +3,17 @@
  * Extends the existing IntegrationManager with WordPress-specific functionality
  */
 
-import { IntegrationManager, IntegrationType, IntegrationCredentials } from "../integration-manager";
-import { WordPressConnector, WordPressCredentials, WordPressPost, WordPressPostCreate } from "./connector";
+import {
+  IntegrationManager,
+  IntegrationType,
+  IntegrationCredentials,
+} from "../integration-manager";
+import {
+  WordPressConnector,
+  WordPressCredentials,
+  WordPressPost,
+  WordPressPostCreate,
+} from "./connector";
 import { prisma } from "../prisma";
 import { logger } from "../logger";
 import { redactSensitive } from "../redact";
@@ -47,18 +56,18 @@ export class WordPressIntegrationManager extends IntegrationManager {
    */
   async saveWordPressCredentials(
     siteId: string,
-    credentials: WordPressCredentials
+    credentials: WordPressCredentials,
   ): Promise<WordPressIntegrationInfo> {
     try {
       const integration = await this.saveCredentials(
         IntegrationType.WORDPRESS,
         credentials as unknown as IntegrationCredentials,
-        siteId
+        siteId,
       );
 
       // Test the connection immediately
       const testResult = await this.testWordPressConnectionBySite(siteId);
-      
+
       return {
         id: integration.id,
         siteId: integration.siteId || siteId,
@@ -76,7 +85,7 @@ export class WordPressIntegrationManager extends IntegrationManager {
           siteId,
           siteUrl: redactSensitive(credentials.siteUrl),
         },
-        "Failed to save WordPress credentials"
+        "Failed to save WordPress credentials",
       );
       throw error;
     }
@@ -85,9 +94,14 @@ export class WordPressIntegrationManager extends IntegrationManager {
   /**
    * Get WordPress integration info for a site
    */
-  async getWordPressIntegration(siteId: string): Promise<WordPressIntegrationInfo | null> {
+  async getWordPressIntegration(
+    siteId: string,
+  ): Promise<WordPressIntegrationInfo | null> {
     try {
-      const integration: any = await this.getCredentials(IntegrationType.WORDPRESS, siteId);
+      const integration: any = await this.getCredentials(
+        IntegrationType.WORDPRESS,
+        siteId,
+      );
 
       if (!integration) {
         return null;
@@ -110,7 +124,7 @@ export class WordPressIntegrationManager extends IntegrationManager {
           error: redactSensitive(error),
           siteId,
         },
-        "Failed to get WordPress integration"
+        "Failed to get WordPress integration",
       );
       return null;
     }
@@ -131,8 +145,11 @@ export class WordPressIntegrationManager extends IntegrationManager {
     };
   }> {
     try {
-      const credentials = await this.getCredentials(IntegrationType.WORDPRESS, siteId);
-      
+      const credentials = await this.getCredentials(
+        IntegrationType.WORDPRESS,
+        siteId,
+      );
+
       if (!credentials) {
         return {
           success: false,
@@ -142,9 +159,9 @@ export class WordPressIntegrationManager extends IntegrationManager {
 
       const wpCredentials = credentials as unknown as WordPressCredentials;
       const connector = new WordPressConnector(wpCredentials);
-      
+
       const testResult = await connector.testConnection();
-      
+
       // Update verification status
       if (testResult.success) {
         await prisma.integration.update({
@@ -168,9 +185,9 @@ export class WordPressIntegrationManager extends IntegrationManager {
           error: redactSensitive(error),
           siteId,
         },
-        "WordPress connection test failed"
+        "WordPress connection test failed",
       );
-      
+
       return {
         success: false,
         message: `Connection test failed: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -182,8 +199,11 @@ export class WordPressIntegrationManager extends IntegrationManager {
    * Create a WordPress connector for a site
    */
   private async createConnector(siteId: string): Promise<WordPressConnector> {
-    const credentials = await this.getCredentials(IntegrationType.WORDPRESS, siteId);
-    
+    const credentials = await this.getCredentials(
+      IntegrationType.WORDPRESS,
+      siteId,
+    );
+
     if (!credentials) {
       throw new Error("No WordPress credentials found for this site");
     }
@@ -209,15 +229,18 @@ export class WordPressIntegrationManager extends IntegrationManager {
         altText?: string;
       };
       meta?: Record<string, any>;
-    }
+    },
   ): Promise<WordPressDraftResult> {
     try {
       const connector = await this.createConnector(siteId);
-      
+
       // Map categories and tags to WordPress IDs
-      const categoryIds = await this.mapCategoriesToIds(connector, draft.categories || []);
+      const categoryIds = await this.mapCategoriesToIds(
+        connector,
+        draft.categories || [],
+      );
       const tagIds = await this.mapTagsToIds(connector, draft.tags || []);
-      
+
       // Upload featured image if provided
       let featuredMediaId: number | undefined;
       if (draft.featuredImage) {
@@ -235,7 +258,7 @@ export class WordPressIntegrationManager extends IntegrationManager {
               error: redactSensitive(error),
               imageUrl: redactSensitive(draft.featuredImage.url),
             },
-            "Failed to upload featured image, continuing without it"
+            "Failed to upload featured image, continuing without it",
           );
         }
       }
@@ -253,14 +276,14 @@ export class WordPressIntegrationManager extends IntegrationManager {
       };
 
       const post = await connector.createPost(postData);
-      
+
       logger.info(
         {
           siteId,
           postId: post.id,
           title: redactSensitive(draft.title),
         },
-        "Draft streamed to WordPress successfully"
+        "Draft streamed to WordPress successfully",
       );
 
       return {
@@ -276,9 +299,9 @@ export class WordPressIntegrationManager extends IntegrationManager {
           siteId,
           title: redactSensitive(draft.title),
         },
-        "Failed to stream draft to WordPress"
+        "Failed to stream draft to WordPress",
       );
-      
+
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
@@ -291,23 +314,23 @@ export class WordPressIntegrationManager extends IntegrationManager {
    */
   async publishWordPressPost(
     siteId: string,
-    postId: number
+    postId: number,
   ): Promise<WordPressPublishResult> {
     try {
       const connector = await this.createConnector(siteId);
-      
+
       const post = await connector.updatePost({
         id: postId,
         status: "publish",
       });
-      
+
       logger.info(
         {
           siteId,
           postId,
           title: redactSensitive(post.title.rendered),
         },
-        "WordPress post published successfully"
+        "WordPress post published successfully",
       );
 
       return {
@@ -322,12 +345,12 @@ export class WordPressIntegrationManager extends IntegrationManager {
           siteId,
           postId,
         },
-        "Failed to publish WordPress post"
+        "Failed to publish WordPress post",
       );
-      
+
       // Determine if the error is retryable
       const retryable = this.isRetryableError(error);
-      
+
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
@@ -342,23 +365,23 @@ export class WordPressIntegrationManager extends IntegrationManager {
   async updateWordPressPost(
     siteId: string,
     postId: number,
-    updates: Partial<WordPressPostCreate>
+    updates: Partial<WordPressPostCreate>,
   ): Promise<WordPressPublishResult> {
     try {
       const connector = await this.createConnector(siteId);
-      
+
       const post = await connector.updatePost({
         id: postId,
         ...updates,
       });
-      
+
       logger.info(
         {
           siteId,
           postId,
           title: redactSensitive(updates.title),
         },
-        "WordPress post updated successfully"
+        "WordPress post updated successfully",
       );
 
       return {
@@ -373,11 +396,11 @@ export class WordPressIntegrationManager extends IntegrationManager {
           siteId,
           postId,
         },
-        "Failed to update WordPress post"
+        "Failed to update WordPress post",
       );
-      
+
       const retryable = this.isRetryableError(error);
-      
+
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
@@ -389,7 +412,10 @@ export class WordPressIntegrationManager extends IntegrationManager {
   /**
    * Get WordPress post by ID
    */
-  async getWordPressPost(siteId: string, postId: number): Promise<WordPressPost | null> {
+  async getWordPressPost(
+    siteId: string,
+    postId: number,
+  ): Promise<WordPressPost | null> {
     try {
       const connector = await this.createConnector(siteId);
       return await connector.getPost(postId);
@@ -400,7 +426,7 @@ export class WordPressIntegrationManager extends IntegrationManager {
           siteId,
           postId,
         },
-        "Failed to get WordPress post"
+        "Failed to get WordPress post",
       );
       return null;
     }
@@ -416,7 +442,7 @@ export class WordPressIntegrationManager extends IntegrationManager {
       page?: number;
       status?: string;
       search?: string;
-    } = {}
+    } = {},
   ): Promise<WordPressPost[]> {
     try {
       const connector = await this.createConnector(siteId);
@@ -428,7 +454,7 @@ export class WordPressIntegrationManager extends IntegrationManager {
           siteId,
           options,
         },
-        "Failed to list WordPress posts"
+        "Failed to list WordPress posts",
       );
       return [];
     }
@@ -439,16 +465,18 @@ export class WordPressIntegrationManager extends IntegrationManager {
    */
   private async mapCategoriesToIds(
     connector: WordPressConnector,
-    categoryNames: string[]
+    categoryNames: string[],
   ): Promise<number[]> {
     if (categoryNames.length === 0) return [];
-    
+
     try {
       const categories = await connector.getCategories();
-      const categoryMap = new Map(categories.map(cat => [cat.name.toLowerCase(), cat.id]));
-      
+      const categoryMap = new Map(
+        categories.map((cat) => [cat.name.toLowerCase(), cat.id]),
+      );
+
       return categoryNames
-        .map(name => categoryMap.get(name.toLowerCase()))
+        .map((name) => categoryMap.get(name.toLowerCase()))
         .filter((id): id is number => id !== undefined);
     } catch (error) {
       logger.warn(
@@ -456,7 +484,7 @@ export class WordPressIntegrationManager extends IntegrationManager {
           error: redactSensitive(error),
           categoryNames,
         },
-        "Failed to map categories, continuing without them"
+        "Failed to map categories, continuing without them",
       );
       return [];
     }
@@ -467,16 +495,18 @@ export class WordPressIntegrationManager extends IntegrationManager {
    */
   private async mapTagsToIds(
     connector: WordPressConnector,
-    tagNames: string[]
+    tagNames: string[],
   ): Promise<number[]> {
     if (tagNames.length === 0) return [];
-    
+
     try {
       const tags = await connector.getTags();
-      const tagMap = new Map(tags.map(tag => [tag.name.toLowerCase(), tag.id]));
-      
+      const tagMap = new Map(
+        tags.map((tag) => [tag.name.toLowerCase(), tag.id]),
+      );
+
       return tagNames
-        .map(name => tagMap.get(name.toLowerCase()))
+        .map((name) => tagMap.get(name.toLowerCase()))
         .filter((id): id is number => id !== undefined);
     } catch (error) {
       logger.warn(
@@ -484,7 +514,7 @@ export class WordPressIntegrationManager extends IntegrationManager {
           error: redactSensitive(error),
           tagNames,
         },
-        "Failed to map tags, continuing without them"
+        "Failed to map tags, continuing without them",
       );
       return [];
     }
@@ -496,23 +526,35 @@ export class WordPressIntegrationManager extends IntegrationManager {
   private isRetryableError(error: unknown): boolean {
     if (error instanceof Error) {
       const message = error.message.toLowerCase();
-      
+
       // Network errors are retryable
-      if (message.includes("network") || message.includes("timeout") || message.includes("connection")) {
+      if (
+        message.includes("network") ||
+        message.includes("timeout") ||
+        message.includes("connection")
+      ) {
         return true;
       }
-      
+
       // Rate limiting is retryable
-      if (message.includes("rate limit") || message.includes("too many requests")) {
+      if (
+        message.includes("rate limit") ||
+        message.includes("too many requests")
+      ) {
         return true;
       }
-      
+
       // Server errors (5xx) are retryable
-      if (message.includes("500") || message.includes("502") || message.includes("503") || message.includes("504")) {
+      if (
+        message.includes("500") ||
+        message.includes("502") ||
+        message.includes("503") ||
+        message.includes("504")
+      ) {
         return true;
       }
     }
-    
+
     return false;
   }
 
@@ -528,14 +570,14 @@ export class WordPressIntegrationManager extends IntegrationManager {
           type: IntegrationType.WORDPRESS,
         },
       });
-      
+
       logger.info(
         {
           siteId,
         },
-        "WordPress credentials deleted successfully"
+        "WordPress credentials deleted successfully",
       );
-      
+
       return true;
     } catch (error) {
       logger.error(
@@ -543,7 +585,7 @@ export class WordPressIntegrationManager extends IntegrationManager {
           error: redactSensitive(error),
           siteId,
         },
-        "Failed to delete WordPress credentials"
+        "Failed to delete WordPress credentials",
       );
       return false;
     }
